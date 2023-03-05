@@ -43,3 +43,8 @@ CadMath::Matrix4x4 Transform::GetScaleMatrix() const
 		{0.0f,     0.0f,     scale.Z(),0.0f},
 		{0.0f,     0.0f,     0.0f,     1.0f}} };
 }
+
+Transform Transform::operator+(const Transform& t)
+{
+	return Transform(location+t.location,rotation+t.rotation,scale+t.scale);
+}

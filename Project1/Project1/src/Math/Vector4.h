@@ -20,7 +20,14 @@ namespace CadMath
 		float Y() const { return values[1]; }
 		float Z() const { return values[2]; }
 		float getLength() const;
+		Vector4 getColor() const;
 	};
 
 	Vector4 vectorTo(Vector4 from, Vector4 to);
+	Vector4 operator* (const Vector4& vec, const float& scalar);
+	Vector4 operator* (const float& scalar, const Vector4& vec);
+	Vector4 operator/ (const Vector4& vec, const float& scalar);
+	float operator* (const Vector4& vec1, const Vector4& vec2);
+	
 }
+

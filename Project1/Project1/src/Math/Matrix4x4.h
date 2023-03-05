@@ -17,5 +17,7 @@ namespace CadMath
 		Matrix4x4 operator* (const Matrix4x4& mat) const;
 		Vector4 operator* (const Vector4& mat) const;
 		Matrix4x4 operator- () const;
+		float* operator[] (int i);
+		const float* operator[] (int i) const;
 	};
 }

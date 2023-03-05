@@ -95,3 +95,13 @@ CadMath::Matrix4x4 CadMath::Matrix4x4::operator-() const
 			newNumbers[i][j] = -values[i][j];
 	return Matrix4x4(newNumbers);
 }
+
+float* CadMath::Matrix4x4::operator[](int i)
+{
+	return values[i];
+}
+
+const float* CadMath::Matrix4x4::operator[](int i) const
+{
+	return values[i];
+}

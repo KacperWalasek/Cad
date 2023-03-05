@@ -1,31 +1,48 @@
 #include "Renderer.h"
 #include <iostream>
-
-void Renderer::CreateTexture()
+#include <glfw/glfw3.h>
+void Renderer::CreateTexture(float lastToutchTime)
 {
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    if (elipse.image == nullptr || imageFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    {
+        if (elipse.image)
+        {
+            delete elipse.image;
+            elipse.image = imageFuture.get();
+            if (glfwGetTime() - lastToutchTime<1)
+                imageFuture = std::async(std::launch::async, [this]() {return elipse.createTexture(160, 90); });
+            else
+                imageFuture = std::async(std::launch::async, [this]() {return elipse.createTexture(1600, 900); });
 
-    elipse.setRadious(0.0009, 0.009, 0.0009);
-    texName = elipse.createTexture();
+        }
+        else
+        {
+            elipse.image = elipse.createTexture(16, 9);
+            imageFuture = std::async(std::launch::async, [this]() {return elipse.createTexture(16,9); });
+            return;
+        }
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glGenTextures(1, &texName);
 
-    glBindTexture(GL_TEXTURE_2D, texName);
+        glBindTexture(GL_TEXTURE_2D, texName);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-        GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-        GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TexSizeX,
-        TexSizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-        elipse.image);
-
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+            GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+            GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, elipse.currentSizeX,
+            elipse.currentSizeY, 0, GL_RGB, GL_UNSIGNED_BYTE,
+            elipse.image);
+    }
 }
 
-Renderer::Renderer()
-    :shader("Shaders/vertexShader.vert","Shaders/fragmentShader.frag")
+Renderer::Renderer(Window& window)
+    :shader("Shaders/vertexShader.vert","Shaders/fragmentShader.frag"), window(window)
 {
 }
+
 
 void Renderer::Init()
 {
@@ -76,10 +93,35 @@ void Renderer::Init()
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
-    CreateTexture();
+
+    elipse.setRadious(10, 10, 20);
+
+}
+
+void Renderer::Update(float lastToutchTime)
+{
+    if (window.curentMouseVectorX != 0 || window.curentMouseVectorY != 0)
+    {
+        if (window.shouldApply)
+        {
+            elipse.applyTemporaryTransformation();
+            window.shouldApply = false;
+        }
+        if (window.isCrtlPressed)
+        {
+            float len = sqrt(window.curentMouseVectorX * window.curentMouseVectorX + window.curentMouseVectorY * window.curentMouseVectorY);
+            elipse.temporaryTransformation.scale = { {100 / (1 + len),100 / (1 + len),100 / (1 + len),0} };
+        }
+        else if (window.isShiftPressed)
+            elipse.temporaryTransformation.location = { {(float)-window.curentMouseVectorX,(float)window.curentMouseVectorY,0,0} };
+        else
+            elipse.temporaryTransformation.rotation = { {(float)window.curentMouseVectorY / 1000,-(float)window.curentMouseVectorX / 1000,0,0} };
+
+        elipse.updateTransforamtions();
+    }
+    CreateTexture(lastToutchTime);
     shader.use();
     glUniform1i(glGetUniformLocation(shader.ID, "texture"), 0);
-
 }
 
 void Renderer::Render()
@@ -93,5 +135,13 @@ void Renderer::Render()
     //glDrawArrays(GL_TRIANGLES, 0, 6);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // glBindVertexArray(0); // no need to unbind it every time 
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    elipse.renderUI();
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 }
