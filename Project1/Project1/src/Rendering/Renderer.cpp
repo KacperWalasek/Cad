@@ -4,7 +4,7 @@
 
 Renderer::Renderer(Window& window, Elipse& elipse)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window), 
-    adaptiveRendering([&elipse](int x, int y) { return elipse.CalculatePixelColor(x, y); },1600,1600.f/900.f, 16, 2)
+    adaptiveRendering([&elipse](int x, int y) { return elipse.CalculatePixelColor(x, y); },1600,1600.f/900.f, 160, 2)
 {
 }
 
@@ -19,9 +19,17 @@ void Renderer::Init()
 
 void Renderer::Update(Elipse& elipse)
 {
+
     elipse.Update(window);
     if (window.curentMouseVectorX != 0 || window.curentMouseVectorY != 0)
+    {
+        if (!isMoving)
+            adaptiveRendering.hardReset = true;
+        isMoving = true;
         adaptiveRendering.Reset();
+    }
+    else
+        isMoving = false;
     adaptiveRendering.Checkout();
 }
 
@@ -31,7 +39,6 @@ void Renderer::Render(Elipse& elipse, ElipseGui& gui)
     glClear(GL_COLOR_BUFFER_BIT);
 
     adaptiveRendering.Render();
-    //elipse.Render();
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();

@@ -87,36 +87,39 @@ bool AdaptiveRendering::Checkout()
         job = std::async(std::launch::async, [this]() {return createTexture(aimedSizeX, aimedSizeY); });
         return false;
     }
-    
-
-    if (job.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    if (hardReset)
+        reset = reset;
+    if (hardReset || job.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
-        delete currentTexture;
-        currentTexture = job.get();
-        currentSizeX = aimedSizeX;
-        currentSizeY = aimedSizeY;
+        if (!hardReset)
+        {
+            delete currentTexture;
+            currentTexture = job.get();
+            currentSizeX = aimedSizeX;
+            currentSizeY = aimedSizeY;
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glGenTextures(1, &texName);
+            //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glGenTextures(1, &texName);
 
-        glBindTexture(GL_TEXTURE_2D, texName);
+            glBindTexture(GL_TEXTURE_2D, texName);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-            GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-            GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, currentSizeX,
-            currentSizeY, 0, GL_RGB, GL_UNSIGNED_BYTE,
-            currentTexture);
-
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                GL_NEAREST);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, currentSizeX,
+                currentSizeY, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                currentTexture);
+        }
 
         if (reset)
         {
             aimedSizeX = initSizeX;
             aimedSizeY = initSizeX / viewportRatio;
             reset = false;
+            hardReset = false;
         }
         else
         {

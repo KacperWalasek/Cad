@@ -11,6 +11,7 @@ class Renderer
 	Window& window;
 	Shader shader;
 	AdaptiveRendering adaptiveRendering;
+	bool isMoving = false;
 public:
 	Renderer(Window& window, Elipse& elipse);
 	void Init();

@@ -1,6 +1,6 @@
 #include "Elipse.h"
 #include "imgui/imgui.h"
-
+#include <math.h>
 
 std::tuple<bool,float, float> Elipse::calculateZ(float x, float y) const
 {
@@ -30,7 +30,7 @@ CadMath::Vector4 Elipse::calculateNormal(float x, float y, float z) const
 Elipse::Elipse()
     : m(2)
 {
-    temporaryTransformation.location = { {0,0,40} };
+    temporaryTransformation.location = { {0,0,-1000} };
     applyTemporaryTransformation();
     setRadious(100, 100, 200);
 }
@@ -51,16 +51,17 @@ RGB Elipse::CalculatePixelColor(float x, float y) const
 {
     const auto [onElipse, z1, z2] = calculateZ(x, y);
 
-    if (onElipse)
+    float z = fmax(z1, z2);
+    if (onElipse && z>0)
     {
-        float z = z2;
 
         CadMath::Vector4 n = calculateNormal(x, y, z);
         CadMath::Vector4 v = CadMath::vectorTo({ {x,y,z} }, { {0,0,0,1} });
         v = v / v.getLength();
-        CadMath::Vector4 color = n.getColor();
+        CadMath::Vector4 color = v.getColor();
         float intensivity = pow(n * v, m);
         if (intensivity > 0)
+            //return { (unsigned char)color.X(),(unsigned char)color.Y(),(unsigned char)color.Z() };
             return {
                 (unsigned char)(intensivity * 255.0f),
                 (unsigned char)0,
@@ -91,6 +92,7 @@ void Elipse::Update(Window& window)
 {
     if (window.curentMouseVectorX != 0 || window.curentMouseVectorY != 0)
     {
+        CadMath::Vector4 mouseVector = { {(float)window.curentMouseVectorX,(float)window.curentMouseVectorY ,0,0} };
         if (window.shouldApply)
         {
             applyTemporaryTransformation();
@@ -102,9 +104,9 @@ void Elipse::Update(Window& window)
             temporaryTransformation.scale = { {100 / (1 + len),100 / (1 + len),100 / (1 + len),0} };
         }
         else if (window.isShiftPressed)
-            temporaryTransformation.location = { {(float)-window.curentMouseVectorX,(float)window.curentMouseVectorY,0,0} };
+            temporaryTransformation.location = CadMath::Vector4({ (float)-window.curentMouseVectorX, (float)window.curentMouseVectorY, 0, 0 });
         else
-            temporaryTransformation.rotation = { {(float)window.curentMouseVectorY / 1000,-(float)window.curentMouseVectorX / 1000,0,0} };
+            temporaryTransformation.rotation = CadMath::Vector4( {(float)window.curentMouseVectorY / 1000, -(float)window.curentMouseVectorX / 1000, 0, 0});
 
         updateTransforamtions();
     }

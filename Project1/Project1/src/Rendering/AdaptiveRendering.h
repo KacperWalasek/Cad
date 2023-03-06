@@ -16,6 +16,7 @@ class AdaptiveRendering
 public:
 	AdaptiveRendering(std::function<RGB(float x, float y)> calculatePixel, int maxSizeX, float  viewportRatio, int  initSizeX, int stepX);
 	~AdaptiveRendering();
+	bool hardReset = false;
 	int initSizeX;
 	int currentSizeX;
 	int maxSizeX;
