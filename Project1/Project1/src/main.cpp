@@ -2,19 +2,22 @@
 #include <iostream>
 #include "Rendering/Window.h"
 #include "Rendering/Renderer.h"
+#include "UI/ElipseGui.h"
 
 int main()
 {
     Window window;
-    Renderer renderer(window);
+    Elipse elipse;
+    Renderer renderer(window,elipse);
     window.Init();
     renderer.Init();
+    ElipseGui elipseGui(elipse);
 
     while (window.isOpen())
     {
         window.Update();
-        renderer.Update(window.lastTouchTime);
-        renderer.Render();
+        renderer.Update(elipse);
+        renderer.Render(elipse, elipseGui);
         glfwSwapBuffers(window.window);
         glfwPollEvents();
     }

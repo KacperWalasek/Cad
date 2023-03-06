@@ -3,20 +3,17 @@
 #include "Shader.h"
 #include "Window.h"
 #include "../Geometry/Elipse.h"
-#include <future>
+#include "../UI/ElipseGui.h"
+#include "AdaptiveRendering.h"
 
 class Renderer
 {
 	Window& window;
-	Elipse elipse;
 	Shader shader;
-	std::future<RGB*> imageFuture;
-
-	unsigned int VAO, shaderProgram, texName;
-	void CreateTexture(float lastToutchTime);
+	AdaptiveRendering adaptiveRendering;
 public:
-	Renderer(Window& window);
+	Renderer(Window& window, Elipse& elipse);
 	void Init();
-	void Update(float lastToutchTime);
-	void Render();
+	void Update(Elipse& elipse);
+	void Render(Elipse& elipse, ElipseGui& gui);
 };

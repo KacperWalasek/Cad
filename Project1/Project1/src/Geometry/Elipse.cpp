@@ -1,5 +1,7 @@
 #include "Elipse.h"
 #include "imgui/imgui.h"
+
+
 std::tuple<bool,float, float> Elipse::calculateZ(float x, float y) const
 {
     float pa = tD[2][2];
@@ -30,11 +32,7 @@ Elipse::Elipse()
 {
     temporaryTransformation.location = { {0,0,40} };
     applyTemporaryTransformation();
-}
-
-Elipse::~Elipse()
-{
-    delete image;
+    setRadious(100, 100, 200);
 }
 
 void Elipse::setRadious(float x, float y, float z)
@@ -49,44 +47,32 @@ void Elipse::setRadious(float x, float y, float z)
     updateTransforamtions();
 }
 
-RGB* Elipse::createTexture(int sizeX, int sizeY)
+RGB Elipse::CalculatePixelColor(float x, float y) const
 {
-    RGB* tmpImage = new RGB[sizeX * sizeY];
+    const auto [onElipse, z1, z2] = calculateZ(x, y);
 
-    for (int i = 0; i < sizeY; i++) {
-        for (int j = 0; j < sizeX; j++) {
-            float x = (j  - 0.5*(float)sizeX) * TexSizeX/sizeX;
-            float y = (i  - 0.5* (float)sizeY)* TexSizeX / sizeX;
-            const auto [onElipse, z1, z2] = calculateZ(x, y);
+    if (onElipse)
+    {
+        float z = z2;
 
-            if (onElipse)
-            {
-                float z = z2;
-                
-                CadMath::Vector4 n = calculateNormal(x, y, z);
-                CadMath::Vector4 v = CadMath::vectorTo({ {x,y,z} }, { {0,0,0,1} });
-                v = v / v.getLength();
-                CadMath::Vector4 color = n.getColor();
-                float intensivity = pow(n * v,m);
-                if(intensivity>0)
-                    tmpImage[i * sizeX + j] = {
-                        (unsigned char)(intensivity*255.0f),
-                        (unsigned char)0,
-                        (unsigned char)0 };
-                else
-                    tmpImage[i * sizeX + j] = {
-                        (unsigned char)0,
-                        (unsigned char)0,
-                        (unsigned char)0 };
-            }
-            else
-                tmpImage[i* sizeX + j] = {100, 100, 100};
-
-        }
+        CadMath::Vector4 n = calculateNormal(x, y, z);
+        CadMath::Vector4 v = CadMath::vectorTo({ {x,y,z} }, { {0,0,0,1} });
+        v = v / v.getLength();
+        CadMath::Vector4 color = n.getColor();
+        float intensivity = pow(n * v, m);
+        if (intensivity > 0)
+            return {
+                (unsigned char)(intensivity * 255.0f),
+                (unsigned char)0,
+                (unsigned char)0 };
+        else
+            return {
+                (unsigned char)0,
+                (unsigned char)0,
+                (unsigned char)0 };
     }
-    currentSizeX = sizeX;
-    currentSizeY = sizeY;
-	return tmpImage;
+    else
+        return { 100, 100, 100 };
 }
 
 void Elipse::updateTransforamtions()
@@ -101,21 +87,25 @@ void Elipse::applyTemporaryTransformation()
     updateTransforamtions();
 }
 
-void Elipse::renderUI()
+void Elipse::Update(Window& window)
 {
-    ImGui::Begin("Elipse");
+    if (window.curentMouseVectorX != 0 || window.curentMouseVectorY != 0)
+    {
+        if (window.shouldApply)
+        {
+            applyTemporaryTransformation();
+            window.shouldApply = false;
+        }
+        if (window.isCrtlPressed)
+        {
+            float len = sqrt(window.curentMouseVectorX * window.curentMouseVectorX + window.curentMouseVectorY * window.curentMouseVectorY);
+            temporaryTransformation.scale = { {100 / (1 + len),100 / (1 + len),100 / (1 + len),0} };
+        }
+        else if (window.isShiftPressed)
+            temporaryTransformation.location = { {(float)-window.curentMouseVectorX,(float)window.curentMouseVectorY,0,0} };
+        else
+            temporaryTransformation.rotation = { {(float)window.curentMouseVectorY / 1000,-(float)window.curentMouseVectorX / 1000,0,0} };
 
-    float changedRX = rX, changedRY = rY, changedRZ = rZ;
-    if (ImGui::InputFloat("RadiusX", &changedRX))
-        setRadious(changedRX, rY, rZ);
-    if (ImGui::InputFloat("RadiusY", &changedRY))
-        setRadious(rX, changedRY, rZ);
-    if (ImGui::InputFloat("RadiusZ", &changedRZ))
-        setRadious(rX, rY, changedRZ);
-
-    float changedM = m;
-    if (ImGui::InputFloat("Specular m", &changedM))
-        m = changedM;
-
-    ImGui::End();
+        updateTransforamtions();
+    }
 }
