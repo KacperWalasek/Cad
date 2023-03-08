@@ -78,12 +78,13 @@ RGB Elipse::CalculatePixelColor(float x, float y) const
 
 void Elipse::updateTransforamtions()
 {
-    tD = (temporaryTransformation.GetMatrix()*M).transpose() * D * temporaryTransformation.GetMatrix() * M;
+    tD = (temporaryTransformation+transform).GetMatrix().transpose() * D * (temporaryTransformation + transform).GetMatrix();
 }
 
 void Elipse::applyTemporaryTransformation()
 {
-    M = temporaryTransformation.GetMatrix()*M;
+    transform = transform + temporaryTransformation;
+    //M = temporaryTransformation.GetMatrix()*M;
     temporaryTransformation = Transform();
     updateTransforamtions();
 }
@@ -104,9 +105,9 @@ void Elipse::Update(Window& window)
             temporaryTransformation.scale = { {100 / (1 + len),100 / (1 + len),100 / (1 + len),0} };
         }
         else if (window.isShiftPressed)
-            temporaryTransformation.location = M*CadMath::Vector4({ (float)-window.curentMouseVectorX, (float)window.curentMouseVectorY, 0, 0 });
+            temporaryTransformation.location = CadMath::Vector4({ (float)-window.curentMouseVectorX, (float)window.curentMouseVectorY, 0, 0 });
         else
-            temporaryTransformation.rotation = M*CadMath::Vector4( {(float)window.curentMouseVectorY / 1000, -(float)window.curentMouseVectorX / 1000, 0, 0});
+            temporaryTransformation.rotation = CadMath::Vector4( {-(float)window.curentMouseVectorY / 1000, (float)window.curentMouseVectorX / 1000, 0, 0});
 
         updateTransforamtions();
     }

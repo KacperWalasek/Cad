@@ -14,9 +14,9 @@ CadMath::Matrix4x4 Transform::GetRotationMatrix() const
 		{0.0f,sinf(rotation.X()), cosf(rotation.X()),0.0f},
 		{0.0f,0.0f,0.0f,1.0f} } };
 	CadMath::Matrix4x4 rotationY = {
-	  { { cosf(rotation.Y()),0.0f,sinf(rotation.Y()),0.0f},
+	  { { cosf(rotation.Y()),0.0f,-sinf(rotation.Y()),0.0f},
 		{0.0f,1.0f,0.0f,0.0f},
-		{-sinf(rotation.Y()),0.0f,cosf(rotation.Y()),0.0f},
+		{sinf(rotation.Y()),0.0f,cosf(rotation.Y()),0.0f},
 		{0.0f,0.0f,0.0f,1.0f} } };
 	CadMath::Matrix4x4 rotationZ = {
 	  { {cosf(rotation.Z()),-sinf(rotation.Z()),0.0f,0.0f},
@@ -46,5 +46,5 @@ CadMath::Matrix4x4 Transform::GetScaleMatrix() const
 
 Transform Transform::operator+(const Transform& t)
 {
-	return Transform(location + t.location, rotation + t.rotation, CadMath::Vector4({ scale.X() * t.scale.X(),scale.Y() * scale.Y(),scale.Z() * scale.Z(),0 }));
+	return Transform(location + t.location, rotation + t.rotation, CadMath::Vector4({ scale.X() * t.scale.X(),scale.Y() * t.scale.Y(),scale.Z() * t.scale.Z(),0 }));
 }
