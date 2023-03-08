@@ -56,7 +56,7 @@ RGB Elipse::CalculatePixelColor(float x, float y) const
     {
 
         CadMath::Vector4 n = calculateNormal(x, y, z);
-        CadMath::Vector4 v = CadMath::vectorTo({ {x,y,z} }, { {0,0,0,1} });
+        CadMath::Vector4 v = CadMath::vectorTo({ {x,y,z,1} }, { {0,0,0,1} });
         v = v / v.getLength();
         CadMath::Vector4 color = v.getColor();
         float intensivity = pow(n * v, m);

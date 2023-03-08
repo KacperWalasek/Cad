@@ -3,7 +3,7 @@
 
 CadMath::Matrix4x4 Transform::GetMatrix() const
 {
-	return GetLocationMatrix()*GetRotationMatrix()*GetScaleMatrix();
+	return GetRotationMatrix()* GetLocationMatrix() *GetScaleMatrix();
 }
 
 CadMath::Matrix4x4 Transform::GetRotationMatrix() const
@@ -46,5 +46,5 @@ CadMath::Matrix4x4 Transform::GetScaleMatrix() const
 
 Transform Transform::operator+(const Transform& t)
 {
-	return Transform(location+t.location,rotation+t.rotation,scale+t.scale);
+	return Transform(location + t.location, rotation + t.rotation, CadMath::Vector4({ scale.X() * t.scale.X(),scale.Y() * scale.Y(),scale.Z() * scale.Z(),0 }));
 }

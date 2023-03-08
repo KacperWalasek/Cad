@@ -3,7 +3,7 @@
 #include <math.h>
 
 CadMath::Vector4::Vector4()
-	: values{0,0,0,1}
+	: values{0,0,0,0}
 {
 }
 
@@ -19,7 +19,7 @@ CadMath::Vector4::Vector4(std::vector<float> vec)
 		throw std::invalid_argument("invalid rows number");
 	for (int i = 0; i < 3; i++)
 		values[i] = vec[i];
-	values[3] = vec.size() == 4 ? vec[3] : 1;
+	values[3] = vec.size() == 4 ? vec[3] : 0;
 }
 
 CadMath::Vector4 CadMath::Vector4::transpose()
