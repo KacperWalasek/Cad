@@ -2,9 +2,9 @@
 #include <GL/glew.h>
 #include "Shader.h"
 #include "Window.h"
-#include "../Geometry/Elipse.h"
-#include "../UI/ElipseGui.h"
-#include "AdaptiveRendering.h"
+#include "../ElipsoidFiles/Elipse.h"
+#include "../ElipsoidFiles/ElipseGui.h"
+#include "../ElipsoidFiles/AdaptiveRendering.h"
 
 class Renderer
 {

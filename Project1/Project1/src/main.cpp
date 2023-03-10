@@ -2,8 +2,8 @@
 #include <iostream>
 #include "Rendering/Window.h"
 #include "Rendering/Renderer.h"
-#include "UI/ElipseGui.h"
-#include "UI/AdaptiveGui.h"
+#include "ElipsoidFiles/ElipseGui.h"
+#include "ElipsoidFiles/AdaptiveGui.h"
 
 int main()
 {

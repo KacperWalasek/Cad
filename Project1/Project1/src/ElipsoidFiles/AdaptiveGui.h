@@ -1,6 +1,6 @@
 #pragma once
-#include "IGui.h"
-#include "../Rendering/AdaptiveRendering.h"
+#include "../UI/IGui.h"
+#include "AdaptiveRendering.h"
 
 class AdaptiveGui : public IGui
 {

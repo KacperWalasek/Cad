@@ -1,7 +1,7 @@
 #pragma once
-#include "IGui.h"
-#include "../Geometry/Elipse.h"
-#include "../Rendering/AdaptiveRendering.h"
+#include "../UI/IGui.h"
+#include "Elipse.h"
+#include "AdaptiveRendering.h"
 
 class ElipseGui : public IGui
 {

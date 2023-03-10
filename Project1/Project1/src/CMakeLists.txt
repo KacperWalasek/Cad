@@ -9,7 +9,23 @@ set(PROJECT_SOURCES
 	"Rendering/Renderer.h" 
 	"Rendering/Renderer.cpp" 
 	"Rendering/Shader.h" 
-	"Rendering/Shader.cpp" "Geometry/Elipse.h" "Geometry/Elipse.cpp" "Rendering/Transform.h" "Rendering/Transform.cpp" "UI/IGui.h" "UI/ElipseGui.h" "UI/ElipseGui.cpp" "Rendering/RGB.h" "Rendering/AdaptiveRendering.h" "Rendering/AdaptiveRendering.cpp" "UI/AdaptiveGui.h" "UI/AdaptiveGui.cpp")
+	"Rendering/Shader.cpp" 
+	"ElipsoidFiles/Elipse.h" 
+	"ElipsoidFiles/Elipse.cpp" 
+	"Rendering/Transform.h" 
+	"Rendering/Transform.cpp" 
+	"UI/IGui.h" 
+	"ElipsoidFiles/ElipseGui.h" 
+	"ElipsoidFiles/ElipseGui.cpp" 
+	"ElipsoidFiles/RGB.h" 
+	"ElipsoidFiles/AdaptiveRendering.h"
+	"ElipsoidFiles/AdaptiveRendering.cpp" 
+	"ElipsoidFiles/AdaptiveGui.h" 
+	"ElipsoidFiles/AdaptiveGui.cpp"
+	"Geometry/Torus.h" 
+	"Rendering/Sampler.h" 
+	"Rendering/Mesh.h" 
+	"Rendering/Sampler.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

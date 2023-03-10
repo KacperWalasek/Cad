@@ -4,7 +4,7 @@
 #include "../Rendering/Transform.h"
 #include "../Rendering/Window.h"
 #include <future>
-#include "../Rendering/RGB.h"
+#include "RGB.h"
 
 
 class Elipse
