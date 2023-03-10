@@ -7,18 +7,20 @@ AdaptiveRendering::AdaptiveRendering(std::function<RGB(float x, float y)> calcul
     : calculatePixel(calculatePixel), maxSizeX(maxSizeX), viewportRatio(viewportRatio), initSizeX(initSizeX), stepX(stepX), currentTexture(nullptr), 
         currentSizeX(initSizeX), currentSizeY(initSizeX/viewportRatio), reset(true), aimedSizeX(initSizeX), aimedSizeY(initSizeX/viewportRatio)
 {
-
+    cancellation_token = ATOMIC_VAR_INIT(false);
 }
 AdaptiveRendering::~AdaptiveRendering()
 {
     delete currentTexture;
 }
-RGB* AdaptiveRendering::createTexture(int sizeX, int sizeY)
+RGB* AdaptiveRendering::createTexture(int sizeX, int sizeY, const std::atomic_bool& cancelled)
 {
     RGB* tmpImage = new RGB[sizeX * sizeY];
 
     for (int i = 0; i < sizeY; i++) {
         for (int j = 0; j < sizeX; j++) {
+            if (cancelled)
+                return nullptr;
             float x = (j - 0.5 * (float)sizeX) * maxSizeX / sizeX;
             float y = (i - 0.5 * (float)sizeY) * maxSizeX / sizeX;
             tmpImage[i * sizeX + j] = calculatePixel(x,y);
@@ -76,25 +78,28 @@ void AdaptiveRendering::Init()
 
 bool AdaptiveRendering::Checkout()
 {
-	if(!reset && currentSizeX==maxSizeX)
+	if(!reset && !hardReset && currentSizeX == maxSizeX)
 		return false;
     
     if (currentTexture == nullptr)
     {
         aimedSizeX = initSizeX;
         aimedSizeY = initSizeX / viewportRatio;
-        currentTexture = createTexture(aimedSizeX, aimedSizeY);
-        job = std::async(std::launch::async, [this]() {return createTexture(aimedSizeX, aimedSizeY); });
+        currentTexture = createTexture(aimedSizeX, aimedSizeY, cancellation_token);
+        job = std::async(std::launch::async, [this]() {return createTexture(aimedSizeX, aimedSizeY, cancellation_token); });
         return false;
     }
     if (hardReset)
-        reset = reset;
+    {
+        cancellation_token = ATOMIC_VAR_INIT(true);
+        reset = true;
+    }
     if (hardReset || job.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
-        if (!hardReset)
+        delete currentTexture;
+        currentTexture = job.get();
+        if (currentTexture)
         {
-            delete currentTexture;
-            currentTexture = job.get();
             currentSizeX = aimedSizeX;
             currentSizeY = aimedSizeY;
 
@@ -127,11 +132,12 @@ bool AdaptiveRendering::Checkout()
             aimedSizeY = aimedSizeX / viewportRatio;
 
         }
-        job = std::async(std::launch::async, [this]() {return createTexture(aimedSizeX, aimedSizeY); });
+        job = std::async(std::launch::async, [this]() {return createTexture(aimedSizeX, aimedSizeY, cancellation_token); });
+        cancellation_token = ATOMIC_VAR_INIT(false);
 
         return true;
     }
-	
+    return false;
 }
 
 void AdaptiveRendering::Reset()

@@ -3,6 +3,7 @@
 #include "Rendering/Window.h"
 #include "Rendering/Renderer.h"
 #include "UI/ElipseGui.h"
+#include "UI/AdaptiveGui.h"
 
 int main()
 {
@@ -11,13 +12,13 @@ int main()
     Renderer renderer(window,elipse);
     window.Init();
     renderer.Init();
-    ElipseGui elipseGui(elipse);
+    std::vector<std::shared_ptr<IGui>> guis{ std::make_shared<ElipseGui>(elipse, renderer.adaptiveRendering), std::make_shared<AdaptiveGui>(renderer.adaptiveRendering) };
 
     while (window.isOpen())
     {
         window.Update();
         renderer.Update(elipse);
-        renderer.Render(elipse, elipseGui);
+        renderer.Render(elipse, guis);
         glfwSwapBuffers(window.window);
         glfwPollEvents();
     }

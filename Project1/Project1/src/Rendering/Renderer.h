@@ -10,11 +10,11 @@ class Renderer
 {
 	Window& window;
 	Shader shader;
-	AdaptiveRendering adaptiveRendering;
 	bool isMoving = false;
 public:
+	AdaptiveRendering adaptiveRendering;
 	Renderer(Window& window, Elipse& elipse);
 	void Init();
 	void Update(Elipse& elipse);
-	void Render(Elipse& elipse, ElipseGui& gui);
+	void Render(Elipse& elipse, std::vector<std::shared_ptr<IGui>>& guis);
 };

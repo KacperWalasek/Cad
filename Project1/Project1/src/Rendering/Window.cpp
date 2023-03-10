@@ -55,6 +55,10 @@ void Window::Update()
 
 void Window::ProcessMouseInput()
 {
+    auto& io = ImGui::GetIO();
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
+        return;
+    }
     isCrtlPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
     isShiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)

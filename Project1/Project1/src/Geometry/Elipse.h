@@ -6,8 +6,6 @@
 #include <future>
 #include "../Rendering/RGB.h"
 
-#define TexSizeX 1600
-#define TexSizeY 900
 
 class Elipse
 {

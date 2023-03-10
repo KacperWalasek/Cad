@@ -33,7 +33,7 @@ void Renderer::Update(Elipse& elipse)
     adaptiveRendering.Checkout();
 }
 
-void Renderer::Render(Elipse& elipse, ElipseGui& gui)
+void Renderer::Render(Elipse& elipse, std::vector<std::shared_ptr<IGui>>& guis)
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -43,10 +43,10 @@ void Renderer::Render(Elipse& elipse, ElipseGui& gui)
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    gui.Render();
     
-    ImGui::ShowDemoWindow();
+    for (std::shared_ptr<IGui>& gui : guis)
+        gui->Render();
+    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
