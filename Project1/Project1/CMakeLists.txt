@@ -12,4 +12,5 @@ find_package(GLEW REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glm)
 add_subdirectory(vendor/imgui)

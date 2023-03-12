@@ -25,7 +25,9 @@ set(PROJECT_SOURCES
 	"Geometry/Torus.h" 
 	"Rendering/Sampler.h" 
 	"Rendering/Mesh.h" 
-	"Rendering/Sampler.cpp")
+	"Rendering/Mesh.cpp" 
+	"Rendering/Sampler.cpp" 
+	"Geometry/Torus.cpp" "Rendering/Camera.h" "Rendering/Camera.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

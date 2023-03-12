@@ -1,6 +1,6 @@
 #pragma once
 #include "../Math/Matrix4x4.h"
-
+#include "glm/glm.hpp"
 struct Transform
 { 
 	Transform()
@@ -14,6 +14,7 @@ struct Transform
 	CadMath::Vector4 scale;
 
 	CadMath::Matrix4x4 GetMatrix() const;
+	CadMath::Matrix4x4 GetInverseMatrix() const;
 	CadMath::Matrix4x4 GetRotationMatrix() const;
 	CadMath::Matrix4x4 GetLocationMatrix() const;
 	CadMath::Matrix4x4 GetScaleMatrix() const;

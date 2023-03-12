@@ -5,6 +5,7 @@
 #include "../ElipsoidFiles/Elipse.h"
 #include "../ElipsoidFiles/ElipseGui.h"
 #include "../ElipsoidFiles/AdaptiveRendering.h"
+#include "Mesh.h"
 
 class Renderer
 {
@@ -12,9 +13,8 @@ class Renderer
 	Shader shader;
 	bool isMoving = false;
 public:
-	AdaptiveRendering adaptiveRendering;
 	Renderer(Window& window, Elipse& elipse);
 	void Init();
-	void Update(Elipse& elipse);
-	void Render(Elipse& elipse, std::vector<std::shared_ptr<IGui>>& guis);
+	void Update();
+	void Render(std::vector<Mesh>& meshes, std::vector<std::shared_ptr<IGui>>& guis);
 };

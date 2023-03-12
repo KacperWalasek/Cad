@@ -6,6 +6,11 @@ CadMath::Matrix4x4 Transform::GetMatrix() const
 	return GetScaleMatrix()*GetRotationMatrix()* GetLocationMatrix();
 }
 
+CadMath::Matrix4x4 Transform::GetInverseMatrix() const
+{
+	return CadMath::Matrix4x4();
+}
+
 CadMath::Matrix4x4 Transform::GetRotationMatrix() const
 {
 	CadMath::Matrix4x4 rotationX = {
