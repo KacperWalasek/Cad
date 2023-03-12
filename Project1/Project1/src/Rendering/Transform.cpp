@@ -1,55 +1,54 @@
 #include "Transform.h"
 #include <math.h>
 
-CadMath::Matrix4x4 Transform::GetMatrix() const
+glm::fmat4x4 Transform::GetMatrix() const
 {
 	return GetScaleMatrix()*GetRotationMatrix()* GetLocationMatrix();
 }
 
-CadMath::Matrix4x4 Transform::GetInverseMatrix() const
+glm::fmat4x4 Transform::GetInverseMatrix() const
 {
-	return CadMath::Matrix4x4();
+	return glm::fmat4x4();
 }
 
-CadMath::Matrix4x4 Transform::GetRotationMatrix() const
+glm::fmat4x4 Transform::GetRotationMatrix() const
 {
-	CadMath::Matrix4x4 rotationX = {
-	  { {1.0f,0.0f,0.0f,0.0f},
-		{0.0f,cosf(rotation.X()),-sinf(rotation.X()),0.0f},
-		{0.0f,sinf(rotation.X()), cosf(rotation.X()),0.0f},
-		{0.0f,0.0f,0.0f,1.0f} } };
-	CadMath::Matrix4x4 rotationY = {
-	  { { cosf(rotation.Y()),0.0f,-sinf(rotation.Y()),0.0f},
-		{0.0f,1.0f,0.0f,0.0f},
-		{sinf(rotation.Y()),0.0f,cosf(rotation.Y()),0.0f},
-		{0.0f,0.0f,0.0f,1.0f} } };
-	CadMath::Matrix4x4 rotationZ = {
-	  { {cosf(rotation.Z()),-sinf(rotation.Z()),0.0f,0.0f},
-		{sinf(rotation.Z()), cosf(rotation.Z()),0.0f,0.0f},
-		{0.0f,0.0f,1.0f,0.0f},
-		{0.0f,0.0f,0.0f,1.0f} } };
+	glm::fmat4x4 rotationX = {
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,cosf(rotation.x),sinf(rotation.x),0.0f,
+		0.0f,-sinf(rotation.x), cosf(rotation.x),0.0f,
+		0.0f,0.0f,0.0f,1.0f };
+	glm::fmat4x4 rotationY = {
+	    cosf(rotation.y),0.0f,sinf(rotation.y),0.0f,
+		0.0f,1.0f,0.0f,0.0f,
+		-sinf(rotation.y),0.0f,cosf(rotation.y),0.0f,
+		0.0f,0.0f,0.0f,1.0f };
+	glm::fmat4x4 rotationZ = {
+	    cosf(rotation.z),sinf(rotation.z),0.0f,0.0f,
+		-sinf(rotation.z), cosf(rotation.z),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f };
 	return rotationX*rotationY*rotationZ;
 }
 
-CadMath::Matrix4x4 Transform::GetLocationMatrix() const
+glm::fmat4x4 Transform::GetLocationMatrix() const
 {
-	return { {
-		{1.0f,0.0f,0.0f,location.X()},
-		{0.0f,1.0f,0.0f,location.Y()},
-		{0.0f,0.0f,1.0f,location.Z()},
-		{0.0f,0.0f,0.0f,1.0f}}};
+	return { 
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,1.0f,0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		location.x,location.y,location.z,1.0f};
 }
-
-CadMath::Matrix4x4 Transform::GetScaleMatrix() const
+glm::fmat4x4 Transform::GetScaleMatrix() const
 {
-	return { {
-		{scale.X(),0.0f,     0.0f,     0.0f},
-		{0.0f,     scale.Y(),0.0f,     0.0f},
-		{0.0f,     0.0f,     scale.Z(),0.0f},
-		{0.0f,     0.0f,     0.0f,     1.0f}} };
+	return { 
+		scale.x,0.0f,     0.0f,     0.0f,
+		0.0f,     scale.y,0.0f,     0.0f,
+		0.0f,     0.0f,     scale.z,0.0f,
+		0.0f,     0.0f,     0.0f,     1.0f };
 }
 
 Transform Transform::operator+(const Transform& t)
 {
-	return Transform(location + t.location, rotation + t.rotation, CadMath::Vector4({ scale.X() * t.scale.X(),scale.Y() * t.scale.Y(),scale.Z() * t.scale.Z(),0 }));
+	return Transform(location + t.location, rotation + t.rotation, scale * t.scale);
 }

@@ -1,5 +1,6 @@
 #pragma once
-#include "../Math/Vector4.h"
+#include <glm/glm.hpp>
+
 class Torus 
 {
 	float majorR;
@@ -8,5 +9,5 @@ public:
 	Torus();
 	Torus(float majorR, float minorR);
 
-	CadMath::Vector4 getPointOnMesh(float majorAngle, float minorAngle) const;
+	glm::fvec4 getPointOnMesh(float majorAngle, float minorAngle) const;
 };

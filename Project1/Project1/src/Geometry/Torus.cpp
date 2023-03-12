@@ -8,7 +8,7 @@ Torus::Torus(float majorR, float minorR)
 {
 }
 
-CadMath::Vector4 Torus::getPointOnMesh(float majorAngle, float minorAngle) const
+glm::fvec4 Torus::getPointOnMesh(float majorAngle, float minorAngle) const
 {
-	return CadMath::Vector4();
+	return glm::fvec4();
 }

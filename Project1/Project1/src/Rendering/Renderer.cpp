@@ -1,8 +1,9 @@
 #include "Renderer.h"
 #include <iostream>
 #include <glfw/glfw3.h>
+#include "../UI/IGui.h"
 
-Renderer::Renderer(Window& window, Elipse& elipse)
+Renderer::Renderer(Window& window)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window)
 {
 }

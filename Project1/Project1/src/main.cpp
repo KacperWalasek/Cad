@@ -1,15 +1,12 @@
-#include "Math/Matrix4x4.h"
 #include <iostream>
 #include "Rendering/Window.h"
 #include "Rendering/Renderer.h"
-#include "ElipsoidFiles/ElipseGui.h"
-#include "ElipsoidFiles/AdaptiveGui.h"
+#include "UI/IGui.h"
 
 int main()
 {
     Window window;
-    Elipse elipse;
-    Renderer renderer(window, elipse);
+    Renderer renderer(window);
     window.Init();
     renderer.Init();
     std::vector<std::shared_ptr<IGui>> guis;
