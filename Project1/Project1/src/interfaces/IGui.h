@@ -4,5 +4,5 @@
 class IGui
 {
 public:
-	virtual void Render() = 0;
+	virtual void RenderGui() = 0;
 };

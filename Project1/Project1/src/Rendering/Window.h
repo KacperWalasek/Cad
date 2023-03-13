@@ -5,25 +5,23 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
+#include <vector>
+#include "../EventHandlers/EventHanlderInterfaces.h"
 
 class Window
 {
 
 public:
+	float sizeX;
+	float sizeY;
+	std::vector<std::shared_ptr<IMouseEventHandler>>  mouseCallbacks;
 	GLFWwindow* window;
-	bool isCrtlPressed = false;
-	bool isShiftPressed = false;
-	bool shouldApply = false;
-	double initialMousePosX = 0;
-	double initialMousePosY = 0;
-	double curentMouseVectorX = 0;
-	double curentMouseVectorY = 0;
-	float lastTouchTime = 0; 
 	bool isOpen() const;
 	void Init();
 	void SetCallbacks();
 	void Update();
 	void ProcessMouseInput();
+	Window();
 	~Window();
 };
 

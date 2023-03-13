@@ -1,13 +1,13 @@
 #pragma once
 #include <glm/glm.hpp>
 
-class Torus 
+class TorusGeometry
 {
+public:
 	float majorR;
 	float minorR;
-public:
-	Torus();
-	Torus(float majorR, float minorR);
+	TorusGeometry();
+	TorusGeometry(float majorR, float minorR);
 
 	glm::fvec4 getPointOnMesh(float majorAngle, float minorAngle) const;
 };

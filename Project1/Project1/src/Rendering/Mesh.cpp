@@ -24,5 +24,5 @@ void Mesh::Init()
 void Mesh::Render()
 {
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 }

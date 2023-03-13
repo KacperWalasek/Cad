@@ -3,7 +3,10 @@
 #include "Shader.h"
 #include "Window.h"
 #include "Mesh.h"
-#include "../UI/IGui.h"
+#include "../interfaces/IGui.h"
+#include "Camera.h"
+#include "SceneObject.h"
+#include "../Scene/ISceneElement.h"
 
 class Renderer
 {
@@ -12,7 +15,7 @@ class Renderer
 	bool isMoving = false;
 public:
 	Renderer(Window& window);
-	void Init();
-	void Update();
-	void Render(std::vector<Mesh>& meshes, std::vector<std::shared_ptr<IGui>>& guis);
+	void Init(); 
+	void Update(Camera& camera);
+	void Render(std::vector<std::shared_ptr<ISceneElement>>& elements, std::vector<std::shared_ptr<IGui>>& guis);
 };

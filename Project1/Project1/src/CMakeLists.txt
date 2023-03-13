@@ -8,13 +8,22 @@ set(PROJECT_SOURCES
 	"Rendering/Shader.cpp" 
 	"Rendering/Transform.h" 
 	"Rendering/Transform.cpp" 
-	"UI/IGui.h" 
-	"Geometry/Torus.h" 
+	"interfaces/IGui.h" 
+	"Geometry/TorusGeometry.h" 
 	"Rendering/Sampler.h" 
 	"Rendering/Mesh.h" 
 	"Rendering/Mesh.cpp" 
 	"Rendering/Sampler.cpp" 
-	"Geometry/Torus.cpp" "Rendering/Camera.h" "Rendering/Camera.cpp")
+	"Geometry/TorusGeometry.cpp" 
+	"Rendering/Camera.h" 
+	"Rendering/Camera.cpp" 
+	"EventHandlers/EventHanlderInterfaces.h" 
+	"EventHandlers/CameraMovement.h" 
+	"EventHandlers/CameraMovement.cpp"  
+	"UI/TorusGui.h" 
+	"Rendering/SceneObject.h" 
+	 
+	"Scene/ISceneElement.h" "Scene/Torus.h" "Scene/Torus.cpp"  "interfaces/IMeshOwner.h")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

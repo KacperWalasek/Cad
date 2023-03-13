@@ -8,7 +8,8 @@ glm::fmat4x4 Transform::GetMatrix() const
 
 glm::fmat4x4 Transform::GetInverseMatrix() const
 {
-	return glm::fmat4x4();
+	Transform inverse(-location, -rotation, 1.0f / scale);
+	return inverse.GetLocationMatrix() * inverse.GetRotationMatrix() * inverse.GetScaleMatrix();
 }
 
 glm::fmat4x4 Transform::GetRotationMatrix() const
