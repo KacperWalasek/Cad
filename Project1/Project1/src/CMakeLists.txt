@@ -20,7 +20,6 @@ set(PROJECT_SOURCES
 	"EventHandlers/EventHanlderInterfaces.h" 
 	"EventHandlers/CameraMovement.h" 
 	"EventHandlers/CameraMovement.cpp"  
-	"UI/TorusGui.h" 
 	"Rendering/SceneObject.h" 
 	 
 	"Scene/ISceneElement.h" "Scene/Torus.h" "Scene/Torus.cpp"  "interfaces/IMeshOwner.h")

@@ -50,8 +50,8 @@ void CameraMovement::Update(GLFWwindow* window)
 
         if (isCrtlPressed)
         {
-            float len = sqrt(curentMouseVectorX * curentMouseVectorX + curentMouseVectorY * curentMouseVectorY);
-            tmpTransform.scale = { len, len, len, 0.0f };
+            float scale = fmax(0, 100 - curentMouseVectorX) / 100;
+            tmpTransform.scale = {scale,scale,scale,0};
 
         }
         else if (isShiftPressed)
