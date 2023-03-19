@@ -15,6 +15,7 @@ public:
 	float sizeX;
 	float sizeY;
 	std::vector<std::shared_ptr<IMouseEventHandler>>  mouseCallbacks;
+	std::vector<std::shared_ptr<IKeyEventHandler>>  keyCallbacks;
 	GLFWwindow* window;
 	bool isOpen() const;
 	void Init();
@@ -26,3 +27,4 @@ public:
 };
 
 void mouseCallback(GLFWwindow* window, int button, int action, int mods);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

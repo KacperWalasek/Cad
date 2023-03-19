@@ -3,12 +3,15 @@
 #include "../Geometry/TorusGeometry.h"
 #include "../Rendering/Mesh.h"
 #include "../interfaces/IGui.h"
-#include "../interfaces/IMeshOwner.h"
+#include "../interfaces/IRenderable.h"
+#include "../Rendering/Transform.h"
 
-class Torus : public ISceneElement, public IGui, public IMeshOwner
+class Torus : public ISceneElement, public IGui, public IRenderable
 {
 	TorusGeometry geometry;
 	Mesh mesh;
+	Transform transform;
+	std::string name;
 	void UpdateMesh();
 public:
 	Torus();
@@ -16,11 +19,13 @@ public:
 
 	virtual std::string getName() const override
 	{
-		return "Tours";
+		return name;
 	}
 
 	virtual void RenderGui() override;
 
-	virtual Mesh& getMesh() override;
+	virtual Transform& getTransform() override;
+
+	virtual void Render() override;
 
 };

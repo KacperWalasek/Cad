@@ -1,8 +1,8 @@
 #pragma once
 #include "../Rendering/Mesh.h"
 
-class IMeshOwner
+class IRenderable
 {
 public:
-	virtual Mesh& getMesh() = 0;
+	virtual void Render() = 0;
 };

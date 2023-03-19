@@ -60,7 +60,7 @@ void CameraMovement::Update(GLFWwindow* window)
         }
         else
         {
-            tmpTransform.rotation = glm::fvec4(curentMouseVectorY / 1000, -curentMouseVectorX / 1000, 0.0f, 0.0f );
+            tmpTransform.rotation = glm::fvec4(curentMouseVectorY / 1000, -curentMouseVectorX / 1000, 0.0f, 0.0f);
         }
         camera.transform = stableTransform + tmpTransform;
     }

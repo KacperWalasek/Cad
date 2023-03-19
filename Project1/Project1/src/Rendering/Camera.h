@@ -2,7 +2,9 @@
 #include "Transform.h"
 #include <glm/glm.hpp>
 #include "Window.h"
-class Camera
+#include "../interfaces/IGui.h"
+
+class Camera : public IGui
 {
 	Window& window;
 public:
@@ -14,4 +16,7 @@ public:
 	Transform transform;
 	glm::fmat4x4 GetViewMatrix() const;
 	glm::fmat4x4 GetProjectionMatrix() const;
+	glm::fmat4x4 GetInverseProjectionMatrix() const;
+
+	virtual void RenderGui() override;
 };

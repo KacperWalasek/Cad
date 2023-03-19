@@ -46,6 +46,7 @@ void Window::Init()
 void Window::SetCallbacks()
 {
     glfwSetMouseButtonCallback(window, mouseCallback);
+    glfwSetKeyCallback(window, keyCallback);
 }
 
 void Window::Update()
@@ -68,4 +69,11 @@ void mouseCallback(GLFWwindow* window, int button, int action, int mods)
     Window* windowObject = (Window*)glfwGetWindowUserPointer(window);
     for (auto& handler : windowObject->mouseCallbacks)
         handler->mouseCallback(window, button, action, mods);
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    Window* windowObject = (Window*)glfwGetWindowUserPointer(window);
+    for (auto& handler : windowObject->keyCallbacks)
+        handler->keyCallback(window, key, scancode, action, mods);
 }

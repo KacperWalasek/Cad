@@ -5,32 +5,46 @@
 #include "Rendering/Sampler.h"
 #include "Rendering/SceneObject.h"
 #include "Scene/Torus.h"
+#include "Scene/Scene.h"
+#include "EventHandlers/SelectedMovement.h"
+#include <memory>
+#include "Scene/Point.h"
 
 int main()
 {
     Window window;
     Renderer renderer(window);
 
-    Camera camera(window,3.1,0.1,1000000);
-    camera.transform.location.z = -100;
+    std::shared_ptr<Camera> camera = std::make_shared<Camera>(window,1,0.1,1000);
+    camera->transform.location.z = -100;
 
     window.Init();
     renderer.Init();
 
-    std::vector<std::shared_ptr<IGui>> guis;
-    std::vector<std::shared_ptr<ISceneElement>> objects = {
-        std::make_shared<Torus>()
+    std::shared_ptr<Scene> scene = std::make_shared<Scene>(
+        std::vector<std::shared_ptr<ISceneElement>>( {
+            std::make_shared<Torus>(),
+            std::make_shared<Point>()
+            
+        }),
+        *camera);
+
+    std::vector<std::shared_ptr<IGui>> guis = {
+        camera, scene
     };
 
-    auto movement = std::make_shared<CameraMovement>(camera);
-    window.mouseCallbacks = { movement };
+    auto movement = std::make_shared<CameraMovement>(*camera);
+    window.mouseCallbacks = { movement, scene->cursor };
+    auto objMovement = std::make_shared<SelectedMovement>(*scene, *camera);
+    window.keyCallbacks = { objMovement };
 
     while (window.isOpen())
     {
         window.Update();
-        renderer.Update(camera);
+        renderer.Update(*camera);
         movement->Update(window.window);
-        renderer.Render(objects, guis);
+        objMovement->Update(window.window);
+        renderer.Render(*camera, *scene, guis);
         glfwSwapBuffers(window.window);
         glfwPollEvents();
     }

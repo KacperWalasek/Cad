@@ -21,8 +21,8 @@ Mesh Sampler::sampleTorus(const TorusGeometry& torus, int majorDivision, int min
 			mesh.indices.push_back(i * minorDivision + j);
 			mesh.indices.push_back(((i+1)%majorDivision) * minorDivision + j);
 
-			mesh.indices.push_back(i * minorDivision + (j + 1) % minorDivision);
-			mesh.indices.push_back(((i + 1) % majorDivision) * minorDivision + j);
+			//mesh.indices.push_back(i * minorDivision + (j + 1) % minorDivision);
+			//mesh.indices.push_back(((i + 1) % majorDivision) * minorDivision + j);
 		}
 	}
 	return mesh;

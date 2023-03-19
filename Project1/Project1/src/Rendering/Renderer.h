@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "SceneObject.h"
 #include "../Scene/ISceneElement.h"
+#include "../Scene/Scene.h"
 
 class Renderer
 {
@@ -17,5 +18,5 @@ public:
 	Renderer(Window& window);
 	void Init(); 
 	void Update(Camera& camera);
-	void Render(std::vector<std::shared_ptr<ISceneElement>>& elements, std::vector<std::shared_ptr<IGui>>& guis);
+	void Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis);
 };
