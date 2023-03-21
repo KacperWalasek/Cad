@@ -22,7 +22,7 @@ set(PROJECT_SOURCES
 	"EventHandlers/CameraMovement.cpp"  
 	"Rendering/SceneObject.h" 
 	 
-	"Scene/ISceneElement.h" "Scene/Torus.h" "Scene/Torus.cpp"  "interfaces/IRenderable.h" "EventHandlers/SelectedMovement.h" "EventHandlers/SelectedMovement.cpp" "Scene/Scene.h" "Scene/Scene.cpp" "Scene/Point.h" "Scene/Point.cpp" "Scene/Cursor.h" "Scene/Cursor.cpp")
+	"Scene/ISceneElement.h" "Scene/Torus.h" "Scene/Torus.cpp"  "interfaces/IRenderable.h" "EventHandlers/SelectedMovement.h" "EventHandlers/SelectedMovement.cpp" "Scene/Scene.h" "Scene/Scene.cpp" "Scene/Point.h" "Scene/Point.cpp" "Scene/Cursor.h" "Scene/Cursor.cpp" "UI/MainMenu.h" "UI/MainMenu.cpp" "Rotator.h" "Rotator.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

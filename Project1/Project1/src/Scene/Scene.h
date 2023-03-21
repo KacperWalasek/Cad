@@ -13,6 +13,8 @@ public:
 	std::vector<std::shared_ptr<ISceneElement>> objects;
 	std::shared_ptr<Cursor> cursor;
 
+	void Add(std::shared_ptr<ISceneElement> obj);
+
 	virtual void RenderGui() override;
 
 };

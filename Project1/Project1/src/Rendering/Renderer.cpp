@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "SceneObject.h"
 #include "../interfaces/IRenderable.h"
+#include "../Rotator.h"
 
 Renderer::Renderer(Window& window)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window)
@@ -30,22 +31,36 @@ void Renderer::Update(Camera& camera)
 void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
 {
     unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+    unsigned int colorLoc = glGetUniformLocation(shader.ID, "color"); 
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     for (std::shared_ptr<ISceneElement> el : scene.objects)
     {
+        if (el == scene.selected)
+        {
+            glLineWidth(2);
+            glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
+        }
+        else
+            glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+
         auto renderable = std::dynamic_pointer_cast<IRenderable>(el);
         if (renderable)
         {
+            glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(glm::fvec4(0.0f,1.0f,0.0f,0.0f), 3.14f/4.0f);
+            //el->getTransform().rotation = Rotator::MatrixToEuler(rotationMatrix);
             glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * el->getTransform().GetMatrix();
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
             renderable->Render();
         }
+        glLineWidth(1);
     } 
     
     glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.cursor->transform.GetMatrix();
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
     scene.cursor->Render();
 
     ImGui_ImplOpenGL3_NewFrame();

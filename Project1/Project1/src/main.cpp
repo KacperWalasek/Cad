@@ -9,6 +9,7 @@
 #include "EventHandlers/SelectedMovement.h"
 #include <memory>
 #include "Scene/Point.h"
+#include "UI/MainMenu.h"
 
 int main()
 {
@@ -30,7 +31,7 @@ int main()
         *camera);
 
     std::vector<std::shared_ptr<IGui>> guis = {
-        camera, scene
+        camera, scene, std::make_shared<MainMenu>(*scene)
     };
 
     auto movement = std::make_shared<CameraMovement>(*camera);

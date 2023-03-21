@@ -6,6 +6,12 @@ Scene::Scene(std::vector<std::shared_ptr<ISceneElement>> objects, Camera& camera
 	
 }
 
+void Scene::Add(std::shared_ptr<ISceneElement> obj)
+{
+	obj->getTransform().location = cursor->transform.location;
+	objects.push_back(obj);
+}
+
 void Scene::RenderGui()
 {
 	ImGui::Begin("Scene");
@@ -14,6 +20,7 @@ void Scene::RenderGui()
 		names.push_back(strdup(o->getName().data()));
 
 	static int item_current = 0;
+	
 	if (ImGui::ListBox("##", &item_current, &(names[0]), names.size(), names.size()))
 		selected = objects[item_current];
 	ImGui::End();
