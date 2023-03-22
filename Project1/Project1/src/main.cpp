@@ -25,7 +25,7 @@ int main()
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
         std::vector<std::shared_ptr<ISceneElement>>( {
             std::make_shared<Torus>(),
-            std::make_shared<Point>()
+            //std::make_shared<Point>()
             
         }),
         *camera);

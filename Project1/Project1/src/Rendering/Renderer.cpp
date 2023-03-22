@@ -24,8 +24,6 @@ void Renderer::Init()
 
 void Renderer::Update(Camera& camera)
 {
-    /*unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(camera.GetProjectionMatrix()* camera.GetViewMatrix()));*/
 }
 
 void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
@@ -49,8 +47,6 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         auto renderable = std::dynamic_pointer_cast<IRenderable>(el);
         if (renderable)
         {
-            glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(glm::fvec4(0.0f,1.0f,0.0f,0.0f), 3.14f/4.0f);
-            //el->getTransform().rotation = Rotator::MatrixToEuler(rotationMatrix);
             glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * el->getTransform().GetMatrix();
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
             renderable->Render();

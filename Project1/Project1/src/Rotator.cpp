@@ -24,17 +24,17 @@ glm::fvec4 Rotator::AxisToEuler(glm::fvec4 vector, float angle)
 
 glm::fvec4 Rotator::MatrixToEuler(glm::fmat4x4 r)
 {
-	if (fabs(r[0][2]) != 1)
-	{
-		float y = asinf(r[2][0]);
-		float x = atan2f(r[1][2] / cosf(y), r[2][2] / cosf(y));
-		float z = atan2f(r[0][1] / cosf(y), r[0][0] / cosf(y));
+	///if (fabs(r[2][0]) != 1)
+	//{
+		float y = asinf(r[0][2]);
+		float x = atan2f(r[1][2]/cosf(y), r[2][2]/cosf(y));
+		float z = atan2f(r[0][1]/cosf(y), r[0][0]/cosf(y));
 		return { x,y,z,0.0f };
-	}
+	/* }
 	else
 	{
 		float z = 0;
-		if (r[0][2] == -1)
+		if (r[2][0] == -1)
 		{
 			float y = -M_PI / 2.0f;
 			float x = z + atan2f(r[1][0], r[2][0]);
@@ -46,5 +46,5 @@ glm::fvec4 Rotator::MatrixToEuler(glm::fmat4x4 r)
 			float x = -z + atan2f(-r[1][0], -r[2][0]);
 			return { x,y,z,0.0f };
 		}
-	}
+	}*/
 }

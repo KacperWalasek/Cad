@@ -12,7 +12,7 @@ class SelectedMovement : public IKeyEventHandler
 	glm::fvec2 initialPosition;
 	Scene& scene;
 	Camera& camera;
-	Transform stableTransform;
+	std::vector<Transform> stableTransforms;
 	Transform temporaryTransform;
 public:
 	SelectedMovement(Scene& scene, Camera& camera);
