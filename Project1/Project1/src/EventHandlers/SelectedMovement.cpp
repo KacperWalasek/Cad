@@ -81,7 +81,6 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(zView, angle) * stableTransform.GetRotationMatrix();
 			selectedTransform.rotation = Rotator::MatrixToEuler(rotationMatrix);
 
-			
 			glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
 			center4 /= center4.w;
 
@@ -101,8 +100,22 @@ void SelectedMovement::Update(GLFWwindow* window)
 		}
 		case SelectedMovement::Scale:
 		{
-			float scale = fmax(0, 100 - mouseMoveVector.x) / 100;
-			selectedTransform.scale = stableTransform.scale * camera.transform.GetMatrix() * glm::fvec4(scale, scale, scale, 0);
+			float scale = 100/fmax(0, 100 - mouseMoveVector.x);
+			selectedTransform.scale = stableTransform.scale * glm::fvec4(scale, scale, scale, 0);
+
+			glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+			center4 /= center4.w;
+
+			glm::fvec4 centerView = camera.GetInverseProjectionMatrix() * glm::fvec4(center.x, center.y, center4.z, 1);
+			glm::fvec4 center4View = camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+			centerView /= centerView.w;
+			center4View /= center4View.w;
+
+			glm::fvec4 newPointView = centerView + scale * (center4View - centerView); 
+			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
+			newPointWorld /= newPointWorld.w;
+			selectedTransform.location = newPointWorld - glm::fvec4(0, 0, 0, 1);
+
 			break;
 		}
 		default:

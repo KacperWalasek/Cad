@@ -10,6 +10,7 @@
 #include <memory>
 #include "Scene/Point.h"
 #include "UI/MainMenu.h"
+#include "EventHandlers/ClickSelection.h"
 
 int main()
 {
@@ -35,7 +36,10 @@ int main()
     };
 
     auto movement = std::make_shared<CameraMovement>(*camera);
-    window.mouseCallbacks = { movement, scene->cursor };
+    window.mouseCallbacks = { 
+        movement, 
+        scene->cursor, 
+        std::make_shared<ClickSelection>(*scene,*camera)};
     auto objMovement = std::make_shared<SelectedMovement>(*scene, *camera);
     window.keyCallbacks = { objMovement };
 
