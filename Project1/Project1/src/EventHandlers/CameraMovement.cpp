@@ -50,7 +50,7 @@ void CameraMovement::Update(GLFWwindow* window)
 
         if (isCrtlPressed)
         {
-            float scale = fmax(0, 100 - curentMouseVectorX) / 100;
+            float scale = fmax(0.1f, 100 - curentMouseVectorX) / 100;
             tmpTransform.scale = {scale,scale,scale,0};
 
         }

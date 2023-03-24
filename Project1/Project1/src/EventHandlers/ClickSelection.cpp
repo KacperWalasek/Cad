@@ -18,10 +18,10 @@ void ClickSelection::mouseCallback(GLFWwindow* window, int button, int action, i
 		glm::fvec2 cursorPos(currentPos.x / (sizeX / 2) - 1.0f, -currentPos.y / (sizeY / 2) + 1.0f);
 
 		float bestZ = 1;
-		std::shared_ptr<Point> selected = nullptr;
+		std::pair<std::shared_ptr<ISceneElement>, bool>* selected = nullptr;
 		for (auto& obj : scene.objects)
 		{
-			std::shared_ptr<Point> p = std::dynamic_pointer_cast<Point>(obj);
+			std::shared_ptr<Point> p = std::dynamic_pointer_cast<Point>(obj.first);
 			if (!p)
 				continue;
 			glm::fvec4 screenPosition = camera.GetProjectionMatrix() * camera.GetViewMatrix()*p->getTransform().GetMatrix()* glm::fvec4(0, 0, 0, 1);
@@ -30,10 +30,13 @@ void ClickSelection::mouseCallback(GLFWwindow* window, int button, int action, i
 			if (screenPosition.z < bestZ && dist2 < 0.0001f)
 			{
 				bestZ = screenPosition.z;
-				selected = p;
+				selected = &obj;
 			}
 		}
-		if (selected)
-			scene.selected = selected;
+		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS)
+			for (auto& obj : scene.objects)
+				obj.second = false;
+		if(selected)
+			selected->second = true;
 	}
 }

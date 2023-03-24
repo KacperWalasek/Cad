@@ -24,15 +24,18 @@ int main()
     renderer.Init();
 
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
-        std::vector<std::shared_ptr<ISceneElement>>( {
-            std::make_shared<Torus>(),
+        std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>( {
+            std::make_pair(std::make_shared<Torus>(),false),
             //std::make_shared<Point>()
             
         }),
         *camera);
 
     std::vector<std::shared_ptr<IGui>> guis = {
-        camera, scene, std::make_shared<MainMenu>(*scene)
+        camera,
+        scene, 
+        std::make_shared<MainMenu>(*scene),
+        scene->cursor
     };
 
     auto movement = std::make_shared<CameraMovement>(*camera);
@@ -49,6 +52,7 @@ int main()
         renderer.Update(*camera);
         movement->Update(window.window);
         objMovement->Update(window.window);
+        scene->cursor->Update(window.window);
         renderer.Render(*camera, *scene, guis);
         glfwSwapBuffers(window.window);
         glfwPollEvents();

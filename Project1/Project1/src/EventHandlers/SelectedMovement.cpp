@@ -28,7 +28,8 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		initialPosition = initPosDouble;
 		stableTransforms.clear();
 		for (auto& el : scene.objects)
-			stableTransforms.push_back(el->getTransform());
+			if(el.second)
+				stableTransforms.push_back({ el.first,el.first->getTransform() });
 	}
 	if (action == GLFW_RELEASE)
 	{
@@ -36,6 +37,7 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 			(mode == Rotation && key == GLFW_KEY_R) ||
 			(mode == Scale && key == GLFW_KEY_S))
 			mode = None;
+		scene.center.UpdateTransform(scene.objects);
 	}
 }
 void SelectedMovement::Update(GLFWwindow* window)
@@ -50,18 +52,14 @@ void SelectedMovement::Update(GLFWwindow* window)
 	glm::fvec2 currentPosProj(currentPos.x / (sizeX / 2) - 1.0f, -currentPos.y / (sizeY / 2) + 1.0f);
 
 	glm::fvec2 center = { 0,0 };
-	for (int i = 0; i < stableTransforms.size(); i++)
-	{
-		glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransforms[i].GetMatrix() * glm::fvec4(0, 0, 0, 1);
-		center4 /= center4.w;
-		center += glm::vec2( center4.x, center4.y );
-	}
-	center /= stableTransforms.size();
+	glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+	center4 /= center4.w;
+	center += glm::vec2(center4.x, center4.y);
 
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
-		Transform& selectedTransform = scene.objects[i]->getTransform();
-		Transform& stableTransform = stableTransforms[i];
+		Transform& selectedTransform = stableTransforms[i].first->getTransform();
+		Transform& stableTransform = stableTransforms[i].second;
 
 		switch (mode)
 		{
@@ -69,30 +67,33 @@ void SelectedMovement::Update(GLFWwindow* window)
 			break;
 		case SelectedMovement::Translation:
 			selectedTransform.location = stableTransform.location + camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f);
+			scene.center.UpdateTransform(scene.objects);
 			break;
 		case SelectedMovement::Rotation:
 		{
+			// Rotation
 			glm::fvec2 initVec = normalize(initPosProj - center);
 			glm::fvec2 curVec = normalize(currentPosProj - center);
 			float angle = atan2(curVec.y, curVec.x) - atan2(initVec.y, initVec.x);
 
-			glm::fvec4 zView = camera.transform.GetMatrix() * glm::fvec4(0, 0, 1, 0);
+			glm::fvec4 rotationAxis = camera.transform.GetMatrix() * glm::fvec4(0, 0, 1, 0);
 
-			glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(zView, angle) * stableTransform.GetRotationMatrix();
+			glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(rotationAxis, angle) * stableTransform.GetRotationMatrix();
 			selectedTransform.rotation = Rotator::MatrixToEuler(rotationMatrix);
-
+			
+			// Translation
 			glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
 			center4 /= center4.w;
 
-			float currAngle = atan2(center4.y - center.y, center4.x - center.x);
+			glm::fvec4 selectionCenterView = camera.GetInverseProjectionMatrix() * glm::fvec4(center.x,center.y, center4.z,1);
+			glm::fvec4 modelCenterView = camera.GetInverseProjectionMatrix() * center4;
+			modelCenterView /= modelCenterView.w;
+			selectionCenterView /= selectionCenterView.w;
 
-			glm::fvec4 centerView = camera.GetInverseProjectionMatrix() * glm::fvec4(center.x,center.y, center4.z,1);
-			glm::fvec4 center4View = camera.GetInverseProjectionMatrix() * center4;
-			centerView /= centerView.w;
-			center4View /= center4View.w;
+			float currAngle = atan2(modelCenterView.y - selectionCenterView.y, modelCenterView.x - selectionCenterView.x);
 
-			float odl = sqrt(pow(center4View.x- centerView.x,2) + pow(center4View.y - centerView.y, 2));
-			glm::fvec4 newPointView = centerView + odl * glm::vec4(cosf(currAngle + angle), sinf(currAngle + angle),0,0);
+			float odl = sqrt(pow(modelCenterView.x - selectionCenterView.x,2) + pow(modelCenterView.y - selectionCenterView.y, 2));
+			glm::fvec4 newPointView = selectionCenterView + odl * glm::vec4(cosf(currAngle + angle), sinf(currAngle + angle),0,0);
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
 			selectedTransform.location = newPointWorld - glm::fvec4(0,0,0,1);
@@ -100,18 +101,21 @@ void SelectedMovement::Update(GLFWwindow* window)
 		}
 		case SelectedMovement::Scale:
 		{
-			float scale = 100/fmax(0, 100 - mouseMoveVector.x);
+			float odlInit = sqrt(pow(initPosProj.x - center.x, 2) + pow(initPosProj.y - center.y, 2));
+			float odl = sqrt(pow(currentPosProj.x - center.x, 2) + pow(currentPosProj.y - center.y, 2));
+			float scale = odl/odlInit;
 			selectedTransform.scale = stableTransform.scale * glm::fvec4(scale, scale, scale, 0);
 
-			glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
-			center4 /= center4.w;
+			// Translation
+			glm::fvec4 modelCenter = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+			modelCenter /= modelCenter.w;
 
-			glm::fvec4 centerView = camera.GetInverseProjectionMatrix() * glm::fvec4(center.x, center.y, center4.z, 1);
-			glm::fvec4 center4View = camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
-			centerView /= centerView.w;
-			center4View /= center4View.w;
+			glm::fvec4 selectionCenterView = camera.GetInverseProjectionMatrix() * glm::fvec4(center.x, center.y, modelCenter.z, 1);
+			glm::fvec4 modelCenterView = camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+			selectionCenterView /= selectionCenterView.w;
+			modelCenterView /= modelCenterView.w;
 
-			glm::fvec4 newPointView = centerView + scale * (center4View - centerView); 
+			glm::fvec4 newPointView = selectionCenterView + scale * (modelCenterView - selectionCenterView);
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
 			selectedTransform.location = newPointWorld - glm::fvec4(0, 0, 0, 1);

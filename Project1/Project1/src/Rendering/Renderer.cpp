@@ -17,6 +17,8 @@ Renderer::Renderer(Window& window)
 void Renderer::Init()
 {
     GLenum err = glewInit();
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     shader.Init();
     shader.use();
     glPointSize(5);
@@ -31,12 +33,12 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
     unsigned int colorLoc = glGetUniformLocation(shader.ID, "color"); 
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (std::shared_ptr<ISceneElement> el : scene.objects)
+    for (auto& el : scene.objects)
     {
-        if (el == scene.selected)
+        if (el.second)
         {
             glLineWidth(2);
             glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
@@ -44,10 +46,10 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         else
             glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
 
-        auto renderable = std::dynamic_pointer_cast<IRenderable>(el);
+        auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
         if (renderable)
         {
-            glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * el->getTransform().GetMatrix();
+            glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * el.first->getTransform().GetMatrix();
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
             renderable->Render();
         }
@@ -58,11 +60,18 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
     glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
     scene.cursor->Render();
+    
+    if(std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; })!= scene.objects.end())
+    {
+        glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix();
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+        scene.center.Render();
+    }
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
@@ -71,10 +80,10 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
 
-    auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.selected);
+    auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.lastSelected);
     if (selectedGui)
         selectedGui->RenderGui();
-
+        
     for (std::shared_ptr<IGui>& gui : guis)
         gui->RenderGui();
 

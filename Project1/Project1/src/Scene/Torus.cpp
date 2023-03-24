@@ -1,6 +1,6 @@
 #include "Torus.h"
 #include "../Rendering/Sampler.h"
-
+#include <imgui/imgui_stdlib.h>
 
 void Torus::UpdateMesh()
 {
@@ -28,7 +28,8 @@ Torus::Torus()
 
 void Torus::RenderGui()
 {
-	ImGui::Begin("Torus");
+	ImGui::Begin("Torus"); 
+	ImGui::InputText("Name", &name);
 	transform.RenderGui();
 	if (ImGui::InputInt("Minor dencity", &minorDencity))
 		UpdateMesh();

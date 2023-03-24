@@ -91,5 +91,14 @@ void Transform::RenderGui()
 	if (ImGui::InputFloat3("Rotation", rotationTmp))
 		rotation = { rotationTmp[0],rotationTmp[1], rotationTmp[2],0 };
 	if (ImGui::InputFloat3("Scale", scaleTmp))
+	{
+		if (scaleTmp[0] <= 0)
+			scaleTmp[0] = 0.01f;
+		if (scaleTmp[1] <= 0)
+			scaleTmp[1] = 0.01f;
+		if (scaleTmp[2] <= 0)
+			scaleTmp[2] = 0.01f;
+
 		scale = { scaleTmp[0],scaleTmp[1], scaleTmp[2],0 };
+	}
 }

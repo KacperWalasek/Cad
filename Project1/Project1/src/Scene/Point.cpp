@@ -1,7 +1,8 @@
 #include "Point.h"
+#include "imgui/imgui_stdlib.h"
 
 Point::Point()
-	:zero(), zero2(0)
+	:zero(), zero2(0), name("Point")
 {	
     glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -42,6 +43,7 @@ void Point::Render()
 void Point::RenderGui()
 {
 	ImGui::Begin("Point");
+	ImGui::InputText("Name", &name);
 	transform.RenderGui();
 	ImGui::End();
 }

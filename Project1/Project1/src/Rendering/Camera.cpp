@@ -43,6 +43,7 @@ void Camera::RenderGui()
 {
 	float eps = 0.01f;
 	ImGui::Begin("Camera");
+	transform.RenderGui();
 	ImGui::SliderFloat("fov", &fov, eps, M_PI - eps);
 	ImGui::SliderFloat("near", &n, eps, f-eps);
 	if (ImGui::InputFloat("far", &f))
