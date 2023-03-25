@@ -36,7 +36,7 @@ void ClickSelection::mouseCallback(GLFWwindow* window, int button, int action, i
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS)
 			for (auto& obj : scene.objects)
 				obj.second = false;
-		if(selected)
-			selected->second = true;
+		if (selected)
+			scene.Select(*selected);
 	}
 }

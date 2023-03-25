@@ -12,7 +12,7 @@ Center::Center()
 	mesh.indices = {
 		0,1, 0,2, 0,3
 	};
-	mesh.Init();
+	mesh.Update();
 }
 
 void Center::Render()

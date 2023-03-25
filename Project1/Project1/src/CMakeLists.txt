@@ -22,7 +22,32 @@ set(PROJECT_SOURCES
 	"EventHandlers/CameraMovement.cpp"  
 	"Rendering/SceneObject.h" 
 	 
-	"Scene/ISceneElement.h" "Scene/Torus.h" "Scene/Torus.cpp"  "interfaces/IRenderable.h" "EventHandlers/SelectedMovement.h" "EventHandlers/SelectedMovement.cpp" "Scene/Scene.h" "Scene/Scene.cpp" "Scene/Point.h" "Scene/Point.cpp" "Scene/Cursor.h" "Scene/Cursor.cpp" "UI/MainMenu.h" "UI/MainMenu.cpp" "Rotator.h" "Rotator.cpp" "EventHandlers/ClickSelection.h" "EventHandlers/ClickSelection.cpp" "Scene/Center.h" "Scene/Center.cpp")
+	"Scene/ISceneElement.h" 
+	"Scene/Torus.h" 
+	"Scene/Torus.cpp"  
+	"interfaces/IRenderable.h" 
+	"EventHandlers/SelectedMovement.h" 
+	"EventHandlers/SelectedMovement.cpp" 
+	"Scene/Scene.h" 
+	"Scene/Scene.cpp" 
+	"Scene/Point.h" 
+	"Scene/Point.cpp" 
+	"Scene/Cursor.h" 
+	"Scene/Cursor.cpp" 
+	"UI/MainMenu.h" 
+	"UI/MainMenu.cpp" 
+	"Rotator.h" 
+	"Rotator.cpp" 
+	"EventHandlers/ClickSelection.h" 
+	"EventHandlers/ClickSelection.cpp" 
+	"Scene/Center.h" 
+	"Scene/Center.cpp" 
+	"Geometry/BezierCurve.h" 
+	"Geometry/BezierCurve.cpp" 
+	"Math/BernsteinPolynomial.h" 
+	"Math/BernsteinPolynomial.cpp" 
+	"Scene/Curve.h" 
+	"Scene/Curve.cpp" "interfaces/ISceneTracker.h")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

@@ -1,6 +1,7 @@
 #include "MainMenu.h"
 #include "../Scene/Torus.h"
 #include "../Scene/Point.h"
+#include "../Scene/Curve.h"
 
 MainMenu::MainMenu(Scene& scene)
     :scene(scene)
@@ -20,6 +21,10 @@ void MainMenu::RenderGui()
             if (ImGui::MenuItem("Point", "")) 
             {
                 scene.Add(std::make_shared<Point>());
+            }
+            if (ImGui::MenuItem("Curve", ""))
+            {
+                scene.Add(std::make_shared<Curve>());
             }
             ImGui::EndMenu();
         }

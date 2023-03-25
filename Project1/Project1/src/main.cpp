@@ -11,6 +11,7 @@
 #include "Scene/Point.h"
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
+#include "Scene/Curve.h"
 
 int main()
 {
@@ -22,10 +23,25 @@ int main()
 
     window.Init();
     renderer.Init();
-
+    auto p1 = std::make_shared<Point>();
+    auto p2 = std::make_shared<Point>();
+    auto p3 = std::make_shared<Point>();
+    auto p4 = std::make_shared<Point>();
+    auto p5 = std::make_shared<Point>();
+    auto p6 = std::make_shared<Point>();
+    auto p7 = std::make_shared<Point>();
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
         std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>( {
-            std::make_pair(std::make_shared<Torus>(),false),
+            {p1,false},
+            {p2,false},
+            {p3,false},
+            {p4,false},
+            {p5,false},
+            {p6,false},
+            {p7,false},
+            std::make_pair(std::make_shared<Curve>(std::vector<std::shared_ptr<Point>>{
+                p1,p2,p3,p4,p5,p6,p7
+            }),false)
             //std::make_shared<Point>()
             
         }),

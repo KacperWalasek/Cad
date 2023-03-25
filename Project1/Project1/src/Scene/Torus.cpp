@@ -16,7 +16,7 @@ void Torus::UpdateMesh()
 	if (geometry.minorR < eps)
 		geometry.minorR = eps;
 	mesh = Sampler().sampleTorus(geometry, majorDencity, minorDencity);
-	mesh.Init();
+	mesh.Update();
 
 }
 
