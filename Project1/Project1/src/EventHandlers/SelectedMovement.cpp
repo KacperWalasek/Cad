@@ -1,5 +1,6 @@
 #include "SelectedMovement.h"
 #include "../Rotator.h"
+#include "../interfaces/ITransformable.h"
 
 
 SelectedMovement::SelectedMovement(Scene& scene, Camera& camera)
@@ -29,7 +30,12 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		stableTransforms.clear();
 		for (auto& el : scene.objects)
 			if(el.second)
-				stableTransforms.push_back({ el.first,el.first->getTransform() });
+			{
+				auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
+				if (!objTransformable)
+					continue;
+				stableTransforms.push_back({ el.first,objTransformable->getTransform() });
+			}
 	}
 	if (action == GLFW_RELEASE)
 	{
@@ -58,7 +64,12 @@ void SelectedMovement::Update(GLFWwindow* window)
 
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
-		Transform& selectedTransform = stableTransforms[i].first->getTransform();
+
+		auto objTransformable = std::dynamic_pointer_cast<ITransformable>(stableTransforms[i].first);
+		if (!objTransformable)
+			continue;
+
+		Transform& selectedTransform = objTransformable->getTransform();
 		Transform& stableTransform = stableTransforms[i].second;
 
 		switch (mode)

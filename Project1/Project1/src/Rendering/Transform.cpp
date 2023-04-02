@@ -76,7 +76,11 @@ glm::fmat4x4 Transform::GetScaleMatrix() const
 
 Transform Transform::operator+(const Transform& t)
 {
-	Transform ret = Transform(location + t.location, rotation + t.rotation, scale * t.scale);
+	glm::fvec4 s = scale * t.scale;
+	Transform ret = Transform(location + t.location, rotation + t.rotation, glm::fvec4(
+		fmax(s.x, MIN_SIZE),
+		fmax(s.y, MIN_SIZE),
+		fmax(s.z, MIN_SIZE),0));
 	ret.reversedOrder = reversedOrder;
 	return ret;
 }

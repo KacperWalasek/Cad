@@ -22,6 +22,7 @@ public:
 
 	void Add(std::shared_ptr<ISceneElement> obj);
 	void Select(std::pair<std::shared_ptr<ISceneElement>, bool>& obj);
+	void Select(std::shared_ptr<ISceneElement> obj);
 
 	virtual void RenderGui() override;
 

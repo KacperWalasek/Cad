@@ -18,8 +18,8 @@ Window::~Window()
 void Window::Init()
 {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
  
@@ -66,6 +66,10 @@ Window::Window()
 
 void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    auto& io = ImGui::GetIO();
+    if (io.WantCaptureMouse) {
+        return;
+    }
     Window* windowObject = (Window*)glfwGetWindowUserPointer(window);
     for (auto& handler : windowObject->mouseCallbacks)
         handler->mouseCallback(window, button, action, mods);
@@ -73,6 +77,10 @@ void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    auto& io = ImGui::GetIO();
+    if (io.WantCaptureKeyboard) {
+        return;
+    }
     Window* windowObject = (Window*)glfwGetWindowUserPointer(window);
     for (auto& handler : windowObject->keyCallbacks)
         handler->keyCallback(window, key, scancode, action, mods);

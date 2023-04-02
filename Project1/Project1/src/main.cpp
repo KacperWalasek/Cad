@@ -12,6 +12,7 @@
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
 #include "Scene/Curve.h"
+#include "EventHandlers/ObjectFactory.h"
 
 int main()
 {
@@ -23,34 +24,14 @@ int main()
 
     window.Init();
     renderer.Init();
-    auto p1 = std::make_shared<Point>();
-    auto p2 = std::make_shared<Point>();
-    auto p3 = std::make_shared<Point>();
-    auto p4 = std::make_shared<Point>();
-    auto p5 = std::make_shared<Point>();
-    auto p6 = std::make_shared<Point>();
-    auto p7 = std::make_shared<Point>();
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
-        std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>( {
-            {p1,false},
-            {p2,false},
-            {p3,false},
-            {p4,false},
-            {p5,false},
-            {p6,false},
-            {p7,false},
-            std::make_pair(std::make_shared<Curve>(std::vector<std::shared_ptr<Point>>{
-                p1,p2,p3,p4,p5,p6,p7
-            }),false)
-            //std::make_shared<Point>()
-            
-        }),
+        std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>(),
         *camera);
 
     std::vector<std::shared_ptr<IGui>> guis = {
         camera,
         scene, 
-        std::make_shared<MainMenu>(*scene),
+        std::make_shared<MainMenu>(*scene, *camera),
         scene->cursor
     };
 
@@ -60,7 +41,10 @@ int main()
         scene->cursor, 
         std::make_shared<ClickSelection>(*scene,*camera)};
     auto objMovement = std::make_shared<SelectedMovement>(*scene, *camera);
-    window.keyCallbacks = { objMovement };
+    window.keyCallbacks = { 
+        objMovement,
+        std::make_shared<ObjectFactory>(*scene)
+    };
 
     while (window.isOpen())
     {

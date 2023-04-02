@@ -47,7 +47,7 @@ set(PROJECT_SOURCES
 	"Math/BernsteinPolynomial.h" 
 	"Math/BernsteinPolynomial.cpp" 
 	"Scene/Curve.h" 
-	"Scene/Curve.cpp" "interfaces/ISceneTracker.h")
+	"Scene/Curve.cpp" "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" "EventHandlers/ObjectFactory.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

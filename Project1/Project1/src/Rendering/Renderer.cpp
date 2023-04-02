@@ -8,6 +8,7 @@
 #include "SceneObject.h"
 #include "../interfaces/IRenderable.h"
 #include "../Rotator.h"
+#include "../interfaces/ITransformable.h"
 
 Renderer::Renderer(Window& window)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window)
@@ -52,7 +53,11 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
         if (renderable)
         {
-            glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * el.first->getTransform().GetMatrix();
+            glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+
+            auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
+            if (objTransformable) 
+                matrix = matrix * objTransformable->getTransform().GetMatrix();
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
             renderable->Render();
         }
@@ -77,7 +82,6 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
@@ -85,6 +89,7 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
+    //ImGui::ShowDemoWindow();
 
     auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.lastSelected);
     if (selectedGui)

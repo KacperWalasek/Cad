@@ -3,8 +3,8 @@
 #include "../Scene/Point.h"
 #include "../Scene/Curve.h"
 
-MainMenu::MainMenu(Scene& scene)
-    :scene(scene)
+MainMenu::MainMenu(Scene& scene, Camera& camera)
+    :scene(scene), camera(camera)
 {}
 
 void MainMenu::RenderGui()
@@ -24,7 +24,17 @@ void MainMenu::RenderGui()
             }
             if (ImGui::MenuItem("Curve", ""))
             {
-                scene.Add(std::make_shared<Curve>());
+                std::vector<std::shared_ptr<Point>> points;
+                for(auto& el : scene.objects)
+                    if (el.second)
+                    {
+                        auto point = std::dynamic_pointer_cast<Point>(el.first);
+                        if(point)
+                            points.push_back(point);
+                    }
+                auto curve = std::make_shared<Curve>(camera, points);
+                scene.Add(curve);
+                
             }
             ImGui::EndMenu();
         }

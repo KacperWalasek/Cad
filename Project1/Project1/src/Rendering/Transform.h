@@ -2,8 +2,10 @@
 #include "glm/glm.hpp"
 #include "../interfaces/IGui.h"
 
+const float MIN_SIZE = 0.0000001f;
+
 struct Transform : public IGui
-{ 
+{
 	Transform()
 		: location(0,0,0,0), rotation(0,0,0,0), scale(1,1,1,0), reversedOrder(false)
 	{}

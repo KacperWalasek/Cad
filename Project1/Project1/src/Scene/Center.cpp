@@ -27,7 +27,10 @@ void Center::UpdateTransform(std::vector<std::pair<std::shared_ptr<ISceneElement
 	for (auto& obj : objects)
 		if(obj.second)
 		{
-			newTransform.location += obj.first->getTransform().location;
+			auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj.first);
+			if (!objTransformable)
+				continue;
+			newTransform.location += objTransformable->getTransform().location;
 			selectedCount++;
 		}
 

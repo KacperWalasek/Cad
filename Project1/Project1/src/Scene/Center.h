@@ -1,6 +1,7 @@
 #pragma once
 #include "../Scene/ISceneElement.h"
 #include "../interfaces/IRenderable.h"
+#include "../interfaces/ITransformable.h"
 #include <memory>
 
 class Center : public IRenderable

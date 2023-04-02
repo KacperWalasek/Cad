@@ -8,7 +8,7 @@ ClickSelection::ClickSelection(Scene& scene, Camera& camera)
 
 void ClickSelection::mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (action == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_P) == GLFW_PRESS)
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		glm::dvec2 currentPos;
 		int sizeX, sizeY;

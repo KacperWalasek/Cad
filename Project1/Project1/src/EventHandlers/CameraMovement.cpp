@@ -10,7 +10,7 @@ CameraMovement::CameraMovement(Camera& camera)
 void CameraMovement::mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
         switch (action)
         {
@@ -39,7 +39,7 @@ void CameraMovement::Update(GLFWwindow* window)
 
     isCrtlPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
     isShiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
     {
         lastTouchTime = glfwGetTime();
         double posX, posY;

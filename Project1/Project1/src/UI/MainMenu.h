@@ -5,8 +5,9 @@
 class MainMenu : public IGui
 {
 	Scene& scene;
+	Camera& camera;
 public:
-	MainMenu(Scene& scene);
+	MainMenu(Scene& scene, Camera& camera);
 
 	// Inherited via IGui
 	virtual void RenderGui() override;
