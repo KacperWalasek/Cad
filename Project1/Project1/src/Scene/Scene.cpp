@@ -9,12 +9,12 @@ Scene::Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> object
 
 void Scene::Add(std::shared_ptr<ISceneElement> obj)
 {
-	for (auto& tracker : trackers)
-		tracker->onAdd(*this, obj);
 	auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj);
 	if(objTransformable)
 		objTransformable->getTransform().location = cursor->transform.location;
 	objects.push_back({ obj,false });
+	for (auto& tracker : trackers)
+		tracker->onAdd(*this, obj);
 	auto objTracker = std::dynamic_pointer_cast<ISceneTracker>(obj);
 	if (objTracker)
 		trackers.push_back(objTracker);

@@ -43,14 +43,14 @@ set(PROJECT_SOURCES
 	"Scene/Center.h" 
 	"Scene/Center.cpp" 
 	 
-	"Geometry/BezierCurve.h" 
-	"Geometry/BezierCurve.cpp" 
-	"Math/BernsteinPolynomial.h" 
-	"Math/BernsteinPolynomial.cpp" 
-	"Scene/Curve.h" 
-	"Scene/Curve.cpp" "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" 
+	 
+	 
+	 
+	 
+	 
+	 "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" 
 	"EventHandlers/ObjectFactory.cpp" "Scene/TesselationTest.h" "Scene/TesselationTest.cpp" "Scene/CurveC0.h" 
-	"Scene/CurveC0.cpp" )
+	"Scene/CurveC0.cpp"  "Scene/BezierCurve.h" "Scene/BezierCurve.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

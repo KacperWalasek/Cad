@@ -7,10 +7,12 @@ patch in vec4 bp2;
 patch in vec4 bp3;
 
 uniform mat4 transform;
+uniform float t0;
+uniform float t1;
 
 void main()
 {
-    float t = gl_TessCoord.x;
+    float t = t0 + gl_TessCoord.x * (t1-t0);
     float nt = 1-t;
 
     vec4 d = bp3;

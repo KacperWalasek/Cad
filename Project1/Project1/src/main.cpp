@@ -11,7 +11,6 @@
 #include "Scene/Point.h"
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
-#include "Scene/Curve.h"
 #include "EventHandlers/ObjectFactory.h"
 #include "Scene/TesselationTest.h"
 

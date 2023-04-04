@@ -7,6 +7,8 @@ patch out vec4 bp2;
 patch out vec4 bp3;
 
 uniform mat4 transform;
+uniform float t0;
+uniform float t1;
 
 void main()
 {
@@ -35,7 +37,7 @@ void main()
             p1 /= p1.w;
             d += sqrt(pow(p1.x-p0.x,2) + pow(p1.y-p0.y,2) + pow(p1.z-p0.z,2));
         }   
-        float division = clamp(ceil(d*1000), 10,200);
+        float division = clamp(ceil(d*5), 1,200);
         gl_TessLevelOuter[0] = 1;
         gl_TessLevelOuter[1] = division;
 

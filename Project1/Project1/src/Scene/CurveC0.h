@@ -5,19 +5,17 @@
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/IGui.h"
 #include "../interfaces/ISceneTracker.h"
-#include "../Geometry/BezierCurve.h"
 #include "Point.h"
 #include <memory>
 #include "../Rendering/Camera.h"
 #include "../Rendering/Shader.h"
+#include "BezierCurve.h"
 
 class CurveC0 : public ISceneElement, public IRenderable, public IGui, public ISceneTracker
 {
 	std::string name;
-	Mesh curveMesh;
-	Mesh chainMesh;
-	std::vector<BezierCurve> beziers;
 	std::vector<std::shared_ptr<Point>> points;
+	std::vector<BezierCurve> beziers;
 	bool addSelected, removeSelected;
 	bool showChain;
 
@@ -41,5 +39,6 @@ public:
 
 	virtual void onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
+	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
 };

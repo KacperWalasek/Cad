@@ -27,22 +27,3 @@ Mesh Sampler::sampleTorus(const TorusGeometry& torus, int majorDivision, int min
 	}
 	return mesh;
 }
-
-Mesh Sampler::sampleBezierCurve(const BezierCurve& curve, int division)
-{
-	Mesh mesh;
-	for (int i = 0; i < division; i++)
-	{
-		glm::fvec4 v = curve.getPointOnCurve((float)i / (float)(division-1));
-		mesh.vertices.push_back(v.x);
-		mesh.vertices.push_back(v.y);
-		mesh.vertices.push_back(v.z);
-
-		if (i < division - 1)
-		{
-			mesh.indices.push_back(i);
-			mesh.indices.push_back(i + 1);
-		}
-	}
-	return mesh;
-}

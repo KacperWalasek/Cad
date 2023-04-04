@@ -42,12 +42,21 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		if ((mode == Translation && key == GLFW_KEY_G) ||
 			(mode == Rotation && key == GLFW_KEY_R) ||
 			(mode == Scale && key == GLFW_KEY_S))
+		{
 			mode = None;
-		scene.center.UpdateTransform(scene.objects);
+			scene.center.UpdateTransform(scene.objects);
+
+			for (auto& tracker : scene.trackers)
+				for (auto& el : scene.objects)
+					if (el.second)
+						tracker->onMove(scene, el.first);
+		}
 	}
 }
 void SelectedMovement::Update(GLFWwindow* window)
 {
+	if (mode == None)
+		return;
 	glm::dvec2 currentPos;
 	glfwGetCursorPos(window, &currentPos.x, &currentPos.y);
 	glm::fvec2 mouseMoveVector = (glm::fvec2)currentPos - initialPosition;
@@ -136,5 +145,9 @@ void SelectedMovement::Update(GLFWwindow* window)
 		default:
 			break;
 		}
+		for (auto& tracker : scene.trackers)
+			for (auto& el : scene.objects)
+				if (el.second)
+					tracker->onMove(scene, el.first);
 	}
 }
