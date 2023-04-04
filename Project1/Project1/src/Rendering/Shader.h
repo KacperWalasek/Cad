@@ -19,6 +19,7 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath);
     void Init();
     // use/activate the shader
+    void loadShaderFile(const char* path, GLenum shaderType);
     void use();
     // utility uniform functions
     void setBool(const std::string& name, bool value) const;

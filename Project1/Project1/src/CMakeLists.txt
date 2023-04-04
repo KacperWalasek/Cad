@@ -42,16 +42,22 @@ set(PROJECT_SOURCES
 	"EventHandlers/ClickSelection.cpp" 
 	"Scene/Center.h" 
 	"Scene/Center.cpp" 
+	 
 	"Geometry/BezierCurve.h" 
 	"Geometry/BezierCurve.cpp" 
 	"Math/BernsteinPolynomial.h" 
 	"Math/BernsteinPolynomial.cpp" 
 	"Scene/Curve.h" 
-	"Scene/Curve.cpp" "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" "EventHandlers/ObjectFactory.cpp")
+	"Scene/Curve.cpp" "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" 
+	"EventHandlers/ObjectFactory.cpp" "Scene/TesselationTest.h" "Scene/TesselationTest.cpp" "Scene/CurveC0.h" 
+	"Scene/CurveC0.cpp" )
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
-	"Shaders/fragmentShader.frag")
+	"Shaders/fragmentShader.frag"
+	"Shaders/test.tesc"
+	"Shaders/test.tese"
+	"Shaders/test.vert")
 add_executable(CAD ${PROJECT_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)

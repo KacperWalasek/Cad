@@ -39,6 +39,7 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
 
     for (auto& el : scene.objects)
     {
+        shader.use();
         if (el.second)
         {
             glLineWidth(2);
@@ -62,7 +63,8 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
             renderable->Render();
         }
         glLineWidth(1);
-    } 
+    }
+    shader.use();
     
     scene.cursor->transform.scale = camera.transform.scale;
     glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.cursor->transform.GetMatrix();
@@ -89,7 +91,6 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
-    //ImGui::ShowDemoWindow();
 
     auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.lastSelected);
     if (selectedGui)

@@ -13,6 +13,7 @@
 #include "EventHandlers/ClickSelection.h"
 #include "Scene/Curve.h"
 #include "EventHandlers/ObjectFactory.h"
+#include "Scene/TesselationTest.h"
 
 int main()
 {
@@ -27,6 +28,8 @@ int main()
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
         std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>(),
         *camera);
+    //std::shared_ptr<TesselationTest> tesselationTest = std::make_shared<TesselationTest>(*camera);
+    //scene->Add(tesselationTest);
 
     std::vector<std::shared_ptr<IGui>> guis = {
         camera,
@@ -40,12 +43,14 @@ int main()
         movement, 
         scene->cursor, 
         std::make_shared<ClickSelection>(*scene,*camera)};
+
     auto objMovement = std::make_shared<SelectedMovement>(*scene, *camera);
     window.keyCallbacks = { 
         objMovement,
         std::make_shared<ObjectFactory>(*scene)
     };
-
+    auto a = GL_MAX_TESS_GEN_LEVEL;
+    
     while (window.isOpen())
     {
         window.Update();

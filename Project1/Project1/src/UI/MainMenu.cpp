@@ -1,7 +1,7 @@
 #include "MainMenu.h"
 #include "../Scene/Torus.h"
 #include "../Scene/Point.h"
-#include "../Scene/Curve.h"
+#include "../Scene/CurveC0.h"
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
@@ -32,7 +32,7 @@ void MainMenu::RenderGui()
                         if(point)
                             points.push_back(point);
                     }
-                auto curve = std::make_shared<Curve>(camera, points);
+                auto curve = std::make_shared<CurveC0>(camera, points);
                 scene.Add(curve);
                 
             }
