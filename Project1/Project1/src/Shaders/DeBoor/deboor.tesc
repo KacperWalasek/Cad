@@ -39,7 +39,7 @@ void main()
         }   
         float division = clamp(ceil(d*5), 1,200);
         gl_TessLevelOuter[0] = 1;
-        gl_TessLevelOuter[1] = division;
+        gl_TessLevelOuter[1] = 200;
 
     }
 }

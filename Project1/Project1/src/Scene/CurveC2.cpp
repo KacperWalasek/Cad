@@ -16,6 +16,11 @@ CurveC2::CurveC2(Camera& camera, std::vector<std::shared_ptr<Point>> points)
 	deBoorShader.loadShaderFile("Shaders/DeBoor/deboor.tesc", GL_TESS_CONTROL_SHADER);
 	deBoorShader.loadShaderFile("Shaders/DeBoor/deboor.tese", GL_TESS_EVALUATION_SHADER);
 
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &chainEBO);
+	glGenBuffers(1, &curveEBO);
+	glGenVertexArrays(1, &chainVAO);
+	glGenVertexArrays(1, &curveVAO);
 	UpdateMeshes();
 
 }
@@ -23,23 +28,50 @@ CurveC2::CurveC2(Camera& camera, std::vector<std::shared_ptr<Point>> points)
 void CurveC2::UpdateMeshes()
 {
 	UpdateBeziers();
-	chainMesh.vertices.clear();
-	chainMesh.indices.clear();
+
+	std::vector<float> vertices;
+	std::vector<int> chainIndices;
+	std::vector<int> curveIndices;
 
 	for (int i = 0; i<points.size(); i++)
 	{
 		glm::fvec4 v = points[i]->getTransform().location;
-		chainMesh.vertices.push_back(v.x);
-		chainMesh.vertices.push_back(v.y);
-		chainMesh.vertices.push_back(v.z);
+		vertices.push_back(v.x);
+		vertices.push_back(v.y);
+		vertices.push_back(v.z);
 
 		if (i != 0)
 		{
-			chainMesh.indices.push_back(i - 1);
-			chainMesh.indices.push_back(i);
+			chainIndices.push_back(i - 1);
+			chainIndices.push_back(i);
+		}
+		if (i > 2)
+		{
+			curveIndices.push_back(i - 3);
+			curveIndices.push_back(i - 2);
+			curveIndices.push_back(i - 1);
+			curveIndices.push_back(i);
 		}
 	}
-	chainMesh.Update();
+	curveIndicesSize = curveIndices.size();
+	chainIndicesSize = chainIndices.size();
+
+
+	glBindVertexArray(curveVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	if (vertices.size() != 0)
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, curveEBO);
+	if (curveIndices.size() != 0)
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, curveIndices.size() * sizeof(int), &curveIndices[0], GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void CurveC2::UpdateBeziers()
@@ -72,7 +104,7 @@ std::string CurveC2::getName() const
 
 void CurveC2::Render()
 {
-	chainMesh.Render();
+	//chainMesh.Render();
 	if (showChain)
 		for (auto& b : beziers)
 			b.chainMesh.Render();
@@ -83,8 +115,30 @@ void CurveC2::Render()
 	unsigned int transformLoc = glGetUniformLocation(deBoorShader.ID, "transform");
 	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+
+	glBindVertexArray(curveVAO);
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+	unsigned int t0Loc = glGetUniformLocation(shader.ID, "t0");
+	unsigned int t1Loc = glGetUniformLocation(shader.ID, "t1");
+	float baseDivision = 1.0f;
+	for (int i = 0; i < baseDivision; i++)
+	{
+		glUniform1f(t0Loc, i / baseDivision);
+		glUniform1f(t1Loc, (i + 1) / baseDivision);
+		glDrawElements(GL_PATCHES, curveIndicesSize, GL_UNSIGNED_INT, 0);
+	}
+	/*
+	shader.use();
+
+	unsigned int colorLoc = glGetUniformLocation(deBoorShader.ID, "color");
+	glUniform4f(colorLoc, 0.0f, 1.0f, 1.0f, 1.0f);
+	unsigned int transformLoc = glGetUniformLocation(deBoorShader.ID, "transform");
+	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
 	for (auto& b : beziers)
 		b.Render(deBoorShader);
+		*/
 }
 
 void CurveC2::RenderGui()

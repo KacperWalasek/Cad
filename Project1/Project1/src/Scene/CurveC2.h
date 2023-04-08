@@ -15,6 +15,8 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui, public IS
 	bool addSelected, removeSelected;
 	bool showChain;
 
+	int curveIndicesSize, chainIndicesSize;
+	unsigned int VBO, curveEBO, curveVAO, chainEBO, chainVAO;
 	Mesh chainMesh;
 
 	Camera& camera;
