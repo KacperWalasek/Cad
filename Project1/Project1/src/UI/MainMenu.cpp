@@ -2,6 +2,7 @@
 #include "../Scene/Torus.h"
 #include "../Scene/Point.h"
 #include "../Scene/CurveC0.h"
+#include "../Scene/CurveC2.h"
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
@@ -22,7 +23,7 @@ void MainMenu::RenderGui()
             {
                 scene.Add(std::make_shared<Point>());
             }
-            if (ImGui::MenuItem("Curve", ""))
+            if (ImGui::MenuItem("CurveC0", ""))
             {
                 std::vector<std::shared_ptr<Point>> points;
                 for(auto& el : scene.objects)
@@ -36,6 +37,21 @@ void MainMenu::RenderGui()
                 scene.Add(curve);
                 
             }
+            if (ImGui::MenuItem("CurveC2", ""))
+            {
+                std::vector<std::shared_ptr<Point>> points;
+                for (auto& el : scene.objects)
+                    if (el.second)
+                    {
+                        auto point = std::dynamic_pointer_cast<Point>(el.first);
+                        if (point)
+                            points.push_back(point);
+                    }
+                auto curve = std::make_shared<CurveC2>(camera, points);
+                scene.Add(curve);
+
+            }
+
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

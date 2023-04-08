@@ -43,21 +43,28 @@ set(PROJECT_SOURCES
 	"Scene/Center.h" 
 	"Scene/Center.cpp" 
 	 
-	 
-	 
-	 
-	 
-	 
-	 "interfaces/ISceneTracker.h" "interfaces/ITransformable.h" "EventHandlers/ObjectFactory.h" 
-	"EventHandlers/ObjectFactory.cpp" "Scene/TesselationTest.h" "Scene/TesselationTest.cpp" "Scene/CurveC0.h" 
-	"Scene/CurveC0.cpp"  "Scene/BezierCurve.h" "Scene/BezierCurve.cpp")
+	"interfaces/ISceneTracker.h" 
+	"interfaces/ITransformable.h" 
+	"EventHandlers/ObjectFactory.h" 
+	"EventHandlers/ObjectFactory.cpp" 
+	"Scene/TesselationTest.h" 
+	"Scene/TesselationTest.cpp" 
+	"Scene/CurveC0.h" 
+	"Scene/CurveC0.cpp"  
+	"Scene/BezierCurve.h" 
+	"Scene/BezierCurve.cpp" 
+	"Scene/CurveC2.h" 
+	"Scene/CurveC2.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
 	"Shaders/fragmentShader.frag"
 	"Shaders/test.tesc"
 	"Shaders/test.tese"
-	"Shaders/test.vert")
+	"Shaders/test.vert"
+	"Shaders/DeBoor/deboor.tesc"
+	"Shaders/DeBoor/deboor.tese"
+	"Shaders/DeBoor/deboor.vert")
 add_executable(CAD ${PROJECT_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)
