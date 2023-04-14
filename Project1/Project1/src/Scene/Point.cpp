@@ -24,6 +24,12 @@ Point::Point()
 
 }
 
+Point::Point(glm::fvec4 position)
+	:Point()
+{
+	transform.location = position;
+}
+
 std::string Point::getName() const
 {
 	return name;
@@ -34,7 +40,12 @@ Transform& Point::getTransform()
 	return transform;
 }
 
-void Point::Render()
+const Transform& Point::getTransform() const
+{
+	return transform;
+}
+
+void Point::Render(bool selected)
 {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
@@ -46,4 +57,19 @@ void Point::RenderGui()
 	ImGui::InputText("Name", &name);
 	transform.RenderGui();
 	ImGui::End();
+}
+
+std::tuple<bool, float> Point::InClickRange(Camera& camera,float x, float y) const
+{
+	glm::fvec4 screenPosition = camera.GetProjectionMatrix() * camera.GetViewMatrix() * transform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
+	screenPosition /= screenPosition.w;
+	float dist2 = pow(x - screenPosition.x, 2) + pow(y - screenPosition.y, 2);
+	if (dist2 < 0.0001f)
+		return std::make_tuple( true, screenPosition.z );
+	return std::make_tuple(false, 0 );
+}
+
+bool Point::Click(Scene& scene, Camera& camera, float x, float y)
+{
+	return true;
 }

@@ -45,7 +45,7 @@ std::string TesselationTest::getName() const
 	return "Tesselation";
 }
 
-void TesselationTest::Render()
+void TesselationTest::Render(bool selected)
 {
     shader.use();
     glPatchParameteri(GL_PATCH_VERTICES, 2);

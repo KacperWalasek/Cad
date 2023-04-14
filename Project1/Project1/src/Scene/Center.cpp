@@ -15,7 +15,7 @@ Center::Center()
 	mesh.Update();
 }
 
-void Center::Render()
+void Center::Render(bool selected)
 {
 	mesh.Render();
 }

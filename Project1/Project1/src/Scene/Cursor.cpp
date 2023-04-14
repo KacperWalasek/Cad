@@ -17,7 +17,7 @@ Cursor::Cursor(Camera& camera)
 	UpdateFromWorld();
 }
 
-void Cursor::Render()
+void Cursor::Render(bool selected)
 {
 	mesh.Render();
 }

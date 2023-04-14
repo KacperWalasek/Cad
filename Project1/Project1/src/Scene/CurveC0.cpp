@@ -25,7 +25,7 @@ std::string CurveC0::getName() const
 	return name;
 }
 
-void CurveC0::Render()
+void CurveC0::Render(bool selected)
 {
 	if (showChain)
 		for (auto& b : beziers)

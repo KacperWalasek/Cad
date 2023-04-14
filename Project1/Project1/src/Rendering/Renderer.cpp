@@ -60,7 +60,7 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
             if (objTransformable) 
                 matrix = matrix * objTransformable->getTransform().GetMatrix();
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
-            renderable->Render();
+            renderable->Render(el.second);
         }
         glLineWidth(1);
     }
@@ -70,7 +70,7 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.cursor->transform.GetMatrix();
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
     glUniform4f(colorLoc, 0.5f, 0.5f, 1.0f, 1.0f);
-    scene.cursor->Render();
+    scene.cursor->Render(false);
     
     if(std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; })!= scene.objects.end())
     {
@@ -78,7 +78,7 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix();
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
         glUniform4f(colorLoc, 1.0f, 0.0f, 0.0f, 1.0f);
-        scene.center.Render();
+        scene.center.Render(false);
     }
 
     ImGui_ImplOpenGL3_NewFrame();

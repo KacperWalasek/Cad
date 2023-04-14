@@ -29,7 +29,7 @@ public:
 
 	virtual std::string getName() const override;
 
-	virtual void Render() override;
+	virtual void Render(bool selected) override;
 
 	virtual void RenderGui() override;
 

@@ -1,10 +1,10 @@
 #include "SelectedMovement.h"
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
-
+#include "../interfaces/ICustomMove.h"
 
 SelectedMovement::SelectedMovement(Scene& scene, Camera& camera)
-	:scene(scene), camera(camera)
+	:scene(scene), camera(camera), mode(None)
 {}
 void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -32,9 +32,12 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 			if(el.second)
 			{
 				auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
-				if (!objTransformable)
-					continue;
-				stableTransforms.push_back({ el.first,objTransformable->getTransform() });
+				if (objTransformable)
+					stableTransforms.push_back({ el.first,objTransformable->getTransform() });
+				auto objCustomMovement = std::dynamic_pointer_cast<ICustomMove>(el.first);
+				if (objCustomMovement)
+					objCustomMovement->StartMove();
+				
 			}
 	}
 	if (action == GLFW_RELEASE)
@@ -70,7 +73,13 @@ void SelectedMovement::Update(GLFWwindow* window)
 	glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
 	center4 /= center4.w;
 	center += glm::vec2(center4.x, center4.y);
-
+	for(auto& el : scene.objects)
+		if (el.second)
+		{
+			auto objCustomMove = std::dynamic_pointer_cast<ICustomMove>(el.first);
+			if (objCustomMove)
+				objCustomMove->Translate(camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f));
+		}
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
 

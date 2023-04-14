@@ -28,6 +28,6 @@ public:
 
 	virtual Transform& getTransform() override;
 
-	virtual void Render() override;
+	virtual void Render(bool selected) override;
 
 };

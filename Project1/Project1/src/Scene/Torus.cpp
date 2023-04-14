@@ -48,7 +48,7 @@ Transform& Torus::getTransform()
 	return transform;
 }
 
-void Torus::Render()
+void Torus::Render(bool selected)
 {
 	mesh.Render();
 }

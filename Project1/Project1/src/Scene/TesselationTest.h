@@ -18,6 +18,6 @@ public:
 
 
 	// Inherited via IRenderable
-	virtual void Render() override;
+	virtual void Render(bool selected) override;
 
 };
