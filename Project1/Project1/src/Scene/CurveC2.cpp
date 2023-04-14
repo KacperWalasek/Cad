@@ -2,12 +2,16 @@
 #include "Scene.h"
 #include <imgui/imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
+
+Indexer CurveC2::indexer;
+
 CurveC2::CurveC2(Camera& camera, std::vector<std::shared_ptr<Point>> points)
-	: camera(camera), points(points), name("Curve"), addSelected(false),
+	: camera(camera), points(points), name("CurveC2-" + std::to_string(indexer.getNewIndex())) , addSelected(false),
 	removeSelected(false),
 	shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"),
 	deBoorShader("Shaders/DeBoor/deboor.vert", "Shaders/fragmentShader.frag"),
-	selectedBezier(-1)
+	selectedBezier(-1),
+	showBezierChain(false), showBezierPoints(false), showDeboorChain(false)
 {
 	shader.Init();
 
@@ -34,7 +38,7 @@ void CurveC2::UpdateMeshes()
 
 	for (int i = 0; i<points.size(); i++)
 	{
-		glm::fvec4 v = points[i]->getTransform().location;
+		const glm::fvec4& v = points[i]->getTransform().location;
 		vertices.push_back(v.x);
 		vertices.push_back(v.y);
 		vertices.push_back(v.z);
@@ -70,7 +74,21 @@ void CurveC2::UpdateMeshes()
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(chainVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chainEBO);
+
+	if (chainIndices.size() != 0)
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, chainIndices.size() * sizeof(int), &chainIndices[0], GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
 }
 
 void CurveC2::UpdateBeziers()
@@ -80,24 +98,26 @@ void CurveC2::UpdateBeziers()
 	for (int i = 1; i < (int)(points.size() - 2); i++)
 	{
 		// Bezier between p1 and p2
-		glm::fvec4 p0 = points[i - 1]->getTransform().location;
-		glm::fvec4 p1 = points[i]->getTransform().location;
-		glm::fvec4 p2 = points[i + 1]->getTransform().location;
-		glm::fvec4 p3 = points[i + 2]->getTransform().location;
+		glm::fvec4 db0 = points[i - 1]->getTransform().location;
+		glm::fvec4 db1 = points[i]->getTransform().location;
+		glm::fvec4 db2 = points[i + 1]->getTransform().location;
+		glm::fvec4 db3 = points[i + 2]->getTransform().location;
 		
-		glm::fvec4 bl =	p0 / 3.0f        + p1 * 2.0f / 3.0f;
-		glm::fvec4 br = p2 * 2.0f / 3.0f + p3 / 3.0f;
+		glm::fvec4 bl = db0 / 3.0f        + db1 * 2.0f / 3.0f;
+		glm::fvec4 br = db2 * 2.0f / 3.0f + db3 / 3.0f;
 
-		glm::fvec4 b1 = p1 * 2.0f / 3.0f + p2 / 3.0f;
-		glm::fvec4 b2 = p1 / 3.0f        + p2 * 2.0f / 3.0f;
+		glm::fvec4 b1 = db1 * 2.0f / 3.0f + db2 / 3.0f;
+		glm::fvec4 b2 = db1 / 3.0f        + db2 * 2.0f / 3.0f;
 		glm::fvec4 b0 = (bl + b1) / 2.0f;
 		glm::fvec4 b3 = (br + b2) / 2.0f;
-		beziers.emplace_back();
-		bezierPoints.emplace_back(b0);
-		bezierPoints.emplace_back(b1);
-		bezierPoints.emplace_back(b2);
+
+		bezierPoints.emplace_back(b0,"");
+		bezierPoints.emplace_back(b1, "");
+		bezierPoints.emplace_back(b2, "");
 		if (i == points.size() - 3)
-			bezierPoints.emplace_back(b3);
+			bezierPoints.emplace_back(b3, "");
+
+		beziers.emplace_back();
 		beziers.rbegin()->UpdateMeshes({b0,b1,b2,b3});
 	}
 }
@@ -113,17 +133,27 @@ void CurveC2::Render(bool selected)
 	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 	unsigned int colorLoc = glGetUniformLocation(shader.ID, "color");
 	glUniform4f(colorLoc, 1.0f, 0.0f, 1.0f, 1.0f);
-	//chainMesh.Render();
-	if (showChain)
+	
+	if (showDeboorChain)
 	{
+		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+		glBindVertexArray(chainVAO);
+		glDrawElements(GL_LINES, chainIndicesSize, GL_UNSIGNED_INT, 0);
+	}
 
+	if (showBezierChain)
+	{
 		for (auto& b : beziers)
 		{
 			glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
 			b.chainMesh.Render();
 		}
+	}
 
+	if(showBezierPoints)
+	{
 		for (int i = 0; i<bezierPoints.size(); i++)
 		{
 			if(i == selectedBezier)
@@ -153,7 +183,7 @@ void CurveC2::Render(bool selected)
 
 	unsigned int t0Loc = glGetUniformLocation(deBoorShader.ID, "t0");
 	unsigned int t1Loc = glGetUniformLocation(deBoorShader.ID, "t1");
-	float baseDivision = 1.0f;
+	float baseDivision = 2.0f;
 	for (int i = 0; i < baseDivision; i++)
 	{
 		glUniform1f(t0Loc, i / baseDivision);
@@ -174,7 +204,9 @@ void CurveC2::RenderGui()
 		if (removeSelected)
 			addSelected = false;
 
-	ImGui::Checkbox("Show chain", &showChain);
+	ImGui::Checkbox("Show deboor chain", &showDeboorChain);
+	ImGui::Checkbox("Show bezier chain", &showBezierChain);
+	ImGui::Checkbox("Show bezier points", &showBezierPoints);
 	ImGui::End();
 }
 
@@ -283,9 +315,10 @@ bool CurveC2::Click(Scene& scene, Camera& camera, float x, float y)
 
 bool CurveC2::Translate(glm::fvec4 translation)
 {
+	if (selectedBezier < 0)
+		return false;
 	glm::fvec4 oldLoc = bezierPoints[selectedBezier].getTransform().location;
-	if(selectedBezier>=0)
-		bezierPoints[selectedBezier].getTransform().location = movementStartPosition + translation;
+	bezierPoints[selectedBezier].getTransform().location = movementStartPosition + translation;
 	glm::fvec4 dif = bezierPoints[selectedBezier].getTransform().location- oldLoc;
 	int leftInd = floor(selectedBezier / 3) + 1;
 	int rightInd = leftInd + 1;
@@ -326,7 +359,7 @@ bool CurveC2::Translate(glm::fvec4 translation)
 		break;
 	}
 	UpdateMeshes();
-	return false;
+	return true;
 }
 
 bool CurveC2::Rotate(glm::fvec4 rotation)
@@ -343,4 +376,9 @@ void CurveC2::StartMove()
 {
 	if (selectedBezier >= 0)
 		movementStartPosition = bezierPoints[selectedBezier].getTransform().location;
+}
+
+void CurveC2::Unclick()
+{
+	selectedBezier = -1;
 }

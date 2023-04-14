@@ -10,9 +10,11 @@
 #include "../Rendering/Camera.h"
 #include "../Rendering/Shader.h"
 #include "BezierCurve.h"
+#include "../Indexer.h"
 
 class CurveC0 : public ISceneElement, public IRenderable, public IGui, public ISceneTracker
 {
+	static Indexer indexer;
 	std::string name;
 	std::vector<std::shared_ptr<Point>> points;
 	std::vector<BezierCurve> beziers;

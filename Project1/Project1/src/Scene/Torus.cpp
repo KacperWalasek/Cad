@@ -2,6 +2,7 @@
 #include "../Rendering/Sampler.h"
 #include <imgui/imgui_stdlib.h>
 
+Indexer Torus::indexer;
 void Torus::UpdateMesh()
 {
 	float eps = 0.1f;
@@ -21,7 +22,7 @@ void Torus::UpdateMesh()
 }
 
 Torus::Torus()
-	: geometry(20,10), majorDencity(10), minorDencity(10), name("Torus")
+	: geometry(20,10), majorDencity(10), minorDencity(10), name("Torus-" + std::to_string(indexer.getNewIndex()))
 {
 	UpdateMesh();
 }

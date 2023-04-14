@@ -3,14 +3,16 @@
 #include "Scene.h"
 #include <glm/gtc/type_ptr.hpp>
 
+Indexer CurveC0::indexer;
+
 CurveC0::CurveC0(Camera& camera)
 	: CurveC0(camera, {})
 {
 }
 
 CurveC0::CurveC0(Camera& camera, std::vector<std::shared_ptr<Point>> points)
-	: camera(camera), points(points), name("Curve"), addSelected(false), 
-	removeSelected(false), showChain(true),
+	: camera(camera), points(points), name("CurveC0-" + std::to_string(indexer.getNewIndex())), addSelected(false),
+	removeSelected(false), showChain(false),
 	shader("Shaders/test.vert", "Shaders/fragmentShader.frag")
 {
 	shader.Init();
@@ -33,7 +35,10 @@ void CurveC0::Render(bool selected)
 	shader.use();
 	
 	unsigned int colorLoc = glGetUniformLocation(shader.ID, "color");
-	glUniform4f(colorLoc, 0.0f, 1.0f, 1.0f, 1.0f);
+	if (selected)
+		glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
+	else
+		glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
 	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));

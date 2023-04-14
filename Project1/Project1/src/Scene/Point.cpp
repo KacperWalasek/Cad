@@ -1,10 +1,11 @@
 #include "Point.h"
 #include "imgui/imgui_stdlib.h"
 
-Point::Point()
-	:zero(), zero2(0), name("Point")
-{	
-    glGenVertexArrays(1, &VAO);
+Indexer Point::indexer;
+Point::Point(std::string name)
+	:zero(), zero2(0), name(name)
+{
+	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
@@ -21,11 +22,21 @@ Point::Point()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+Point::Point()
+	:Point("Point-" + std::to_string(indexer.getNewIndex()))
+{	
 
 }
 
 Point::Point(glm::fvec4 position)
 	:Point()
+{
+	transform.location = position;
+}
+
+Point::Point(glm::fvec4 position, std::string name)
+	: Point(name)
 {
 	transform.location = position;
 }
@@ -72,4 +83,8 @@ std::tuple<bool, float> Point::InClickRange(Camera& camera,float x, float y) con
 bool Point::Click(Scene& scene, Camera& camera, float x, float y)
 {
 	return true;
+}
+
+void Point::Unclick()
+{
 }

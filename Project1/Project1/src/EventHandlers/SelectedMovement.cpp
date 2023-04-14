@@ -73,13 +73,17 @@ void SelectedMovement::Update(GLFWwindow* window)
 	glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
 	center4 /= center4.w;
 	center += glm::vec2(center4.x, center4.y);
-	for(auto& el : scene.objects)
-		if (el.second)
+
+	bool forceFinish = false;
+	for (auto& el : scene.objects)
+		if (el.second && mode == SelectedMovement::Translation)
 		{
 			auto objCustomMove = std::dynamic_pointer_cast<ICustomMove>(el.first);
 			if (objCustomMove)
-				objCustomMove->Translate(camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f));
+				forceFinish = forceFinish || objCustomMove->Translate(camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f));
 		}
+	if (forceFinish)
+		return;
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
 

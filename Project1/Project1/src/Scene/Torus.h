@@ -6,10 +6,13 @@
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/ITransformable.h"
 #include "../Rendering/Transform.h"
+#include "../Indexer.h"
 
 
 class Torus : public ISceneElement, public ITransformable, public IGui, public IRenderable
 {
+	static Indexer indexer;
+
 	TorusGeometry geometry;
 	Mesh mesh;
 	Transform transform;

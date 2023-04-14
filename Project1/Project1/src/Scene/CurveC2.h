@@ -8,17 +8,20 @@
 #include "BezierCurve.h"
 #include "../Rendering/Camera.h"
 #include <tuple>
-
+#include "../Indexer.h"
 class CurveC2 : public ISceneElement, public IRenderable, public IGui, public ISceneTracker, public IClickable, public ICustomMove
 {
+	static Indexer indexer;
+
 	std::string name;
+	bool addSelected, removeSelected;
+	bool showDeboorChain, showBezierChain, showBezierPoints;
+
+	std::vector<std::shared_ptr<Point>> points;
+
 	std::vector<BezierCurve> beziers;
 	std::vector<Point> bezierPoints;
 	int selectedBezier;
-	std::vector<std::shared_ptr<Point>> points;
-	bool addSelected, removeSelected;
-	bool showChain;
-	
 	glm::fvec4 movementStartPosition;
 
 	int curveIndicesSize, chainIndicesSize;
@@ -68,5 +71,9 @@ public:
 
 	// Inherited via ICustomMove
 	virtual void StartMove() override;
+
+
+	// Inherited via IClickable
+	virtual void Unclick() override;
 
 };

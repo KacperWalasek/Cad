@@ -54,7 +54,7 @@ set(PROJECT_SOURCES
 	"Scene/BezierCurve.h" 
 	"Scene/BezierCurve.cpp" 
 	"Scene/CurveC2.h" 
-	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h")
+	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

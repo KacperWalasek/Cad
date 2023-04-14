@@ -33,7 +33,12 @@ void ClickSelection::mouseCallback(GLFWwindow* window, int button, int action, i
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS)
 			for (auto& obj : scene.objects)
+			{
 				obj.second = false;
+				std::shared_ptr<IClickable> clickable = std::dynamic_pointer_cast<IClickable>(obj.first);
+				if (clickable)
+					clickable->Unclick();
+			}
 		if (selected)
 		{
 			if(std::dynamic_pointer_cast<IClickable>(selected->first)->Click(scene, camera, cursorPos.x, cursorPos.y))
