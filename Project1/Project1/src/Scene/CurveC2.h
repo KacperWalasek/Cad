@@ -19,7 +19,6 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui, public IS
 
 	std::vector<std::shared_ptr<Point>> points;
 
-	std::vector<BezierCurve> beziers;
 	std::vector<Point> bezierPoints;
 	int selectedBezier;
 	glm::fvec4 movementStartPosition;
@@ -27,6 +26,7 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui, public IS
 	int curveIndicesSize, chainIndicesSize;
 	unsigned int VBO, curveEBO, curveVAO, chainEBO, chainVAO;
 	Mesh chainMesh;
+	Mesh bezierChainMesh;
 
 	Camera& camera;
 	Shader shader, deBoorShader;

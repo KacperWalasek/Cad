@@ -93,7 +93,8 @@ void CurveC2::UpdateMeshes()
 
 void CurveC2::UpdateBeziers()
 {
-	beziers.clear();
+	bezierChainMesh.vertices.clear();
+	bezierChainMesh.indices.clear();
 	bezierPoints.clear();
 	for (int i = 1; i < (int)(points.size() - 2); i++)
 	{
@@ -117,9 +118,21 @@ void CurveC2::UpdateBeziers()
 		if (i == points.size() - 3)
 			bezierPoints.emplace_back(b3, "");
 
-		beziers.emplace_back();
-		beziers.rbegin()->UpdateMeshes({b0,b1,b2,b3});
 	}
+	for (int i = 0; i < bezierPoints.size(); i++)
+	{
+		glm::fvec4 v = bezierPoints[i].getTransform().location;
+		bezierChainMesh.vertices.push_back(v.x);
+		bezierChainMesh.vertices.push_back(v.y);
+		bezierChainMesh.vertices.push_back(v.z);
+
+		if (i != 0)
+		{
+			bezierChainMesh.indices.push_back(i - 1);
+			bezierChainMesh.indices.push_back(i);
+		}
+	}
+	bezierChainMesh.Update();
 }
 
 std::string CurveC2::getName() const
@@ -144,12 +157,10 @@ void CurveC2::Render(bool selected)
 
 	if (showBezierChain)
 	{
-		for (auto& b : beziers)
-		{
-			glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
-			b.chainMesh.Render();
-		}
+		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+		bezierChainMesh.Render();
+		
 	}
 
 	if(showBezierPoints)
