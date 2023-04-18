@@ -3,6 +3,7 @@
 #include "../Scene/Point.h"
 #include "../Scene/CurveC0.h"
 #include "../Scene/CurveC2.h"
+#include "../Scene/InterpolationCurve.h"
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
@@ -48,6 +49,20 @@ void MainMenu::RenderGui()
                             points.push_back(point);
                     }
                 auto curve = std::make_shared<CurveC2>(camera, points);
+                scene.Add(curve);
+
+            }
+            if (ImGui::MenuItem("Interpolation Curve", ""))
+            {
+                std::vector<std::shared_ptr<Point>> points;
+                for (auto& el : scene.objects)
+                    if (el.second)
+                    {
+                        auto point = std::dynamic_pointer_cast<Point>(el.first);
+                        if (point)
+                            points.push_back(point);
+                    }
+                auto curve = std::make_shared<InterpolationCurve>(camera, points);
                 scene.Add(curve);
 
             }
