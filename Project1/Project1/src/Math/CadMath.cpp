@@ -1,13 +1,13 @@
 #include "CadMath.h"
 #include <exception>
 
-std::vector<glm::fvec3> CadMath::SolveTridiagonalMatrix(std::vector<glm::fvec3> a1, std::vector<glm::fvec3> a2, std::vector<glm::fvec3> a3, std::vector<glm::fvec3> r)
+std::vector<glm::fvec3> CadMath::SolveTridiagonalMatrix(std::vector<float> a1, std::vector<float> a2, std::vector<float> a3, std::vector<glm::fvec3> r)
 {
 	int n = r.size();
 	std::vector<glm::fvec3> result(n);
 	for (int i = 1; i < n; i++)
 	{
-		glm::fvec3 w = a1[i-1] / a2[i-1];
+		float w = a1[i-1] / a2[i-1];
 		a2[i] -= a3[i - 1] * w;
 		r[i] -= r[i - 1] * w;
 	}

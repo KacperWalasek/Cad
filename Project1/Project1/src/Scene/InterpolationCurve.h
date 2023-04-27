@@ -5,6 +5,7 @@
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/IGui.h"
 #include "../interfaces/ISceneTracker.h"
+#include "../interfaces/ICustomMove.h"
 #include "Point.h"
 #include <memory>
 #include "../Rendering/Camera.h"
@@ -20,6 +21,7 @@ class InterpolationCurve : public ISceneElement, public IRenderable, public IGui
 	std::vector<BezierCurve> beziers;
 	bool addSelected, removeSelected;
 	bool showChain;
+	bool chord;
 
 	Camera& camera;
 	Shader shader;
@@ -42,5 +44,7 @@ public:
 	virtual void onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
 	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
+
+	std::tuple<int, float> getClickIndex(Camera& camera, float x, float y) const;
 
 };
