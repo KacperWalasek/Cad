@@ -28,10 +28,9 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui, public IS
 	Mesh chainMesh;
 	Mesh bezierChainMesh;
 
-	Camera& camera;
 	Shader shader, deBoorShader;
 public:
-	CurveC2(Camera& camera, std::vector<std::shared_ptr<Point>> points);
+	CurveC2(std::vector<std::shared_ptr<Point>> points);
 
 	void UpdateMeshes();
 	void UpdateBeziers();

@@ -5,13 +5,8 @@
 
 Indexer CurveC0::indexer;
 
-CurveC0::CurveC0(Camera& camera)
-	: CurveC0(camera, {})
-{
-}
-
-CurveC0::CurveC0(Camera& camera, std::vector<std::shared_ptr<Point>> points)
-	: camera(camera), points(points), name("CurveC0-" + std::to_string(indexer.getNewIndex())), addSelected(false),
+CurveC0::CurveC0(std::vector<std::shared_ptr<Point>> points)
+	: points(points), name("CurveC0-" + std::to_string(indexer.getNewIndex())), addSelected(false),
 	removeSelected(false), showChain(false),
 	shader("Shaders/test.vert", "Shaders/fragmentShader.frag")
 {
@@ -33,9 +28,6 @@ void CurveC0::Render(bool selected, VariableManager& vm)
 		for (auto& b : beziers)
 			b.chainMesh.Render();
 	shader.use();
-
-	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	vm.SetVariable("transform", centerMatrix);
 
 	for (auto& b : beziers)
 		b.Render(shader, vm);

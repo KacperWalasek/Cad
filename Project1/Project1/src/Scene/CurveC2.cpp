@@ -5,8 +5,8 @@
 
 Indexer CurveC2::indexer;
 
-CurveC2::CurveC2(Camera& camera, std::vector<std::shared_ptr<Point>> points)
-	: camera(camera), points(points), name("CurveC2-" + std::to_string(indexer.getNewIndex())) , addSelected(false),
+CurveC2::CurveC2(std::vector<std::shared_ptr<Point>> points)
+	: points(points), name("CurveC2-" + std::to_string(indexer.getNewIndex())) , addSelected(false),
 	removeSelected(false),
 	shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"),
 	deBoorShader("Shaders/DeBoor/deboor.vert", "Shaders/fragmentShader.frag"),
@@ -145,25 +145,16 @@ void CurveC2::Render(bool selected, VariableManager& vm)
 	glm::fvec4 selectionColor = vm.GetVariable<glm::fvec4>("color");
 	shader.use();
 	vm.SetVariable("color", glm::fvec4(1.0f, 0.0f, 1.0f, 1.0f));
-	
+
+	vm.Apply(shader.ID);
 	if (showDeboorChain)
 	{
-		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-		vm.SetVariable("transform", centerMatrix);
-
-		vm.Apply(shader.ID);
 		glBindVertexArray(chainVAO);
 		glDrawElements(GL_LINES, chainIndicesSize, GL_UNSIGNED_INT, 0);
 	}
 
 	if (showBezierChain)
-	{
-		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-		vm.SetVariable("transform", centerMatrix);
-
-		vm.Apply(shader.ID);
 		bezierChainMesh.Render();
-	}
 
 	if(showBezierPoints)
 	{
@@ -173,8 +164,7 @@ void CurveC2::Render(bool selected, VariableManager& vm)
 				vm.SetVariable("color", selectionColor);
 			else
 				vm.SetVariable("color", glm::fvec4(1.0f, 0.0f, 1.0f, 1.0f));
-			glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * bezierPoints[i].getTransform().GetMatrix();
-			vm.SetVariable("transform", centerMatrix); 
+			vm.SetVariable("modelMtx", bezierPoints[i].getTransform().GetMatrix());
 
 			vm.Apply(shader.ID);
 			bezierPoints[i].Render(selected, vm);
@@ -184,8 +174,7 @@ void CurveC2::Render(bool selected, VariableManager& vm)
 	deBoorShader.use();
 
 	vm.SetVariable("color", selectionColor);
-	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	vm.SetVariable("transform", centerMatrix);
+	vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
 
 	glBindVertexArray(curveVAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);

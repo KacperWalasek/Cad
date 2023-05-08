@@ -34,7 +34,7 @@ void MainMenu::RenderGui()
                         if(point)
                             points.push_back(point);
                     }
-                auto curve = std::make_shared<CurveC0>(camera, points);
+                auto curve = std::make_shared<CurveC0>(points);
                 scene.Add(curve);
                 
             }
@@ -48,7 +48,7 @@ void MainMenu::RenderGui()
                         if (point)
                             points.push_back(point);
                     }
-                auto curve = std::make_shared<CurveC2>(camera, points);
+                auto curve = std::make_shared<CurveC2>(points);
                 scene.Add(curve);
 
             }
@@ -62,7 +62,7 @@ void MainMenu::RenderGui()
                         if (point)
                             points.push_back(point);
                     }
-                auto curve = std::make_shared<InterpolationCurve>(camera, points);
+                auto curve = std::make_shared<InterpolationCurve>(points);
                 scene.Add(curve);
 
             }

@@ -1,12 +1,16 @@
 #version 410 core
 
 layout (vertices=2) out;
+
 patch out vec4 bp0;
 patch out vec4 bp1;
 patch out vec4 bp2;
 patch out vec4 bp3;
 
-uniform mat4 transform;
+uniform mat4 projMtx;
+uniform mat4 viewMtx;
+uniform mat4 modelMtx;
+
 uniform float t0;
 uniform float t1;
 
@@ -23,6 +27,8 @@ void main()
 
     if (gl_InvocationID == 0)
     {
+        mat4 transform = projMtx * viewMtx * modelMtx;
+
         bp0 = gl_in[0].gl_Position;
         bp1 = gl_in[1].gl_Position;
         bp2 = gl_in[2].gl_Position;

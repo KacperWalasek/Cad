@@ -24,7 +24,10 @@ void Renderer::Init()
     shader.use();
     glPointSize(5);
     
-    variableManager.AddVariable("transform", glm::identity<glm::fmat4x4>());
+    variableManager.AddVariable("projMtx", glm::identity<glm::fmat4x4>());
+    variableManager.AddVariable("viewMtx", glm::identity<glm::fmat4x4>());
+    variableManager.AddVariable("modelMtx", glm::identity<glm::fmat4x4>());
+
     variableManager.AddVariable("color", glm::fvec4());
     variableManager.AddVariable("t0", 0.0f);
     variableManager.AddVariable("t1", 0.0f);
@@ -38,6 +41,10 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    variableManager.SetVariable("projMtx", camera.GetProjectionMatrix());
+    variableManager.SetVariable("viewMtx", camera.GetViewMatrix());
+
 
     for (auto& el : scene.objects)
     {
@@ -56,12 +63,12 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
         if (renderable)
         {
-            glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-
+            glm::fmat4x4 matrix = glm::identity<glm::fmat4x4>();
             auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
             if (objTransformable) 
                 matrix = matrix * objTransformable->getTransform().GetMatrix();
-            variableManager.SetVariable("transform", matrix);
+            variableManager.SetVariable("modelMtx", matrix);
+
             variableManager.Apply(shader.ID);
             renderable->Render(el.second, variableManager);
         }
@@ -70,9 +77,9 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     shader.use();
     
     scene.cursor->transform.scale = camera.transform.scale;
-    glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.cursor->transform.GetMatrix();
+    glm::fmat4x4 matrix = scene.cursor->transform.GetMatrix();
 
-    variableManager.SetVariable("transform", matrix);
+    variableManager.SetVariable("modelMtx", matrix);
     variableManager.SetVariable("color", glm::fvec4(0.5f, 0.5f, 1.0f, 1.0f));
     variableManager.Apply(shader.ID);
     scene.cursor->Render(false, variableManager);
@@ -80,9 +87,9 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     if(std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; })!= scene.objects.end())
     {
         scene.center.transform.scale = camera.transform.scale;
-        glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix();
+        glm::fmat4x4 centerMatrix = scene.center.transform.GetMatrix();
 
-        variableManager.SetVariable("transform", centerMatrix);
+        variableManager.SetVariable("modelMtx", centerMatrix);
         variableManager.SetVariable("color", glm::fvec4(1.0f, 0.0f, 0.0f, 1.0f));
         variableManager.Apply(shader.ID);
         scene.center.Render(false, variableManager);

@@ -1,12 +1,16 @@
 #version 410 core
 
 layout (isolines) in;
+
 patch in vec4 bp0;
 patch in vec4 bp1;
 patch in vec4 bp2;
 patch in vec4 bp3;
 
-uniform mat4 transform;
+uniform mat4 projMtx;
+uniform mat4 viewMtx;
+uniform mat4 modelMtx;
+
 uniform float t0;
 uniform float t1;
 
@@ -31,6 +35,7 @@ void main()
     vec3 p0 = gl_TessCoord * bp0.xyz;
     vec3 p1 = (1.0f-gl_TessCoord.x) * bp3.xyz;
     vec3 tePosition = p0 + p1;
-
+    
+    mat4 transform = projMtx * viewMtx * modelMtx;
     gl_Position = normalize(transform*vec4(d.xyz, 1.0f));
 }

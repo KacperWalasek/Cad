@@ -21,11 +21,9 @@ class CurveC0 : public ISceneElement, public IRenderable, public IGui, public IS
 	bool addSelected, removeSelected;
 	bool showChain;
 
-	Camera& camera;
 	Shader shader;
 public:
-	CurveC0(Camera& camera);
-	CurveC0(Camera& camera, std::vector<std::shared_ptr<Point>> points);
+	CurveC0(std::vector<std::shared_ptr<Point>> points);
 
 	void UpdateMeshes();
 

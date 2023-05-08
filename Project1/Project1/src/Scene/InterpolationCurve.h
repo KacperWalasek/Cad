@@ -23,11 +23,9 @@ class InterpolationCurve : public ISceneElement, public IRenderable, public IGui
 	bool showChain;
 	bool chord;
 
-	Camera& camera;
 	Shader shader;
 public:
-	InterpolationCurve(Camera& camera);
-	InterpolationCurve(Camera& camera, std::vector<std::shared_ptr<Point>> points);
+	InterpolationCurve(std::vector<std::shared_ptr<Point>> points);
 
 	void UpdateMeshes();
 

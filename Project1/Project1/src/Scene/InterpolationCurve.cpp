@@ -5,13 +5,8 @@
 #include "../Math/CadMath.h"
 Indexer InterpolationCurve::indexer;
 
-InterpolationCurve::InterpolationCurve(Camera& camera)
-	: InterpolationCurve(camera, {})
-{
-}
-
-InterpolationCurve::InterpolationCurve(Camera& camera, std::vector<std::shared_ptr<Point>> points)
-	: camera(camera), points(points), name("InterpolationCurve-" + std::to_string(indexer.getNewIndex())), addSelected(false),
+InterpolationCurve::InterpolationCurve(std::vector<std::shared_ptr<Point>> points)
+	: points(points), name("InterpolationCurve-" + std::to_string(indexer.getNewIndex())), addSelected(false),
 	removeSelected(false), showChain(false),
 	shader("Shaders/test.vert", "Shaders/fragmentShader.frag")
 {
@@ -32,10 +27,8 @@ void InterpolationCurve::Render(bool selected, VariableManager& vm)
 	if (showChain)
 		for (auto& b : beziers)
 			b.chainMesh.Render();
-	shader.use();
 
-	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	vm.SetVariable("transform", centerMatrix);
+	shader.use();
 	for (auto& b : beziers)
 		b.Render(shader, vm);
 }
