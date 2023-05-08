@@ -15,7 +15,7 @@ Center::Center()
 	mesh.Update();
 }
 
-void Center::Render(bool selected)
+void Center::Render(bool selected, VariableManager& vm)
 {
 	mesh.Render();
 }

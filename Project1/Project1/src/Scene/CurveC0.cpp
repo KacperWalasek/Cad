@@ -27,23 +27,18 @@ std::string CurveC0::getName() const
 	return name;
 }
 
-void CurveC0::Render(bool selected)
+void CurveC0::Render(bool selected, VariableManager& vm)
 {
 	if (showChain)
 		for (auto& b : beziers)
 			b.chainMesh.Render();
 	shader.use();
-	
-	unsigned int colorLoc = glGetUniformLocation(shader.ID, "color");
-	if (selected)
-		glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
-	else
-		glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+
 	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+	vm.SetVariable("transform", centerMatrix);
+
 	for (auto& b : beziers)
-		b.Render(shader);
+		b.Render(shader, vm);
 }
 
 void CurveC0::RenderGui()

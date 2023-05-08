@@ -12,6 +12,6 @@ public:
 	Transform transform;
 	Center();
 
-	virtual void Render(bool selected) override;
+	virtual void Render(bool selected, VariableManager& vm) override;
 	void UpdateTransform(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>& objects);
 };

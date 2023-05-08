@@ -31,6 +31,6 @@ public:
 
 	virtual Transform& getTransform() override;
 
-	virtual void Render(bool selected) override;
+	virtual void Render(bool selected, VariableManager& vm) override;
 
 };

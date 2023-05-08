@@ -56,7 +56,7 @@ const Transform& Point::getTransform() const
 	return transform;
 }
 
-void Point::Render(bool selected)
+void Point::Render(bool selected, VariableManager& vm)
 {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);

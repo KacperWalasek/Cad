@@ -49,7 +49,7 @@ Transform& Torus::getTransform()
 	return transform;
 }
 
-void Torus::Render(bool selected)
+void Torus::Render(bool selected, VariableManager& vm)
 {
 	mesh.Render();
 }

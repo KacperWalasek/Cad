@@ -140,17 +140,18 @@ std::string CurveC2::getName() const
 	return name;
 }
 
-void CurveC2::Render(bool selected)
+void CurveC2::Render(bool selected, VariableManager& vm)
 {
+	glm::fvec4 selectionColor = vm.GetVariable<glm::fvec4>("color");
 	shader.use();
-	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-	unsigned int colorLoc = glGetUniformLocation(shader.ID, "color");
-	glUniform4f(colorLoc, 1.0f, 0.0f, 1.0f, 1.0f);
+	vm.SetVariable("color", glm::fvec4(1.0f, 0.0f, 1.0f, 1.0f));
 	
 	if (showDeboorChain)
 	{
 		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+		vm.SetVariable("transform", centerMatrix);
+
+		vm.Apply(shader.ID);
 		glBindVertexArray(chainVAO);
 		glDrawElements(GL_LINES, chainIndicesSize, GL_UNSIGNED_INT, 0);
 	}
@@ -158,47 +159,44 @@ void CurveC2::Render(bool selected)
 	if (showBezierChain)
 	{
 		glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+		vm.SetVariable("transform", centerMatrix);
+
+		vm.Apply(shader.ID);
 		bezierChainMesh.Render();
-		
 	}
 
 	if(showBezierPoints)
 	{
 		for (int i = 0; i<bezierPoints.size(); i++)
 		{
-			if(i == selectedBezier)
-				glUniform4f(colorLoc, 1.0f, 0.8f, 0.0f, 1.0f);
+			if (i == selectedBezier)
+				vm.SetVariable("color", selectionColor);
 			else
-				glUniform4f(colorLoc, 1.0f, 0.0f, 1.0f, 1.0f);
+				vm.SetVariable("color", glm::fvec4(1.0f, 0.0f, 1.0f, 1.0f));
 			glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * bezierPoints[i].getTransform().GetMatrix();
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
-			bezierPoints[i].Render(selected);
+			vm.SetVariable("transform", centerMatrix); 
+
+			vm.Apply(shader.ID);
+			bezierPoints[i].Render(selected, vm);
 		}
 	}
-		
+
 	deBoorShader.use();
 
-	transformLoc = glGetUniformLocation(deBoorShader.ID, "transform");
-	colorLoc = glGetUniformLocation(deBoorShader.ID, "color");
-	if(selected)
-		glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
-	else
-		glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-
+	vm.SetVariable("color", selectionColor);
 	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+	vm.SetVariable("transform", centerMatrix);
 
 	glBindVertexArray(curveVAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 
-	unsigned int t0Loc = glGetUniformLocation(deBoorShader.ID, "t0");
-	unsigned int t1Loc = glGetUniformLocation(deBoorShader.ID, "t1");
 	float baseDivision = 2.0f;
 	for (int i = 0; i < baseDivision; i++)
 	{
-		glUniform1f(t0Loc, i / baseDivision);
-		glUniform1f(t1Loc, (i + 1) / baseDivision);
+		vm.SetVariable("t0", i / baseDivision);
+		vm.SetVariable("t1", (i + 1) / baseDivision);
+
+		vm.Apply(deBoorShader.ID);
 		glDrawElements(GL_PATCHES, curveIndicesSize, GL_UNSIGNED_INT, 0);
 	}
 }

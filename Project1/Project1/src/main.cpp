@@ -12,10 +12,11 @@
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
 #include "EventHandlers/ObjectFactory.h"
-#include "Scene/TesselationTest.h"
+#include "Rendering/VariableManager.h"
 
 int main()
 {
+
     Window window;
     Renderer renderer(window);
 
@@ -27,8 +28,6 @@ int main()
     std::shared_ptr<Scene> scene = std::make_shared<Scene>(
         std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>>(),
         *camera);
-    //std::shared_ptr<TesselationTest> tesselationTest = std::make_shared<TesselationTest>(*camera);
-    //scene->Add(tesselationTest);
 
     std::vector<std::shared_ptr<IGui>> guis = {
         camera,

@@ -40,17 +40,17 @@ void BezierCurve::UpdateMeshes(std::vector<glm::fvec4> points)
 	curveMesh.Update();
 }
 
-void BezierCurve::Render(Shader& shader)
+void BezierCurve::Render(Shader& shader, VariableManager& vm)
 {
 	glBindVertexArray(curveMesh.VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	unsigned int t0Loc = glGetUniformLocation(shader.ID, "t0");
-	unsigned int t1Loc = glGetUniformLocation(shader.ID, "t1");
+
 	float baseDivision = 4.0f;
 	for (int i = 0; i < baseDivision; i++)
 	{
-		glUniform1f(t0Loc, i / baseDivision);
-		glUniform1f(t1Loc, (i+1) / baseDivision);
+		vm.SetVariable("t0", i / baseDivision);
+		vm.SetVariable("t1", (i + 1) / baseDivision);
+		vm.Apply(shader.ID);
 		glDrawElements(GL_PATCHES, curveMesh.indices.size(), GL_UNSIGNED_INT, 0);
 	}
 }

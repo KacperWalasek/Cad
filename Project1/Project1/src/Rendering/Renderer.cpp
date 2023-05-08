@@ -23,6 +23,11 @@ void Renderer::Init()
     shader.Init();
     shader.use();
     glPointSize(5);
+    
+    variableManager.AddVariable("transform", glm::identity<glm::fmat4x4>());
+    variableManager.AddVariable("color", glm::fvec4());
+    variableManager.AddVariable("t0", 0.0f);
+    variableManager.AddVariable("t1", 0.0f);
 }
 
 void Renderer::Update(Camera& camera)
@@ -31,9 +36,6 @@ void Renderer::Update(Camera& camera)
 
 void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
 {
-    unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-    unsigned int colorLoc = glGetUniformLocation(shader.ID, "color"); 
-
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -43,13 +45,13 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
         if (el.second)
         {
             glLineWidth(2);
-            if(el.first==scene.lastSelected)
-                glUniform4f(colorLoc, 1.0f, 0.8f, 0.0f, 1.0f);
+            if (el.first == scene.lastSelected)
+                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.8f, 0.0f, 1.0f ));
             else
-                glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
+                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.5f, 0.0f, 1.0f));
         }
         else
-            glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
+            variableManager.SetVariable("color", glm::fvec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
         if (renderable)
@@ -59,8 +61,9 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
             auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
             if (objTransformable) 
                 matrix = matrix * objTransformable->getTransform().GetMatrix();
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
-            renderable->Render(el.second);
+            variableManager.SetVariable("transform", matrix);
+            variableManager.Apply(shader.ID);
+            renderable->Render(el.second, variableManager);
         }
         glLineWidth(1);
     }
@@ -68,17 +71,21 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
     
     scene.cursor->transform.scale = camera.transform.scale;
     glm::fmat4x4 matrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.cursor->transform.GetMatrix();
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
-    glUniform4f(colorLoc, 0.5f, 0.5f, 1.0f, 1.0f);
-    scene.cursor->Render(false);
+
+    variableManager.SetVariable("transform", matrix);
+    variableManager.SetVariable("color", glm::fvec4(0.5f, 0.5f, 1.0f, 1.0f));
+    variableManager.Apply(shader.ID);
+    scene.cursor->Render(false, variableManager);
     
     if(std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; })!= scene.objects.end())
     {
         scene.center.transform.scale = camera.transform.scale;
         glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix() * scene.center.transform.GetMatrix();
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
-        glUniform4f(colorLoc, 1.0f, 0.0f, 0.0f, 1.0f);
-        scene.center.Render(false);
+
+        variableManager.SetVariable("transform", centerMatrix);
+        variableManager.SetVariable("color", glm::fvec4(1.0f, 0.0f, 0.0f, 1.0f));
+        variableManager.Apply(shader.ID);
+        scene.center.Render(false, variableManager);
     }
 
     ImGui_ImplOpenGL3_NewFrame();

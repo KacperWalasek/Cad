@@ -27,23 +27,17 @@ std::string InterpolationCurve::getName() const
 	return name;
 }
 
-void InterpolationCurve::Render(bool selected)
+void InterpolationCurve::Render(bool selected, VariableManager& vm)
 {
 	if (showChain)
 		for (auto& b : beziers)
 			b.chainMesh.Render();
 	shader.use();
 
-	unsigned int colorLoc = glGetUniformLocation(shader.ID, "color");
-	if (selected)
-		glUniform4f(colorLoc, 1.0f, 0.5f, 0.0f, 1.0f);
-	else
-		glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
-	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 	glm::fmat4x4 centerMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(centerMatrix));
+	vm.SetVariable("transform", centerMatrix);
 	for (auto& b : beziers)
-		b.Render(shader);
+		b.Render(shader, vm);
 }
 
 void InterpolationCurve::RenderGui()
@@ -67,14 +61,18 @@ void InterpolationCurve::RenderGui()
 void InterpolationCurve::UpdateMeshes()
 {
 	beziers.clear();
-	if (points.size() < 2)
-		return;
 
 
-	int n = points.size()-2;
-	std::vector<glm::fvec3> p(points.size());
+	std::vector<glm::fvec3> p;
 	for (int i = 0; i < points.size(); i++)
-		p[i] = points[i]->getTransform().location;
+	{
+		if(i==0 || points[i-1]->getTransform().location != points[i]->getTransform().location)
+			p.push_back(points[i]->getTransform().location);
+
+	}
+	if (p.size() < 2)
+		return;
+	int n = p.size() - 2;
 
 	std::vector<float> d(n+1);
 	d[0] = chord ? sqrtf(glm::dot(p[1] - p[0],p[1] - p[0])) : 1;

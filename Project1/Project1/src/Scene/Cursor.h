@@ -15,7 +15,7 @@ public:
 	glm::fvec2 screenPosition;
 	Cursor(Camera& camera);
 
-	virtual void Render(bool selected) override;
+	virtual void Render(bool selected, VariableManager& vm) override;
 
 	virtual void mouseCallback(GLFWwindow* window, int button, int action, int mods) override;
 

@@ -28,7 +28,7 @@ public:
 	virtual Transform& getTransform() override;
 	const Transform& getTransform() const;
 
-	virtual void Render(bool selected) override;
+	virtual void Render(bool selected, VariableManager& vm) override;
 
 	virtual void RenderGui() override;
 

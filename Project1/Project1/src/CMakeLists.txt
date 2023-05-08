@@ -47,14 +47,14 @@ set(PROJECT_SOURCES
 	"interfaces/ITransformable.h" 
 	"EventHandlers/ObjectFactory.h" 
 	"EventHandlers/ObjectFactory.cpp" 
-	"Scene/TesselationTest.h" 
-	"Scene/TesselationTest.cpp" 
+	 
+	 
 	"Scene/CurveC0.h" 
 	"Scene/CurveC0.cpp"  
 	"Scene/BezierCurve.h" 
 	"Scene/BezierCurve.cpp" 
 	"Scene/CurveC2.h" 
-	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h" "Scene/InterpolationCurve.h" "Scene/InterpolationCurve.cpp" "Math/CadMath.h" "Math/CadMath.cpp")
+	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h" "Scene/InterpolationCurve.h" "Scene/InterpolationCurve.cpp" "Math/CadMath.h" "Math/CadMath.cpp"  "Rendering/VariableManager.h" )
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
