@@ -14,11 +14,13 @@ class Renderer
 {
 	Window& window;
 	Shader shader;
-	VariableManager variableManager;
 	bool isMoving = false;
 public:
+	VariableManager variableManager;
 	Renderer(Window& window);
 	void Init(); 
-	void Update(Camera& camera);
-	void Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis);
+
+	void BeginRender(Camera& camera);
+	void RenderScene(Camera& camera, Scene& scene);
+	void RenderGui(Scene& scene, std::vector<std::shared_ptr<IGui>>& guis);
 };

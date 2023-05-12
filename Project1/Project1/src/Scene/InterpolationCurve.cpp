@@ -33,7 +33,7 @@ void InterpolationCurve::Render(bool selected, VariableManager& vm)
 		b.Render(shader, vm);
 }
 
-void InterpolationCurve::RenderGui()
+bool InterpolationCurve::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	ImGui::Begin("C0 Curve");
 	ImGui::InputText("Name", &name);
@@ -49,6 +49,7 @@ void InterpolationCurve::RenderGui()
 
 	ImGui::Checkbox("Show chain", &showChain);
 	ImGui::End();
+	return false;
 }
 
 void InterpolationCurve::UpdateMeshes()

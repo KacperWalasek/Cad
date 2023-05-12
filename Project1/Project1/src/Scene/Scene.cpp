@@ -38,7 +38,7 @@ void Scene::Select(std::shared_ptr<ISceneElement> obj)
 	Select(*it);
 }
 
-void Scene::RenderGui()
+bool Scene::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	ImGui::Begin("Scene");
 	std::vector<const char*> names;
@@ -71,7 +71,7 @@ void Scene::RenderGui()
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
 				ImGui::End();
-				return;
+				return false;
 			}
 			ImGui::EndPopup();
 		}
@@ -79,4 +79,5 @@ void Scene::RenderGui()
 		ImGui::Text(objects[i].first->getName().data());
 	}
 	ImGui::End();
+	return false;
 }

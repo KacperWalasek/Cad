@@ -27,11 +27,11 @@ Torus::Torus()
 	UpdateMesh();
 }
 
-void Torus::RenderGui()
+bool Torus::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	ImGui::Begin("Torus"); 
 	ImGui::InputText("Name", &name);
-	transform.RenderGui();
+	transform.RenderGui(trackers);
 	if (ImGui::InputInt("Minor dencity", &minorDencity))
 		UpdateMesh();
 	if (ImGui::InputInt("Major dencity", &majorDencity))
@@ -42,6 +42,7 @@ void Torus::RenderGui()
 		UpdateMesh();
 
 	ImGui::End();
+	return false;
 }
 
 Transform& Torus::getTransform()

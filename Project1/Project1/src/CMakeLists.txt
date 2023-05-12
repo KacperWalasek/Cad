@@ -54,11 +54,16 @@ set(PROJECT_SOURCES
 	"Scene/BezierCurve.h" 
 	"Scene/BezierCurve.cpp" 
 	"Scene/CurveC2.h" 
-	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h" "Scene/InterpolationCurve.h" "Scene/InterpolationCurve.cpp" "Math/CadMath.h" "Math/CadMath.cpp"  "Rendering/VariableManager.h" )
+	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h" 
+	"Scene/InterpolationCurve.h" "Scene/InterpolationCurve.cpp" "Math/CadMath.h" "Math/CadMath.cpp"  
+	"Rendering/VariableManager.h"  "CadApp.h" "CadApp.cpp" "Rendering/AnaglyphRenderer.h" 
+	"Rendering/AnaglyphRenderer.cpp" "Rendering/AnaglyphCamera.h" "Rendering/AnaglyphCamera.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
 	"Shaders/fragmentShader.frag"
+	"Shaders/ScreenTexture/screenTexture.vert"
+	"Shaders/ScreenTexture/texture.frag"
 	"Shaders/test.tesc"
 	"Shaders/test.tese"
 	"Shaders/test.vert"

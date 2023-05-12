@@ -62,12 +62,17 @@ void Point::Render(bool selected, VariableManager& vm)
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
 }
 
-void Point::RenderGui()
+bool Point::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	ImGui::Begin("Point");
 	ImGui::InputText("Name", &name);
-	transform.RenderGui();
+	if (transform.RenderGui(trackers))
+	{
+		ImGui::End();
+		return true;
+	}
 	ImGui::End();
+	return false;
 }
 
 std::tuple<bool, float> Point::InClickRange(Camera& camera,float x, float y) const

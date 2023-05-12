@@ -14,7 +14,7 @@ glm::fmat4x4 Camera::GetViewMatrix() const
 
 glm::fmat4x4 Camera::GetProjectionMatrix() const
 {
-	float aspect = window.sizeX /window.sizeY;
+	float aspect = GetAspect();
 	float ctg = 1 / tanf(fov / 2);
 	
 	return {
@@ -27,7 +27,7 @@ glm::fmat4x4 Camera::GetProjectionMatrix() const
 
 glm::fmat4x4 Camera::GetInverseProjectionMatrix() const
 {
-	float aspect = window.sizeX / window.sizeY;
+	float aspect = GetAspect();
 	float ctg = 1 / tanf(fov / 2);
 
 	return {
@@ -39,15 +39,21 @@ glm::fmat4x4 Camera::GetInverseProjectionMatrix() const
 }
 
 
-void Camera::RenderGui()
+bool Camera::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	float eps = 0.01f;
 	ImGui::Begin("Camera");
-	transform.RenderGui();
+	transform.RenderGui(trackers);
 	ImGui::SliderFloat("fov", &fov, eps, M_PI - eps);
 	ImGui::SliderFloat("near", &n, eps, f-eps);
 	if (ImGui::InputFloat("far", &f))
 		if (f <= n)
 			f = n + 0.1f;
 	ImGui::End();
+	return false;
+}
+
+float Camera::GetAspect() const
+{
+	return window.sizeX / window.sizeY;
 }

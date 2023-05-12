@@ -18,5 +18,7 @@ public:
 	glm::fmat4x4 GetProjectionMatrix() const;
 	glm::fmat4x4 GetInverseProjectionMatrix() const;
 
-	virtual void RenderGui() override;
+	float GetAspect() const;
+	
+	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
 };

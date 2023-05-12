@@ -1,6 +1,6 @@
 #version 410
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
 uniform vec4 color;
 

@@ -9,7 +9,7 @@ MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
 {}
 
-void MainMenu::RenderGui()
+bool MainMenu::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 
     if (ImGui::BeginMainMenuBar())
@@ -71,4 +71,5 @@ void MainMenu::RenderGui()
         }
         ImGui::EndMainMenuBar();
     }
+    return false;
 }

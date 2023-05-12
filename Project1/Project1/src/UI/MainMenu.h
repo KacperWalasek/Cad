@@ -10,6 +10,6 @@ public:
 	MainMenu(Scene& scene, Camera& camera);
 
 	// Inherited via IGui
-	virtual void RenderGui() override;
+	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
 
 };

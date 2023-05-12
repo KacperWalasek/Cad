@@ -24,6 +24,6 @@ public:
 	void Select(std::pair<std::shared_ptr<ISceneElement>, bool>& obj);
 	void Select(std::shared_ptr<ISceneElement> obj);
 
-	virtual void RenderGui() override;
+	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
 
 };

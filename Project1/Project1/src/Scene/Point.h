@@ -30,7 +30,7 @@ public:
 
 	virtual void Render(bool selected, VariableManager& vm) override;
 
-	virtual void RenderGui() override;
+	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
 
 	virtual std::tuple<bool, float> InClickRange(Camera& camera, float x, float y) const override;
 	virtual bool Click(Scene& scene, Camera& camera, float x, float y) override;

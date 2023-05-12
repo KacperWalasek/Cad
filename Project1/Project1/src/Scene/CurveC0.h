@@ -31,7 +31,7 @@ public:
 
 	virtual void Render(bool selected, VariableManager& vm) override;
 
-	virtual void RenderGui() override;
+	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
 
 	virtual void onAdd(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 

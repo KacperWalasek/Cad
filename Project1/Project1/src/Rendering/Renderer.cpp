@@ -10,6 +10,59 @@
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
 
+void Renderer::RenderScene(Camera& camera, Scene& scene)
+{
+    for (auto& el : scene.objects)
+    {
+        shader.use();
+        if (el.second)
+        {
+            glLineWidth(2);
+            if (el.first == scene.lastSelected)
+                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.8f, 0.0f, 1.0f));
+            else
+                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.5f, 0.0f, 1.0f));
+        }
+        else
+            variableManager.SetVariable("color", glm::fvec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
+        if (renderable)
+        {
+            glm::fmat4x4 matrix = glm::identity<glm::fmat4x4>();
+            auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
+            if (objTransformable)
+                matrix = matrix * objTransformable->getTransform().GetMatrix();
+            variableManager.SetVariable("modelMtx", matrix);
+
+            variableManager.Apply(shader.ID);
+            renderable->Render(el.second, variableManager);
+        }
+        glLineWidth(1);
+    }
+    shader.use();
+
+    scene.cursor->transform.scale = camera.transform.scale;
+    glm::fmat4x4 matrix = scene.cursor->transform.GetMatrix();
+
+    variableManager.SetVariable("modelMtx", matrix);
+    variableManager.SetVariable("color", glm::fvec4(0.5f, 0.5f, 1.0f, 1.0f));
+    variableManager.Apply(shader.ID);
+    scene.cursor->Render(false, variableManager);
+
+    if (std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; }) != scene.objects.end())
+    {
+        scene.center.transform.scale = camera.transform.scale;
+        glm::fmat4x4 centerMatrix = scene.center.transform.GetMatrix();
+
+        variableManager.SetVariable("modelMtx", centerMatrix);
+        variableManager.SetVariable("color", glm::fvec4(1.0f, 0.0f, 0.0f, 1.0f));
+        variableManager.Apply(shader.ID);
+        scene.center.Render(false, variableManager);
+    }
+
+}
+
 Renderer::Renderer(Window& window)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window)
 {
@@ -33,68 +86,19 @@ void Renderer::Init()
     variableManager.AddVariable("t1", 0.0f);
 }
 
-void Renderer::Update(Camera& camera)
+void Renderer::BeginRender(Camera& camera)
 {
-}
-
-void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
-{
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     variableManager.SetVariable("projMtx", camera.GetProjectionMatrix());
     variableManager.SetVariable("viewMtx", camera.GetViewMatrix());
 
+}
 
-    for (auto& el : scene.objects)
-    {
-        shader.use();
-        if (el.second)
-        {
-            glLineWidth(2);
-            if (el.first == scene.lastSelected)
-                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.8f, 0.0f, 1.0f ));
-            else
-                variableManager.SetVariable("color", glm::fvec4(1.0f, 0.5f, 0.0f, 1.0f));
-        }
-        else
-            variableManager.SetVariable("color", glm::fvec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-        auto renderable = std::dynamic_pointer_cast<IRenderable>(el.first);
-        if (renderable)
-        {
-            glm::fmat4x4 matrix = glm::identity<glm::fmat4x4>();
-            auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
-            if (objTransformable) 
-                matrix = matrix * objTransformable->getTransform().GetMatrix();
-            variableManager.SetVariable("modelMtx", matrix);
-
-            variableManager.Apply(shader.ID);
-            renderable->Render(el.second, variableManager);
-        }
-        glLineWidth(1);
-    }
-    shader.use();
-    
-    scene.cursor->transform.scale = camera.transform.scale;
-    glm::fmat4x4 matrix = scene.cursor->transform.GetMatrix();
-
-    variableManager.SetVariable("modelMtx", matrix);
-    variableManager.SetVariable("color", glm::fvec4(0.5f, 0.5f, 1.0f, 1.0f));
-    variableManager.Apply(shader.ID);
-    scene.cursor->Render(false, variableManager);
-    
-    if(std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; })!= scene.objects.end())
-    {
-        scene.center.transform.scale = camera.transform.scale;
-        glm::fmat4x4 centerMatrix = scene.center.transform.GetMatrix();
-
-        variableManager.SetVariable("modelMtx", centerMatrix);
-        variableManager.SetVariable("color", glm::fvec4(1.0f, 0.0f, 0.0f, 1.0f));
-        variableManager.Apply(shader.ID);
-        scene.center.Render(false, variableManager);
-    }
-
+void Renderer::RenderGui(Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
+{
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -108,13 +112,14 @@ void Renderer::Render(Camera& camera, Scene& scene, std::vector<std::shared_ptr<
 
     auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.lastSelected);
     if (selectedGui)
-        selectedGui->RenderGui();
-        
-    for (std::shared_ptr<IGui>& gui : guis)
-        gui->RenderGui();
+        if (selectedGui->RenderGui(scene.trackers))
+            for (auto& t : scene.trackers)
+                t->onMove(scene, scene.lastSelected);
 
-    
+    for (std::shared_ptr<IGui>& gui : guis)
+        gui->RenderGui(scene.trackers);
+
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }

@@ -190,7 +190,7 @@ void CurveC2::Render(bool selected, VariableManager& vm)
 	}
 }
 
-void CurveC2::RenderGui()
+bool CurveC2::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
 	ImGui::Begin("C2 Curve");
 	ImGui::InputText("Name", &name);
@@ -206,6 +206,7 @@ void CurveC2::RenderGui()
 	ImGui::Checkbox("Show bezier chain", &showBezierChain);
 	ImGui::Checkbox("Show bezier points", &showBezierPoints);
 	ImGui::End();
+	return false;
 }
 
 void CurveC2::onAdd(Scene& scene, std::shared_ptr<ISceneElement> elem)

@@ -85,15 +85,23 @@ Transform Transform::operator+(const Transform& t)
 	return ret;
 }
 
-void Transform::RenderGui()
+bool Transform::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 {
+	bool moved = false;
+
 	float locationTmp[3] = {location[0],location[1], location[2]};
 	float rotationTmp[3] = { rotation[0],rotation[1], rotation[2] };
 	float scaleTmp[3] = { scale[0],scale[1], scale[2] };
 	if (ImGui::InputFloat3("Location", locationTmp))
+	{
 		location = { locationTmp[0],locationTmp[1], locationTmp[2],0 };
+		moved = true;
+	}
 	if (ImGui::InputFloat3("Rotation", rotationTmp))
+	{
 		rotation = { rotationTmp[0],rotationTmp[1], rotationTmp[2],0 };
+		moved = true;
+	}
 	if (ImGui::InputFloat3("Scale", scaleTmp))
 	{
 		if (scaleTmp[0] <= 0)
@@ -104,5 +112,7 @@ void Transform::RenderGui()
 			scaleTmp[2] = 0.01f;
 
 		scale = { scaleTmp[0],scaleTmp[1], scaleTmp[2],0 };
+		moved = true;
 	}
+	return moved;
 }
