@@ -1,15 +1,17 @@
 #pragma once
-#include "ISceneElement.h"
+#include "../interfaces/ISceneElement.h"
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/ITransformable.h"
 #include "../interfaces/IGui.h"
 #include "../interfaces/IClickable.h"
-#include <GL/glew.h>
-#include "Scene.h"
+#include "../interfaces/ISelfControl.h"
+#include "../interfaces/IPointOwner.h"
+#include "../Scene/Scene.h"
 #include "../Rendering/Camera.h"
 #include "../Indexer.h"
+#include <GL/glew.h>
 
-class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui, public IClickable
+class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui, public IClickable, public ISelfControl
 {
 	static Indexer indexer;
 
@@ -19,7 +21,10 @@ class Point : public ISceneElement, public ITransformable, public IRenderable, p
 
 	Transform transform;
 	std::string name;
+
 public:
+	std::weak_ptr<IPointOwner> po;
+
 	Point(std::string name);
 	Point();
 	Point(glm::fvec4 position);
@@ -30,9 +35,11 @@ public:
 
 	virtual void Render(bool selected, VariableManager& vm) override;
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 
 	virtual std::tuple<bool, float> InClickRange(Camera& camera, float x, float y) const override;
 	virtual bool Click(Scene& scene, Camera& camera, float x, float y) override;
 	virtual void Unclick() override;
+
+	virtual bool canBeDeleted() const override;
 };

@@ -7,5 +7,5 @@
 class IGui
 {
 public:
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) = 0;
+	virtual bool RenderGui() = 0;
 };

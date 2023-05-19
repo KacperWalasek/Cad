@@ -1,8 +1,8 @@
 #include "InterpolationCurve.h"
 #include <imgui/imgui_stdlib.h>
-#include "Scene.h"
+#include "../../Scene/Scene.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "../Math/CadMath.h"
+#include "../../Math/CadMath.h"
 Indexer InterpolationCurve::indexer;
 
 InterpolationCurve::InterpolationCurve(std::vector<std::shared_ptr<Point>> points)
@@ -33,7 +33,7 @@ void InterpolationCurve::Render(bool selected, VariableManager& vm)
 		b.Render(shader, vm);
 }
 
-bool InterpolationCurve::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool InterpolationCurve::RenderGui()
 {
 	ImGui::Begin("C0 Curve");
 	ImGui::InputText("Name", &name);

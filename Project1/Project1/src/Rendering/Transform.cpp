@@ -85,7 +85,7 @@ Transform Transform::operator+(const Transform& t)
 	return ret;
 }
 
-bool Transform::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool Transform::RenderGui()
 {
 	bool moved = false;
 

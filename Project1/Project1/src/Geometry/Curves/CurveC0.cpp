@@ -1,6 +1,6 @@
 #include "CurveC0.h"
+#include "../../Scene/Scene.h"
 #include <imgui/imgui_stdlib.h>
-#include "Scene.h"
 #include <glm/gtc/type_ptr.hpp>
 
 Indexer CurveC0::indexer;
@@ -33,7 +33,7 @@ void CurveC0::Render(bool selected, VariableManager& vm)
 		b.Render(shader, vm);
 }
 
-bool CurveC0::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool CurveC0::RenderGui()
 {
 	ImGui::Begin("C0 Curve");
 	ImGui::InputText("Name", &name);

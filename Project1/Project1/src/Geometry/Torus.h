@@ -1,5 +1,5 @@
 #pragma once
-#include "ISceneElement.h"
+#include "../interfaces/ISceneElement.h"
 #include "../Geometry/TorusGeometry.h"
 #include "../Rendering/Mesh.h"
 #include "../interfaces/IGui.h"
@@ -27,7 +27,7 @@ public:
 		return name;
 	}
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 
 	virtual Transform& getTransform() override;
 

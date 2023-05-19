@@ -29,6 +29,7 @@ Point::Point()
 
 }
 
+
 Point::Point(glm::fvec4 position)
 	:Point()
 {
@@ -62,11 +63,11 @@ void Point::Render(bool selected, VariableManager& vm)
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
 }
 
-bool Point::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool Point::RenderGui()
 {
 	ImGui::Begin("Point");
 	ImGui::InputText("Name", &name);
-	if (transform.RenderGui(trackers))
+	if (transform.RenderGui())
 	{
 		ImGui::End();
 		return true;
@@ -92,4 +93,11 @@ bool Point::Click(Scene& scene, Camera& camera, float x, float y)
 
 void Point::Unclick()
 {
+}
+
+bool Point::canBeDeleted() const
+{
+	if (po.lock())
+		return po.lock()->CanBeDeleted(*this);
+	return true;
 }

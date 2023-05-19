@@ -1,5 +1,5 @@
 #include "CurveC2.h"
-#include "Scene.h"
+#include "../../Scene/Scene.h"
 #include <imgui/imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -190,7 +190,7 @@ void CurveC2::Render(bool selected, VariableManager& vm)
 	}
 }
 
-bool CurveC2::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool CurveC2::RenderGui()
 {
 	ImGui::Begin("C2 Curve");
 	ImGui::InputText("Name", &name);

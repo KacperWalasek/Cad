@@ -4,7 +4,7 @@
 #include "Rendering/Renderer.h"
 #include "EventHandlers/CameraMovement.h"
 #include "EventHandlers/SelectedMovement.h"
-#include "Rendering/AnaglyphRenderer.h"
+#include "Rendering/Anaglyph/AnaglyphRenderer.h"
 
 class CadApp
 {

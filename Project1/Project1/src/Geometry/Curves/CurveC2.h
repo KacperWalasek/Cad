@@ -1,14 +1,14 @@
 #pragma once
-#include "../interfaces/IGui.h"
-#include "../interfaces/ISceneTracker.h"
-#include "../interfaces/IRenderable.h"
-#include "../interfaces/ICustomMove.h"
-#include "ISceneElement.h"
-#include "Point.h"
+#include "../../interfaces/IGui.h"
+#include "../../interfaces/ISceneTracker.h"
+#include "../../interfaces/IRenderable.h"
+#include "../../interfaces/ICustomMove.h"
+#include "../../interfaces/ISceneElement.h"
+#include "../Point.h"
 #include "BezierCurve.h"
-#include "../Rendering/Camera.h"
+#include "../../Rendering/Camera.h"
 #include <tuple>
-#include "../Indexer.h"
+#include "../../Indexer.h"
 class CurveC2 : public ISceneElement, public IRenderable, public IGui, public ISceneTracker, public IClickable, public ICustomMove
 {
 	static Indexer indexer;
@@ -40,7 +40,7 @@ public:
 
 	virtual void Render(bool selected, VariableManager& vm) override;
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 
 
 	virtual void onAdd(Scene& scene, std::shared_ptr<ISceneElement> elem) override;

@@ -1,5 +1,5 @@
 #include "ObjectFactory.h"
-#include "../Scene/Point.h"
+#include "../Geometry/Point.h"
 
 ObjectFactory::ObjectFactory(Scene& scene)
 	: scene(scene)

@@ -1,8 +1,8 @@
 #pragma once
-#include "../Rendering/Mesh.h"
+#include "../../Rendering/Mesh.h"
 #include <glm/glm.hpp>
-#include "../Rendering/Shader.h"
-#include "../Rendering/VariableManager.h"
+#include "../../Rendering/Shader.h"
+#include "../../Rendering/VariableManager.h"
 
 
 class BezierCurve

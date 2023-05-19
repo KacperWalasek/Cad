@@ -1,23 +1,44 @@
 #include "Scene.h"
-#include <algorithm>
 #include "../interfaces/ITransformable.h"
+#include "../interfaces/ISelfControl.h"
+#include <algorithm>
+#include <imgui/imgui_internal.h>
+#include <memory>
+#include "../interfaces/IPointOwner.h"
+#include "../Geometry/Point.h"
+
 Scene::Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> objects, Camera& camera)
 	:objects(objects), cursor(std::make_shared<Cursor>(camera))
 {
 	
 }
 
-void Scene::Add(std::shared_ptr<ISceneElement> obj)
+void Scene::Add(std::shared_ptr<ISceneElement> obj, bool cursorPosition)
 {
-	auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj);
-	if(objTransformable)
-		objTransformable->getTransform().location = cursor->transform.location;
+	if (cursorPosition)
+	{
+		auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj);
+		if (objTransformable)
+			objTransformable->getTransform().location = cursor->transform.location;
+	}
 	objects.push_back({ obj,false });
 	for (auto& tracker : trackers)
 		tracker->onAdd(*this, obj);
 	auto objTracker = std::dynamic_pointer_cast<ISceneTracker>(obj);
 	if (objTracker)
 		trackers.push_back(objTracker);
+}
+
+void Scene::Remove(std::shared_ptr<ISceneElement> obj)
+{
+	if (lastSelected == obj)
+		lastSelected = nullptr;
+	for (auto& tracker : trackers)
+		tracker->onRemove(*this, obj);
+	std::erase_if(objects, 
+		[&obj](const std::pair<std::shared_ptr<ISceneElement>,bool>& el) {
+			return el.first.get() == obj.get();
+		});
 }
 
 void Scene::Select(std::pair<std::shared_ptr<ISceneElement>, bool>& obj)
@@ -38,9 +59,10 @@ void Scene::Select(std::shared_ptr<ISceneElement> obj)
 	Select(*it);
 }
 
-bool Scene::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool Scene::RenderGui()
 {
 	ImGui::Begin("Scene");
+	ImGui::Checkbox("Show Points", &showPoints);
 	std::vector<const char*> names;
 	for (int i = 0 ; i< objects.size(); i++)
 		names.push_back(strdup(("##" + std::to_string(i)).data()));
@@ -48,6 +70,9 @@ bool Scene::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 	static int item_current = 0;
 	for (int i = 0; i<objects.size(); i++)
 	{
+		auto p = std::dynamic_pointer_cast<Point>(objects[i].first);
+		if (!showPoints && p)
+			continue;
 		if (ImGui::Selectable(names[i], &objects[i].second))
 		{
 			bool s = objects[i].second;
@@ -58,21 +83,41 @@ bool Scene::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
 			if (s)
 				Select(objects[i]);
 		}
-		if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+		if (ImGui::BeginPopupContextItem()) 
 		{
 			ImGui::Text(objects[i].first->getName().data());
+			
+			auto sc = std::dynamic_pointer_cast<ISelfControl>(objects[i].first);
+			if (sc && !sc->canBeDeleted())
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+
 			if (ImGui::Button("Delete"))
 			{
-				if (lastSelected == objects[i].first)
-					lastSelected = nullptr;
-				for (auto& tracker : trackers)
-					tracker->onRemove(*this, objects[i].first);
-				objects.erase(objects.begin() + i);
+				Remove(objects[i].first);
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
 				ImGui::End();
 				return false;
 			}
+			
+			if (sc && !sc->canBeDeleted())
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+			auto po = std::dynamic_pointer_cast<IPointOwner>(objects[i].first);
+			if (po)
+			{
+				if (ImGui::Button("Select all points"))
+				{
+					po->SelectAll(*this);
+				}
+			}
+				
+			
 			ImGui::EndPopup();
 		}
 		ImGui::SameLine();

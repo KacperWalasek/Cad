@@ -57,6 +57,7 @@ void CadApp::Run()
 			renderer.RenderScene(*camera,*scene);
 			renderer.RenderGui(*scene, guis);
 		}
+		renderer.Finalize(*scene);
 
 		glfwSwapBuffers(window.window);
 		glfwPollEvents();

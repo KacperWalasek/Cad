@@ -20,18 +20,18 @@ set(PROJECT_SOURCES
 	"EventHandlers/EventHanlderInterfaces.h" 
 	"EventHandlers/CameraMovement.h" 
 	"EventHandlers/CameraMovement.cpp"  
-	"Rendering/SceneObject.h" 
 	 
-	"Scene/ISceneElement.h" 
-	"Scene/Torus.h" 
-	"Scene/Torus.cpp"  
+	 
+	"interfaces/ISceneElement.h" 
+	"Geometry/Torus.h" 
+	"Geometry/Torus.cpp"  
 	"interfaces/IRenderable.h" 
 	"EventHandlers/SelectedMovement.h" 
 	"EventHandlers/SelectedMovement.cpp" 
 	"Scene/Scene.h" 
 	"Scene/Scene.cpp" 
-	"Scene/Point.h" 
-	"Scene/Point.cpp" 
+	"Geometry/Point.h" 
+	"Geometry/Point.cpp" 
 	"Scene/Cursor.h" 
 	"Scene/Cursor.cpp" 
 	"UI/MainMenu.h" 
@@ -49,15 +49,26 @@ set(PROJECT_SOURCES
 	"EventHandlers/ObjectFactory.cpp" 
 	 
 	 
-	"Scene/CurveC0.h" 
-	"Scene/CurveC0.cpp"  
-	"Scene/BezierCurve.h" 
-	"Scene/BezierCurve.cpp" 
-	"Scene/CurveC2.h" 
-	"Scene/CurveC2.cpp" "interfaces/IClickable.h" "interfaces/ICustomMove.h" "Indexer.h" 
-	"Scene/InterpolationCurve.h" "Scene/InterpolationCurve.cpp" "Math/CadMath.h" "Math/CadMath.cpp"  
-	"Rendering/VariableManager.h"  "CadApp.h" "CadApp.cpp" "Rendering/AnaglyphRenderer.h" 
-	"Rendering/AnaglyphRenderer.cpp" "Rendering/AnaglyphCamera.h" "Rendering/AnaglyphCamera.cpp")
+	"Geometry/Curves/CurveC0.h" 
+	"Geometry/Curves/CurveC0.cpp"  
+	"Geometry/Curves/BezierCurve.h" 
+	"Geometry/Curves/BezierCurve.cpp" 
+	"Geometry/Curves/CurveC2.h" 
+	"Geometry/Curves/CurveC2.cpp" 
+	"interfaces/IClickable.h" 
+	"interfaces/ICustomMove.h" 
+	"Indexer.h" 
+	"Geometry/Curves/InterpolationCurve.h" 
+	"Geometry/Curves/InterpolationCurve.cpp" 
+	"Math/CadMath.h" 
+	"Math/CadMath.cpp"  
+	"Rendering/VariableManager.h"  
+	"CadApp.h" 
+	"CadApp.cpp" 
+	"Rendering/Anaglyph/AnaglyphRenderer.h" 
+	"Rendering/Anaglyph/AnaglyphRenderer.cpp" 
+	"Rendering/Anaglyph/AnaglyphCamera.h" 
+	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -69,7 +80,13 @@ set(SHADER_FILES
 	"Shaders/test.vert"
 	"Shaders/DeBoor/deboor.tesc"
 	"Shaders/DeBoor/deboor.tese"
-	"Shaders/DeBoor/deboor.vert")
+	"Shaders/DeBoor/deboor.vert"
+	"Shaders/Surface/surfaceC0.tesc"
+	"Shaders/Surface/surfaceC0.tese"
+	"Shaders/Surface/surfaceC0.vert"
+	"Shaders/Surface/surfaceChain.tesc"
+	"Shaders/Surface/surfaceChain.tese"
+)
 add_executable(CAD ${PROJECT_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} OpenGL::GL)

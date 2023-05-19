@@ -2,11 +2,9 @@
 #include <GL/glew.h>
 #include "Shader.h"
 #include "Window.h"
-#include "Mesh.h"
 #include "../interfaces/IGui.h"
 #include "Camera.h"
-#include "SceneObject.h"
-#include "../Scene/ISceneElement.h"
+#include "../interfaces/ISceneElement.h"
 #include "../Scene/Scene.h"
 #include "VariableManager.h"
 
@@ -23,4 +21,5 @@ public:
 	void BeginRender(Camera& camera);
 	void RenderScene(Camera& camera, Scene& scene);
 	void RenderGui(Scene& scene, std::vector<std::shared_ptr<IGui>>& guis);
+	void Finalize(Scene& scene);
 };

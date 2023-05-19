@@ -1,5 +1,5 @@
 #pragma once
-#include "../Scene/ISceneElement.h"
+#include "ISceneElement.h"
 #include <memory>
 
 class Scene;

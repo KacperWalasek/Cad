@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "ISceneElement.h"
+#include "../interfaces/ISceneElement.h"
 #include "../interfaces/IGui.h"
 #include "../interfaces/ISceneTracker.h"
 #include "Cursor.h"
@@ -18,12 +18,14 @@ public:
 	std::shared_ptr<Cursor> cursor;
 	Center center;
 
+	bool showPoints;
 	std::vector<std::shared_ptr<ISceneTracker>> trackers;
 
-	void Add(std::shared_ptr<ISceneElement> obj);
+	void Add(std::shared_ptr<ISceneElement> obj, bool cursorPosition = true);
+	void Remove(std::shared_ptr<ISceneElement> obj);
 	void Select(std::pair<std::shared_ptr<ISceneElement>, bool>& obj);
 	void Select(std::shared_ptr<ISceneElement> obj);
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 
 };

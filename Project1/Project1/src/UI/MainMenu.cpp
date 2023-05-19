@@ -1,15 +1,16 @@
 #include "MainMenu.h"
-#include "../Scene/Torus.h"
-#include "../Scene/Point.h"
-#include "../Scene/CurveC0.h"
-#include "../Scene/CurveC2.h"
-#include "../Scene/InterpolationCurve.h"
+#include "../Geometry/Torus.h"
+#include "../Geometry/Point.h"
+#include "../Geometry/Curves/CurveC0.h"
+#include "../Geometry/Curves/CurveC2.h"
+#include "../Geometry/Curves/InterpolationCurve.h"
+#include "../Geometry/Surfaces/SurfaceCreator.h"
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
 {}
 
-bool MainMenu::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool MainMenu::RenderGui()
 {
 
     if (ImGui::BeginMainMenuBar())
@@ -66,7 +67,10 @@ bool MainMenu::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
                 scene.Add(curve);
 
             }
-
+            if (ImGui::MenuItem("Surface", ""))
+            {
+                scene.Add(std::make_shared<SurfaceCreator>(scene));
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

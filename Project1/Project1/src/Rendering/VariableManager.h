@@ -92,9 +92,25 @@ inline void ShaderVariable<glm::fvec4>::Apply(unsigned int shaderId) const
 }
 
 template<>
+inline void ShaderVariable<int>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+
+	glUniform1i(loc, value);
+}
+
+template<>
 inline void ShaderVariable<float>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
 
 	glUniform1f(loc, value);
+}
+
+template<>
+inline void ShaderVariable<bool>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+
+	glUniform1i(loc, value);
 }

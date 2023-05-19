@@ -127,7 +127,7 @@ void AnaglyphRenderer::Render(Renderer& renderer, Scene& scene, std::vector<std:
 	
 }
 
-bool AnaglyphRenderer::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool AnaglyphRenderer::RenderGui()
 {
 	ImGui::Begin("Anaglyph");
 	ImGui::Checkbox("Enabled", &enabled);

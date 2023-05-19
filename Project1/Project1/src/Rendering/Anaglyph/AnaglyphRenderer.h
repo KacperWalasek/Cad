@@ -1,6 +1,6 @@
 #pragma once
-#include "Renderer.h"
-#include "Camera.h"
+#include "../Renderer.h"
+#include "../Camera.h"
 #include "AnaglyphCamera.h"
 
 class AnaglyphRenderer : public IGui
@@ -22,5 +22,5 @@ public:
 	void Init();
 	void Render(Renderer& renderer, Scene& scene, std::vector<std::shared_ptr<IGui>>& guis, Camera& camera);
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 };

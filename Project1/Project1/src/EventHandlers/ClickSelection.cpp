@@ -1,5 +1,5 @@
 #include "ClickSelection.h"
-#include "../Scene/Point.h"
+#include "../Geometry/Point.h"
 
 ClickSelection::ClickSelection(Scene& scene, Camera& camera)
 	:scene(scene), camera(camera)

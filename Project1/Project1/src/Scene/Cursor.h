@@ -23,5 +23,5 @@ public:
 	void UpdateFromWorld();
 	void Update(GLFWwindow* window);
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 };

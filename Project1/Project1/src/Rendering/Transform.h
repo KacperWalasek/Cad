@@ -26,5 +26,5 @@ struct Transform : public IGui
 	
 	Transform operator+ (const Transform& t);
 
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 };

@@ -39,11 +39,11 @@ glm::fmat4x4 Camera::GetInverseProjectionMatrix() const
 }
 
 
-bool Camera::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool Camera::RenderGui()
 {
 	float eps = 0.01f;
 	ImGui::Begin("Camera");
-	transform.RenderGui(trackers);
+	transform.RenderGui();
 	ImGui::SliderFloat("fov", &fov, eps, M_PI - eps);
 	ImGui::SliderFloat("near", &n, eps, f-eps);
 	if (ImGui::InputFloat("far", &f))

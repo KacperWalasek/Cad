@@ -20,5 +20,5 @@ public:
 
 	float GetAspect() const;
 	
-	virtual bool RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers) override;
+	virtual bool RenderGui() override;
 };

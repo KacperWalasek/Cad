@@ -80,7 +80,7 @@ void Cursor::Update(GLFWwindow* window)
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		UpdateFromWorld();
 }
-bool Cursor::RenderGui(std::vector<std::shared_ptr<ISceneTracker>>& trackers)
+bool Cursor::RenderGui()
 {
 	float worldPositionTab[3] = { transform.location[0], transform.location[1], transform.location[2] };
 	float screenPositionTab[2] = { screenPosition.x, screenPosition.y };

@@ -5,10 +5,10 @@
 #include "Camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "SceneObject.h"
 #include "../interfaces/IRenderable.h"
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
+#include "../interfaces/ISceneModifier.h"
 
 void Renderer::RenderScene(Camera& camera, Scene& scene)
 {
@@ -84,6 +84,11 @@ void Renderer::Init()
     variableManager.AddVariable("color", glm::fvec4());
     variableManager.AddVariable("t0", 0.0f);
     variableManager.AddVariable("t1", 0.0f);
+
+    variableManager.AddVariable("reverse", false);
+
+    variableManager.AddVariable("divisionU", 4);
+    variableManager.AddVariable("divisionV", 4);
 }
 
 void Renderer::BeginRender(Camera& camera)
@@ -112,14 +117,40 @@ void Renderer::RenderGui(Scene& scene, std::vector<std::shared_ptr<IGui>>& guis)
 
     auto selectedGui = std::dynamic_pointer_cast<IGui>(scene.lastSelected);
     if (selectedGui)
-        if (selectedGui->RenderGui(scene.trackers))
+        if (selectedGui->RenderGui())
             for (auto& t : scene.trackers)
                 t->onMove(scene, scene.lastSelected);
 
     for (std::shared_ptr<IGui>& gui : guis)
-        gui->RenderGui(scene.trackers);
+        gui->RenderGui();
 
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Renderer::Finalize(Scene& scene)
+{
+    std::vector<std::shared_ptr<ISceneElement>> allToAdd;
+    std::vector<std::shared_ptr<ISceneElement>> allToRemove;
+
+    for (auto& el : scene.objects)
+    {
+        auto mod = std::dynamic_pointer_cast<ISceneModifier>(el.first);
+        if (!mod)
+            continue;
+        
+        auto toAdd = mod->GetAddedObjects();
+        allToAdd.insert(allToAdd.end(), toAdd.begin(), toAdd.end());
+        
+        auto toRemove = mod->GetRemovedObjects();
+        allToRemove.insert(allToRemove.end(), toRemove.begin(), toRemove.end());
+    }
+
+    for (auto el : allToRemove)
+        scene.Remove(el);
+
+    for (auto el : allToAdd)
+        scene.Add(el, false);
+
 }
