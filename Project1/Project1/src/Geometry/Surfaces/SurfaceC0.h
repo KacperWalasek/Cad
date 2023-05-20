@@ -28,6 +28,8 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 	bool showChain;
 
 	bool shouldReload;
+
+	std::vector<glm::fvec4> positions;
 public:
 	float sizeX, sizeY;
 	int countX, countY;
@@ -56,4 +58,5 @@ public:
 
 
 	void Recalculate();
+	void CreateControlPoints();
 };

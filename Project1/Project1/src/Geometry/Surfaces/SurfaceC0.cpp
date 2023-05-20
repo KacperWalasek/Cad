@@ -7,9 +7,9 @@ void SurfaceC0::updateMeshes()
 	std::vector<int> inds;
 	std::vector<float> vertices;
 
-	for(auto& p : points) 
+	for(int i =0; i<points.size() || i < positions.size(); i++) 
 	{
-		auto& pos = p->getTransform().location;
+		auto& pos = points.size() == 0 ? positions[i] : points[i]->getTransform().location;
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
@@ -52,14 +52,7 @@ void SurfaceC0::CreatePointsFlat()
 	float distY = sizeY / (countY * 3);
 	for (int i = 0; i < 1 + countY * 3; i++)
 		for (int j = 0; j < 1 + countX * 3; j++)
-		{
-			auto p = std::make_shared<Point>();
-			p->getTransform().location.x = i * distX;
-			p->getTransform().location.y = 0;
-			p->getTransform().location.z = j * distY;
-			p->getTransform().location += pos;
-			points.push_back(p);
-		}
+			positions.push_back(pos + glm::fvec4(i * distX, 0.0f, j * distY,0.0f));
 }
 
 void SurfaceC0::CreatePointsCylinder()
@@ -68,10 +61,6 @@ void SurfaceC0::CreatePointsCylinder()
 	for (int h = 0; h < 1 + countY * 3; h++)
 		for (int a = 0; a < countX; a++)
 		{
-			auto p1 = std::make_shared<Point>();
-			auto p2 = std::make_shared<Point>();
-			auto p3 = std::make_shared<Point>();
-
 			float angle1 = 2 * 3.14 * a / countX;
 			float angle2 = 2 * 3.14 * (a+1) / countX;
 
@@ -84,13 +73,9 @@ void SurfaceC0::CreatePointsCylinder()
 			float cosA = glm::dot(glm::normalize(s1), glm::normalize(l2-l1));
 			float mult = glm::length(l1-l2)/ 4.0f /cosA;
 
-			p1->getTransform().location = pos + l1;
-			p2->getTransform().location = pos + l1 + mult*glm::fvec4( -sinf(angle1), cosf(angle1), 0.0f, 0.0f );
-			p3->getTransform().location = pos + l2 - mult*glm::fvec4( -sinf(angle2), cosf(angle2), 0.0f, 0.0f);
-
-			points.push_back(p1);
-			points.push_back(p2);
-			points.push_back(p3);
+			positions.push_back(pos + l1);
+			positions.push_back(pos + l1 + mult*glm::fvec4( -sinf(angle1), cosf(angle1), 0.0f, 0.0f ));
+			positions.push_back(pos + l2 - mult*glm::fvec4( -sinf(angle2), cosf(angle2), 0.0f, 0.0f ));
 
 		}
 }
@@ -100,10 +85,6 @@ void SurfaceC0::CreateSmiglo()
 	for (int h = 0; h < 1 + countY * 3; h++)
 		for (int a = 0; a < countX; a++)
 		{
-			auto p1 = std::make_shared<Point>();
-			auto p2 = std::make_shared<Point>();
-			auto p3 = std::make_shared<Point>();
-
 			float angle1 = 2 * 3.14 * a / countX;
 			float angle2 = 2 * 3.14 * (a + 1) / countX;
 
@@ -116,13 +97,9 @@ void SurfaceC0::CreateSmiglo()
 			float cosA = glm::dot(l1, l2);
 			float mult = glm::length(l1 - l2) / 3 * cosA;
 
-			p1->getTransform().location = l1;
-			p2->getTransform().location = l1 + mult * glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f);
-			p3->getTransform().location = l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f);
-
-			points.push_back(p1);
-			points.push_back(p2);
-			points.push_back(p3);
+			positions.push_back(l1);
+			positions.push_back(l1 + mult * glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f));
+			positions.push_back(l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f));
 
 		}
 }
@@ -254,11 +231,20 @@ void SurfaceC0::SelectAll(Scene& scene) const
 
 void SurfaceC0::Recalculate()
 {
-	points.clear();
+	positions.clear();
 	if (cylinder)
 		CreatePointsCylinder();
 	else
 		CreatePointsFlat();
 
 	updateMeshes();
+}
+
+void SurfaceC0::CreateControlPoints()
+{
+	for (auto& p : positions)
+	{
+		points.push_back(std::make_shared<Point>(p));
+	}
+	positions.clear();
 }

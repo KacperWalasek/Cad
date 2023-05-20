@@ -21,6 +21,8 @@ void SurfaceCreator::apply()
 		});
 	
 	toRemove = it->first;
+	
+	surface->CreateControlPoints();
 	toAdd.push_back(surface);
 	for (auto& p : surface->points)
 	{
