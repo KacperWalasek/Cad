@@ -68,7 +68,7 @@ set(PROJECT_SOURCES
 	"Rendering/Anaglyph/AnaglyphRenderer.h" 
 	"Rendering/Anaglyph/AnaglyphRenderer.cpp" 
 	"Rendering/Anaglyph/AnaglyphCamera.h" 
-	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h")
+	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h" "Geometry/Surfaces/SurfaceC2.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -84,6 +84,7 @@ set(SHADER_FILES
 	"Shaders/Surface/surfaceC0.tesc"
 	"Shaders/Surface/surfaceC0.tese"
 	"Shaders/Surface/surfaceC0.vert"
+	"Shaders/Surface/surfaceC2.tese"
 	"Shaders/Surface/surfaceChain.tesc"
 	"Shaders/Surface/surfaceChain.tese"
 )

@@ -1,4 +1,5 @@
 #include "SurfaceCreator.h"
+#include "SurfaceC2.h"
 
 Indexer SurfaceCreator::indexer;
 
@@ -40,7 +41,7 @@ SurfaceCreator::SurfaceCreator(Scene& scene)
 {
 	surfaceCount[0] = 1;
 	surfaceCount[1] = 1;
-	surface = std::make_shared<SurfaceC0>(scene.cursor->transform.location, surfaceCount[0], surfaceCount[1], sizeX, sizeY, cylinder);
+	surface = std::make_shared<SurfaceC2>(scene.cursor->transform.location, surfaceCount[0], surfaceCount[1], sizeX, sizeY, cylinder);
 }
 
 bool SurfaceCreator::RenderGui()
