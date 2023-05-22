@@ -6,6 +6,10 @@
 #include "../Geometry/Curves/InterpolationCurve.h"
 #include "../Geometry/Surfaces/SurfaceCreator.h"
 #include "FileLoader.h"
+#include <nlohmann/json-schema.hpp>
+
+using nlohmann::json;
+using nlohmann::json_schema::json_validator;
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
@@ -76,6 +80,13 @@ bool MainMenu::RenderGui()
         }
         if (ImGui::MenuItem("Load",""))
         {
+            json ex1 = json::parse(R"(
+              {
+                "pi": 3.141,
+                "happy": true
+              }
+            )");
+
             std::string filename = FileLoader::selectFile();
             if (!filename.empty())
             {

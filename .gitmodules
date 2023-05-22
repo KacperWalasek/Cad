@@ -1,3 +1,6 @@
 [submodule ".\\Project1\\Project1\\vendor\\json"]
 	path = .\\Project1\\Project1\\vendor\\json
 	url = https://github.com/nlohmann/json.git
+[submodule ".\\Project1\\Project1\\vendor\\json_validator"]
+	path = .\\Project1\\Project1\\vendor\\json_validator
+	url = https://github.com/pboettch/json-schema-validator.git
