@@ -6,7 +6,8 @@
 #include "../Geometry/Curves/InterpolationCurve.h"
 #include "../Geometry/Surfaces/SurfaceCreator.h"
 #include "FileLoader.h"
-#include <nlohmann/json-schema.hpp>
+#include "nlohmann/json.hpp"
+#include "json_validator/src/nlohmann/json-schema.hpp"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
