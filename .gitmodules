@@ -1,0 +1,3 @@
+[submodule ".\\Project1\\Project1\\vendor\\json"]
+	path = .\\Project1\\Project1\\vendor\\json
+	url = https://github.com/nlohmann/json.git
