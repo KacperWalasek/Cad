@@ -5,6 +5,7 @@
 #include "../Geometry/Curves/CurveC2.h"
 #include "../Geometry/Curves/InterpolationCurve.h"
 #include "../Geometry/Surfaces/SurfaceCreator.h"
+#include "FileLoader.h"
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
@@ -73,6 +74,15 @@ bool MainMenu::RenderGui()
             }
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem("Load",""))
+        {
+            std::string filename = FileLoader::selectFile();
+            if (!filename.empty())
+            {
+
+            }
+        }
+        
         ImGui::EndMainMenuBar();
     }
     return false;

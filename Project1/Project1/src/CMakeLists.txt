@@ -68,7 +68,7 @@ set(PROJECT_SOURCES
 	"Rendering/Anaglyph/AnaglyphRenderer.h" 
 	"Rendering/Anaglyph/AnaglyphRenderer.cpp" 
 	"Rendering/Anaglyph/AnaglyphCamera.h" 
-	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h" "Geometry/Surfaces/SurfaceC2.cpp")
+	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h" "Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -94,6 +94,7 @@ target_link_libraries(${PROJECT_NAME} OpenGL::GL)
 target_link_libraries(${PROJECT_NAME} GLEW::GLEW)
 target_link_libraries(${PROJECT_NAME} glfw)
 target_link_libraries(${PROJECT_NAME} imgui)
+target_link_libraries(${PROJECT_NAME} tinyfiledialogs)
 
 # Copy shaders
 foreach (shader_file ${SHADER_FILES})
