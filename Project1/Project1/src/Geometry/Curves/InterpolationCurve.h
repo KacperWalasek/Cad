@@ -7,12 +7,14 @@
 #include "../../interfaces/IGui.h"
 #include "../../interfaces/ISceneTracker.h"
 #include "../../interfaces/ICustomMove.h"
+#include "../../interfaces/ISerializable.h"
 #include "../Point.h"
 #include "../../Rendering/Camera.h"
 #include "../../Rendering/Shader.h"
 #include "../../Indexer.h"
 
-class InterpolationCurve : public ISceneElement, public IRenderable, public IGui, public ISceneTracker
+class InterpolationCurve : public ISceneElement, public IRenderable, public IGui, 
+	public ISceneTracker, public ISerializable
 {
 	static Indexer indexer;
 	std::string name;
@@ -23,8 +25,10 @@ class InterpolationCurve : public ISceneElement, public IRenderable, public IGui
 	bool chord;
 
 	Shader shader;
+	InterpolationCurve();
 public:
 	InterpolationCurve(std::vector<std::shared_ptr<Point>> points);
+	InterpolationCurve(nlohmann::json json,  std::map<int, std::shared_ptr<Point>>& pointMap);
 
 	void UpdateMeshes();
 
@@ -43,5 +47,9 @@ public:
 	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
 	std::tuple<int, float> getClickIndex(Camera& camera, float x, float y) const;
+
+
+	// Inherited via ISerializable
+	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
 
 };

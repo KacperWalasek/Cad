@@ -5,11 +5,12 @@
 #include "../interfaces/IGui.h"
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/ITransformable.h"
+#include "../interfaces/ISerializable.h"
 #include "../Rendering/Transform.h"
 #include "../Indexer.h"
 
 
-class Torus : public ISceneElement, public ITransformable, public IGui, public IRenderable
+class Torus : public ISceneElement, public ITransformable, public IGui, public IRenderable, public ISerializable
 {
 	static Indexer indexer;
 
@@ -20,6 +21,7 @@ class Torus : public ISceneElement, public ITransformable, public IGui, public I
 	void UpdateMesh();
 public:
 	Torus();
+	Torus(nlohmann::json json);
 	int minorDencity, majorDencity;
 
 	virtual std::string getName() const override
@@ -32,5 +34,7 @@ public:
 	virtual Transform& getTransform() override;
 
 	virtual void Render(bool selected, VariableManager& vm) override;
+
+	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
 
 };

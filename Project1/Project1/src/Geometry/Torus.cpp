@@ -27,6 +27,14 @@ Torus::Torus()
 	UpdateMesh();
 }
 
+Torus::Torus(nlohmann::json json)
+	:geometry(json["largeRadius"], json["smallRadius"]), 
+	majorDencity(json["samples"]["x"]), minorDencity(json["samples"]["y"]),
+	name(json["name"]), transform(json)
+{
+	UpdateMesh();
+}
+
 bool Torus::RenderGui()
 {
 	ImGui::Begin("Torus"); 
@@ -53,4 +61,26 @@ Transform& Torus::getTransform()
 void Torus::Render(bool selected, VariableManager& vm)
 {
 	mesh.Render();
+}
+
+nlohmann::json Torus::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	nlohmann::json transformJson = transform.Serialize();
+	nlohmann::json t = {
+		{"objectType", "torus"},
+		{"id", indexer.getNewIndex()},
+		{"name", name},
+		{"position", transformJson["position"]},
+		{"rotation", transformJson["rotation"]},
+		{"scale", transformJson["scale"]},
+		{"samples",
+			{
+				{"x", minorDencity},
+				{"y", majorDencity}
+			}
+		},
+		{"smallRadius", geometry.minorR},
+		{"largeRadius", geometry.majorR}
+	};
+	return t;
 }

@@ -1,13 +1,15 @@
 #pragma once
 #include "../../interfaces/ISceneElement.h"
 #include "../../interfaces/IPointOwner.h"
+#include "../../interfaces/ISerializable.h"
 #include "../../Indexer.h"
 #include "../Point.h"
 #include "../../Rendering/Shader.h"
 #include <vector>
 #include <memory>
 
-class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IPointOwner, public IGui
+
+class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IPointOwner, public IGui, public ISerializable
 {
 	static Indexer indexer;
 
@@ -30,6 +32,7 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 	bool shouldReload;
 
 	std::vector<glm::fvec4> positions;
+	SurfaceC0();
 public:
 	float sizeX, sizeY;
 	int countX, countY;
@@ -38,6 +41,7 @@ public:
 	std::vector<std::shared_ptr<Point>> points;
 
 	SurfaceC0(glm::fvec4 pos, int countX, int countY, float sizeX, float sizeY, bool cylinder);
+	SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap);
 
 	virtual std::string getName() const override;
 
@@ -59,4 +63,7 @@ public:
 
 	void Recalculate();
 	void CreateControlPoints();
+
+	// Inherited via ISerializable
+	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
 };

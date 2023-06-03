@@ -6,15 +6,32 @@
 Indexer InterpolationCurve::indexer;
 
 InterpolationCurve::InterpolationCurve(std::vector<std::shared_ptr<Point>> points)
-	: points(points), name("InterpolationCurve-" + std::to_string(indexer.getNewIndex())), addSelected(false),
-	removeSelected(false), showChain(false),
+	:InterpolationCurve()
+{
+	this->points = points;
+	this->name = "InterpolationCurve-" + std::to_string(indexer.getNewIndex());
+
+	UpdateMeshes();
+}
+
+InterpolationCurve::InterpolationCurve(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
+	:InterpolationCurve()
+{
+	for (int pi : json["controlPoints"])
+		points.push_back(pointMap[pi]);
+	name = json["name"];
+
+	UpdateMeshes();
+}
+InterpolationCurve::InterpolationCurve() 
+	: addSelected(false), removeSelected(false), showChain(false),
 	shader("Shaders/test.vert", "Shaders/fragmentShader.frag")
+
 {
 	shader.Init();
 	shader.loadShaderFile("Shaders/test.tesc", GL_TESS_CONTROL_SHADER);
 	shader.loadShaderFile("Shaders/test.tese", GL_TESS_EVALUATION_SHADER);
 
-	UpdateMeshes();
 }
 
 std::string InterpolationCurve::getName() const
@@ -189,4 +206,18 @@ void InterpolationCurve::onMove(Scene& scene, std::shared_ptr<ISceneElement> ele
 {
 	if (std::find(points.begin(), points.end(), elem) != points.end())
 		UpdateMeshes();
+}
+
+nlohmann::json InterpolationCurve::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	std::vector<int> pointIds;
+	for (auto& p : points)
+		pointIds.push_back(pointIndexMap.find(p->getId())->second);
+
+	return {
+		{"objectType", "interpolatedC2"},
+		{"id", indexer.getNewIndex()},
+		{"name", name},
+		{"controlPoints", pointIds }
+	};
 }

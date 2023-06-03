@@ -1,6 +1,7 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "../interfaces/IGui.h"
+#include <nlohmann/json.hpp>
 
 const float MIN_SIZE = 0.0000001f;
 
@@ -12,6 +13,7 @@ struct Transform : public IGui
 	Transform(glm::fvec4 location, glm::fvec4 rotation, glm::fvec4 scale)
 		: location(location), rotation(rotation), scale(scale), reversedOrder(false)
 	{}
+	Transform(nlohmann::json json);
 	bool reversedOrder;
 	glm::fvec4 location;
 	glm::fvec4 rotation;
@@ -27,4 +29,6 @@ struct Transform : public IGui
 	Transform operator+ (const Transform& t);
 
 	virtual bool RenderGui() override;
+
+	nlohmann::json Serialize() const;
 };

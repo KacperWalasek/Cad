@@ -1,17 +1,24 @@
 #include "SurfaceCreator.h"
-#include "SurfaceC2.h"
 
 Indexer SurfaceCreator::indexer;
 
 void SurfaceCreator::updateSurface()
 {
-	surface->sizeX = sizeX;
-	surface->sizeY = sizeY;
-	surface->cylinder = cylinder;
-	surface->countX = surfaceCount[0];
-	surface->countY = surfaceCount[1];
+	surfaceC0->sizeX = sizeX;
+	surfaceC0->sizeY = sizeY;
+	surfaceC0->cylinder = cylinder;
+	surfaceC0->countX = surfaceCount[0];
+	surfaceC0->countY = surfaceCount[1];
 
-	surface->Recalculate();
+	surfaceC0->Recalculate();
+	
+	surfaceC2->sizeX = sizeX;
+	surfaceC2->sizeY = sizeY;
+	surfaceC2->cylinder = cylinder;
+	surfaceC2->countX = surfaceCount[0];
+	surfaceC2->countY = surfaceCount[1];
+
+	surfaceC2->Recalculate();
 }
 
 void SurfaceCreator::apply()
@@ -23,12 +30,25 @@ void SurfaceCreator::apply()
 	
 	toRemove = it->first;
 	
-	surface->CreateControlPoints();
-	toAdd.push_back(surface);
-	for (auto& p : surface->points)
+	if (c0)
 	{
-		p->po = surface;
-		toAdd.push_back(p);
+		surfaceC0->CreateControlPoints();
+		toAdd.push_back(surfaceC0);
+		for (auto& p : surfaceC0->points)
+		{
+			p->po = surfaceC0;
+			toAdd.push_back(p);
+		}
+	}
+	else
+	{
+		surfaceC2->CreateControlPoints();
+		toAdd.push_back(surfaceC2);
+		for (auto& p : surfaceC2->points)
+		{
+			p->po = surfaceC2;
+			toAdd.push_back(p);
+		}
 	}
 }
 
@@ -41,12 +61,15 @@ SurfaceCreator::SurfaceCreator(Scene& scene)
 {
 	surfaceCount[0] = 1;
 	surfaceCount[1] = 1;
-	surface = std::make_shared<SurfaceC2>(scene.cursor->transform.location, surfaceCount[0], surfaceCount[1], sizeX, sizeY, cylinder);
+	surfaceC0 = std::make_shared<SurfaceC0>(scene.cursor->transform.location, surfaceCount[0], surfaceCount[1], sizeX, sizeY, cylinder);
+	surfaceC2 = std::make_shared<SurfaceC2>(scene.cursor->transform.location, surfaceCount[0], surfaceCount[1], sizeX, sizeY, cylinder);
+
 }
 
 bool SurfaceCreator::RenderGui()
 {
 	ImGui::Begin("Surface creator");
+	ImGui::Checkbox("C0", &c0);
 	if (ImGui::Checkbox("Cylindric", &cylinder))
 	{
 		if(cylinder && surfaceCount[0]<3)
@@ -93,7 +116,10 @@ std::vector<std::shared_ptr<ISceneElement>> SurfaceCreator::GetRemovedObjects()
 
 void SurfaceCreator::Render(bool selected, VariableManager& vm)
 {
-	surface->Render(selected, vm);
+	if(c0)
+		surfaceC0->Render(selected, vm);
+	else
+		surfaceC2->Render(selected, vm);
 }
 
 std::string SurfaceCreator::getName() const

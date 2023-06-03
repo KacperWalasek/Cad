@@ -1,6 +1,29 @@
 #include "Transform.h"
 #include <math.h>
 
+Transform::Transform(nlohmann::json json)
+	: location(
+		json["position"]["x"],
+		json["position"]["y"],
+		json["position"]["z"],
+		0.0f
+	),
+	rotation(
+		json["rotation"]["x"],
+		json["rotation"]["y"],
+		json["rotation"]["z"],
+		0.0f
+	), 
+	scale(
+		json["scale"]["x"],
+		json["scale"]["y"],
+		json["scale"]["z"],
+		0.0f
+	), 
+	reversedOrder(false)
+{
+}
+
 glm::fmat4x4 Transform::GetMatrix() const
 {
 	if(reversedOrder)
@@ -115,4 +138,25 @@ bool Transform::RenderGui()
 		moved = true;
 	}
 	return moved;
+}
+
+nlohmann::json Transform::Serialize() const
+{
+	return nlohmann::json({
+		{"position", {
+			{"x", location.x},
+			{"y", location.y},
+			{"z", location.z}
+		}},
+		{"rotation", {
+			{"x", rotation.x},
+			{"y", rotation.y},
+			{"z", rotation.z}
+		}},
+		{"scale", {
+			{"x", scale.x},
+			{"y", scale.y},
+			{"z", scale.z}
+		}}
+	});
 }

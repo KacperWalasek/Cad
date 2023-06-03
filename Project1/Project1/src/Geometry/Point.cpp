@@ -2,8 +2,12 @@
 #include "imgui/imgui_stdlib.h"
 
 Indexer Point::indexer;
-Point::Point(std::string name)
-	:zero(), zero2(0), name(name)
+int Point::getId() const
+{
+	return id;
+}
+Point::Point()
+	: id(indexer.getNewIndex()), name("Point-" + std::to_string(id)), zero(), zero2(0)
 {
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -22,22 +26,20 @@ Point::Point(std::string name)
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-}
-Point::Point()
-	:Point("Point-" + std::to_string(indexer.getNewIndex()))
-{	
 
+}
+
+Point::Point(nlohmann::json json)
+	:Point()
+{
+	transform.location.x = json["position"]["x"];
+	transform.location.y = json["position"]["y"];
+	transform.location.z = json["position"]["z"];
 }
 
 
 Point::Point(glm::fvec4 position)
 	:Point()
-{
-	transform.location = position;
-}
-
-Point::Point(glm::fvec4 position, std::string name)
-	: Point(name)
 {
 	transform.location = position;
 }
@@ -100,4 +102,21 @@ bool Point::canBeDeleted() const
 	if (po.lock())
 		return po.lock()->CanBeDeleted(*this);
 	return true;
+}
+
+nlohmann::json Point::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	int jsonId = indexer.getNewIndex();
+	pointIndexMap.insert({id,jsonId});
+
+	nlohmann::json p = {
+		{"id", jsonId},
+		{ "position", {
+			{"x", transform.location.x},
+			{"y", transform.location.y},
+			{"z", transform.location.z}
+		}}
+	};
+
+	return p;
 }

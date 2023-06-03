@@ -8,6 +8,8 @@
 #include "FileLoader.h"
 #include "nlohmann/json.hpp"
 #include "json_validator/src/nlohmann/json-schema.hpp"
+#include "tinyfiledialogs/tinyfiledialogs.h"
+#include "../Geometry/Surfaces/SurfaceC0.h"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
@@ -81,18 +83,80 @@ bool MainMenu::RenderGui()
         }
         if (ImGui::MenuItem("Load",""))
         {
-            json ex1 = json::parse(R"(
-              {
-                "pi": 3.141,
-                "happy": true
-              }
-            )");
-
             std::string filename = FileLoader::selectFile();
             if (!filename.empty())
             {
+                nlohmann::json json = FileLoader::load(filename);
+
+                std::map<int, std::shared_ptr<Point>> pointIndexMap;
+
+                for (nlohmann::json pJson : json["points"])
+                {
+                    auto p = std::make_shared<Point>(pJson);
+                    pointIndexMap.insert({ pJson["id"],p});
+                    scene.Add(p, false);
+                }
+                for (nlohmann::json gJson : json["geometry"])
+                {
+                    std::string type = gJson["objectType"];
+                    if (type == "torus")
+                        scene.Add(std::make_shared<Torus>(gJson), false);
+                    if (type == "bezierC0")
+                        scene.Add(std::make_shared<CurveC0>(gJson, pointIndexMap), false);
+                    if (type == "bezierC2")
+                        scene.Add(std::make_shared<CurveC2>(gJson, pointIndexMap), false);
+                    if (type == "interpolatedC2")
+                        scene.Add(std::make_shared<InterpolationCurve>(gJson, pointIndexMap), false);
+                    if (type == "bezierSurfaceC0")
+                        scene.Add(std::make_shared<SurfaceC0>(gJson,pointIndexMap));
+                    if (type == "bezierSurfaceC2")
+                        scene.Add(std::make_shared<SurfaceC2>(gJson, pointIndexMap));
+                }
+
 
             }
+        }
+        if (ImGui::MenuItem("Save", ""))
+        {
+            Indexer indexer;
+            std::vector<json> points;
+            std::vector<json> geometry;
+            std::map<int, int> pointIndexMap;
+
+            for (auto& el : scene.objects)
+            {
+                auto point = std::dynamic_pointer_cast<Point>(el.first);
+                if (!point)
+                    continue;
+                points.push_back(point->Serialize(scene, indexer, pointIndexMap));
+            }
+
+            for (auto& el : scene.objects)
+            {
+                auto point = std::dynamic_pointer_cast<Point>(el.first);
+                auto serializable = std::dynamic_pointer_cast<ISerializable>(el.first);
+                if (!serializable || point)
+                    continue;
+                json geoJson = serializable->Serialize(scene, indexer, pointIndexMap);
+                if (geoJson.is_array())
+                    for (auto& j : geoJson)
+                        geometry.push_back(j);
+                else
+                    geometry.push_back(geoJson);
+
+                
+            }
+
+
+            json sceneJson = {
+                {"points", points},
+                {"geometry", geometry}
+            };
+            std::cout << sceneJson.dump(4) << std::endl;
+            
+            std::string saveDest = FileLoader::selectSaveDest();
+            if (!saveDest.empty())
+                FileLoader::save(saveDest, sceneJson);
         }
         
         ImGui::EndMainMenuBar();

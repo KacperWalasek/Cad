@@ -3,7 +3,9 @@
 #include "../../interfaces/ISceneModifier.h"
 #include "../../Scene/Scene.h"
 #include "../../Indexer.h"
+#include "SurfaceC0.h"
 #include "SurfaceC2.h"
+
 
 class SurfaceCreator : public IGui, public ISceneElement, public ISceneModifier, public IRenderable
 {
@@ -16,9 +18,11 @@ class SurfaceCreator : public IGui, public ISceneElement, public ISceneModifier,
 
 	float sizeX, sizeY;
 
-	std::shared_ptr<SurfaceC2> surface;
+	std::shared_ptr<SurfaceC0> surfaceC0;
+	std::shared_ptr<SurfaceC2> surfaceC2;
 	std::shared_ptr<ISceneElement> toRemove;
 	std::vector<std::shared_ptr<ISceneElement>> toAdd;
+	bool c0;
 	
 	void updateSurface();
 	void apply();

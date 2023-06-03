@@ -5,15 +5,29 @@
 
 Indexer CurveC0::indexer;
 
-CurveC0::CurveC0(std::vector<std::shared_ptr<Point>> points)
-	: points(points), name("CurveC0-" + std::to_string(indexer.getNewIndex())), addSelected(false),
-	removeSelected(false), showChain(false),
+CurveC0::CurveC0()
+	: addSelected(false), removeSelected(false), showChain(false),
 	shader("Shaders/test.vert", "Shaders/fragmentShader.frag")
 {
 	shader.Init();
 	shader.loadShaderFile("Shaders/test.tesc", GL_TESS_CONTROL_SHADER);
 	shader.loadShaderFile("Shaders/test.tese", GL_TESS_EVALUATION_SHADER);
+	
+}
+CurveC0::CurveC0(std::vector<std::shared_ptr<Point>> points)
+	: CurveC0()
+{
+	this->points = points;
+	this->name = "CurveC0-" + std::to_string(indexer.getNewIndex());
+	UpdateMeshes();
+}
 
+CurveC0::CurveC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
+	: CurveC0()
+{
+	for (int pi : json["controlPoints"])
+		points.push_back(pointMap[pi]);
+	name = json["name"];
 	UpdateMeshes();
 }
 
@@ -142,4 +156,18 @@ void CurveC0::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
 	if (std::find(points.begin(), points.end(), elem) != points.end())
 		UpdateMeshes();
+}
+
+nlohmann::json CurveC0::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	std::vector<int> pointIds;
+	for (auto& p : points)
+		pointIds.push_back(pointIndexMap.find(p->getId())->second);
+
+	return {
+		{"objectType", "bezierC0"},
+		{"id", indexer.getNewIndex()},
+		{"name", name},
+		{"controlPoints", pointIds }
+	};
 }

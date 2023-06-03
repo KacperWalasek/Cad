@@ -5,8 +5,8 @@
 
 Indexer CurveC2::indexer;
 
-CurveC2::CurveC2(std::vector<std::shared_ptr<Point>> points)
-	: points(points), name("CurveC2-" + std::to_string(indexer.getNewIndex())) , addSelected(false),
+CurveC2::CurveC2()
+	:addSelected(false),
 	removeSelected(false),
 	shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"),
 	deBoorShader("Shaders/DeBoor/deboor.vert", "Shaders/fragmentShader.frag"),
@@ -24,8 +24,23 @@ CurveC2::CurveC2(std::vector<std::shared_ptr<Point>> points)
 	glGenBuffers(1, &curveEBO);
 	glGenVertexArrays(1, &chainVAO);
 	glGenVertexArrays(1, &curveVAO);
-	UpdateMeshes();
+}
 
+CurveC2::CurveC2(std::vector<std::shared_ptr<Point>> points)
+	: CurveC2()
+{
+	this->points = points;
+	name = "CurveC2-" + std::to_string(indexer.getNewIndex());
+	UpdateMeshes();
+}
+
+CurveC2::CurveC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
+	: CurveC2()
+{
+	for (int pi : json["deBoorPoints"])
+		points.push_back(pointMap[pi]);
+	name = json["name"];
+	UpdateMeshes();
 }
 
 void CurveC2::UpdateMeshes()
@@ -112,11 +127,11 @@ void CurveC2::UpdateBeziers()
 		glm::fvec4 b0 = (bl + b1) / 2.0f;
 		glm::fvec4 b3 = (br + b2) / 2.0f;
 
-		bezierPoints.emplace_back(b0,"");
-		bezierPoints.emplace_back(b1, "");
-		bezierPoints.emplace_back(b2, "");
+		bezierPoints.emplace_back(b0);
+		bezierPoints.emplace_back(b1);
+		bezierPoints.emplace_back(b2);
 		if (i == points.size() - 3)
-			bezierPoints.emplace_back(b3, "");
+			bezierPoints.emplace_back(b3);
 
 	}
 	for (int i = 0; i < bezierPoints.size(); i++)
@@ -380,4 +395,18 @@ void CurveC2::StartMove()
 void CurveC2::Unclick()
 {
 	selectedBezier = -1;
+}
+
+nlohmann::json CurveC2::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	std::vector<int> pointIds;
+	for (auto& p : points)
+		pointIds.push_back(pointIndexMap.find(p->getId())->second);
+
+	return {
+		{"objectType", "bezierC2"},
+		{"id", indexer.getNewIndex()},
+		{"name", name},
+		{"deBoorPoints", pointIds }
+	};
 }

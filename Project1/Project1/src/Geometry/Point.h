@@ -1,5 +1,6 @@
 #pragma once
 #include "../interfaces/ISceneElement.h"
+#include "../interfaces/ISerializable.h"
 #include "../interfaces/IRenderable.h"
 #include "../interfaces/ITransformable.h"
 #include "../interfaces/IGui.h"
@@ -11,10 +12,12 @@
 #include "../Indexer.h"
 #include <GL/glew.h>
 
-class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui, public IClickable, public ISelfControl
+class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui, 
+			  public IClickable, public ISelfControl, public ISerializable
 {
 	static Indexer indexer;
 
+	int id;
 	unsigned int VAO, VBO, EBO;
 	glm::fvec3 zero;
 	int zero2; 
@@ -23,12 +26,12 @@ class Point : public ISceneElement, public ITransformable, public IRenderable, p
 	std::string name;
 
 public:
+	int getId() const;
 	std::weak_ptr<IPointOwner> po;
 
-	Point(std::string name);
 	Point();
+	Point(nlohmann::json json);
 	Point(glm::fvec4 position);
-	Point(glm::fvec4 position, std::string name);
 	virtual std::string getName() const override;
 	virtual Transform& getTransform() override;
 	const Transform& getTransform() const;
@@ -42,4 +45,7 @@ public:
 	virtual void Unclick() override;
 
 	virtual bool canBeDeleted() const override;
+
+	// Inherited via ISerializable
+	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
 };

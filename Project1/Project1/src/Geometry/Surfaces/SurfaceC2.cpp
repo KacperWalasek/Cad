@@ -46,62 +46,90 @@ void SurfaceC2::updateMeshes()
 
 void SurfaceC2::CreatePointsFlat()
 {
-	float distX = sizeX / (countX + 1);
-	float distY = sizeY / (countY + 1);
+	float distX = sizeX / (float)countX;
+	float distY = sizeY / (float)countY;
+	glm::fvec4 middle(sizeX / 2.0f + distX, 0, sizeY / 2.0f + distY,0);
 	for (int i = 0; i < countY + 3; i++)
 		for (int j = 0; j < countX + 3; j++)
-			positions.push_back(pos + glm::fvec4(i * distX, 0.0f, j * distY, 0.0f));
+			positions.push_back(pos - middle + glm::fvec4(j * distX, 0.0f, i * distY, 0.0f));
 }
 
 void SurfaceC2::CreatePointsCylinder()
 {
 	float distY = sizeY / (countY * 1);
+	glm::fvec4 middle(0, 0, sizeY / 2.0f + distY, 0);
+
+	float da = 2 * 3.14 / countX;
+	float R = sizeX * (3-cosf(da)) / 2.0f;
+
 	for(int h = 0; h < countY + 3; h++)
 		for (int a = 0; a < countX; a++)
 		{
 			float angle1 = 2 * 3.14 * a / countX;
-			positions.push_back(pos + glm::fvec4( sizeX * cosf(angle1) , sizeX * sinf(angle1) , h * distY, 0.0f ));
+			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
 
 		}
-
-	//float distY = sizeY / (countY * 3);
-	//for (int h = 0; h < 1 + countY * 3; h++)
-	//	for (int a = 0; a < countX; a++)
-	//	{
-	//		float angle1 = 2 * 3.14 * a / countX;
-	//		float angle2 = 2 * 3.14 * (a + 1) / countX;
-
-	//		glm::fvec4 l1 = { sizeX * cosf(angle1) , sizeX * sinf(angle1) , h * distY, 0.0f };
-	//		glm::fvec4 l2 = { sizeX * cosf(angle2) , sizeX * sinf(angle2) , h * distY, 0.0f };
-
-	//		glm::fvec4 s1 = glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f);
-	//		glm::fvec4 s2 = glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f);
-
-	//		float cosA = glm::dot(glm::normalize(s1), glm::normalize(l2 - l1));
-	//		float mult = glm::length(l1 - l2) / 4.0f / cosA;
-
-	//		positions.push_back(pos + l1);
-	//		positions.push_back(pos + l1 + mult * glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f));
-	//		positions.push_back(pos + l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f));
-
-	//	}
 }
 
 SurfaceC2::SurfaceC2(glm::fvec4 pos, int countX, int countY, float sizeX, float sizeY, bool cylinder)
-	: name("SurfaceC0-" + std::to_string(indexer.getNewIndex())),
-	countX(countX),
-	countY(countY),
-	sizeX(sizeX),
-	sizeY(sizeY),
-	cylinder(cylinder),
-	pos(pos),
-	tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
+	: SurfaceC2()
+{
+	name = "SurfaceC2-" + std::to_string(indexer.getNewIndex());
+	division[0] = 4;
+	division[1] = 4;
+	this->countX = countX;
+	this->countY = countY;
+	this->sizeX = sizeX;
+	this->sizeY = sizeY;
+	this->cylinder = cylinder;
+	this->pos = pos;
+
+	Recalculate();
+}
+
+SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
+	: SurfaceC2()
+{
+	name = json["name"];
+	countX = json["size"]["x"];
+	countY = json["size"]["y"];
+	cylinder = json["parameterWrapped"]["u"];
+
+	std::vector<nlohmann::json> patches = json["patches"];
+	points = std::vector<std::shared_ptr<Point>>((cylinder ? countX : 3 + countX) * (3 + countY));
+	
+	division[0] = patches[0]["samples"]["x"];
+	division[1] = patches[0]["samples"]["y"];
+
+	float rowSize = cylinder ? countX : 3 + countX;
+	for (int i = 0; i < countY; i++)
+		for (int j = 0; j < countX-3; j++)
+		{
+			std::vector<int> patch = patches[i * countX + j]["controlPoints"];
+			if (i == 0 && j == 0)
+			{
+				for (int x = 0; x < 3; x++)
+					for (int y = 0; y < 3; y++)
+						points[x * rowSize + y] = pointMap[patch[y * 4 + x]];
+			}
+			if (j == 0)
+				for(int x = 0; x<3; x++)
+					points[(3 + i)* rowSize + x] = pointMap[patch[3 + x * 4]];
+			if (i == 0)
+				for (int y = 0; y < 3; y++)
+					points[y * rowSize + (3 + j)] = pointMap[patch[12 + y]];
+
+			points[(3 + i) * rowSize + (3 + j)] = pointMap[patch[15]];
+		}
+
+	updateMeshes();
+}
+SurfaceC2::SurfaceC2()
+	: tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
 	chainShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
 	shouldReload(false),
 	showChain(false)
 {
-	division[0] = 4;
-	division[1] = 4;
 
 	tessShader.Init();
 	tessShader.loadShaderFile("Shaders/Surface/surfaceC0.tesc", GL_TESS_CONTROL_SHADER);
@@ -114,7 +142,6 @@ SurfaceC2::SurfaceC2(glm::fvec4 pos, int countX, int countY, float sizeX, float 
 	glGenBuffers(1, &EBO);
 	glGenVertexArrays(1, &VAO);
 
-	Recalculate();
 }
 
 std::string SurfaceC2::getName() const
@@ -187,7 +214,7 @@ bool SurfaceC2::CanBeDeleted(const Point& p) const
 
 bool SurfaceC2::RenderGui()
 {
-	ImGui::Begin("Surface C0");
+	ImGui::Begin("Surface C2");
 	if (ImGui::InputInt2("Division", division))
 	{
 		division[0] = glm::clamp(division[0], 2, 1000);
@@ -230,4 +257,55 @@ void SurfaceC2::CreateControlPoints()
 		points.push_back(std::make_shared<Point>(p));
 	}
 	positions.clear();
+}
+
+nlohmann::json SurfaceC2::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
+{
+	std::vector<nlohmann::json> patches;
+
+	for (int i = 0; i < countY; i++)
+		for (int j = 0; j < countX; j++)
+		{
+			std::vector<int> patchPoints;
+			int rowSize = cylinder ? countX : countX + 3;
+			int offset = i * rowSize + j;
+
+			for (int x = 0; x < 4; x++)
+				for (int y = 0; y < 4; y++)
+				{
+					if (cylinder && j + x >= countX)
+						patchPoints.push_back(pointIndexMap.find(points[offset + y * rowSize + x - countX]->getId())->second);
+					else
+						patchPoints.push_back(pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second);
+				}
+			
+			patches.push_back({
+				{"objectType","bezierPatchC2"},
+				{"id", indexer.getNewIndex()},
+				{"controlPoints", patchPoints},
+				{"samples",
+					{
+						{"x", division[0]},
+						{"y", division[1]}
+					}
+				}
+				});
+		}
+
+	return {
+			{"objectType", "bezierSurfaceC2"},
+			{"id", indexer.getNewIndex()},
+			{"name", name},
+			{"patches", patches},
+			{"parameterWrapped",{
+				{"u", cylinder},
+				{"v", false}
+			}},
+			{"size",
+				{
+					{"x", countX},
+					{"y", countY}
+				}
+			}
+	};
 }

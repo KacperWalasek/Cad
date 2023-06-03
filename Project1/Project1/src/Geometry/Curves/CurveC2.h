@@ -4,12 +4,14 @@
 #include "../../interfaces/IRenderable.h"
 #include "../../interfaces/ICustomMove.h"
 #include "../../interfaces/ISceneElement.h"
+#include "../../interfaces/ISerializable.h"
 #include "../Point.h"
 #include "BezierCurve.h"
 #include "../../Rendering/Camera.h"
 #include <tuple>
 #include "../../Indexer.h"
-class CurveC2 : public ISceneElement, public IRenderable, public IGui, public ISceneTracker, public IClickable, public ICustomMove
+class CurveC2 : public ISceneElement, public IRenderable, public IGui,
+	public ISceneTracker, public IClickable, public ICustomMove, public ISerializable
 {
 	static Indexer indexer;
 
@@ -29,8 +31,10 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui, public IS
 	Mesh bezierChainMesh;
 
 	Shader shader, deBoorShader;
+	CurveC2();
 public:
 	CurveC2(std::vector<std::shared_ptr<Point>> points);
+	CurveC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap);
 
 	void UpdateMeshes();
 	void UpdateBeziers();
@@ -74,5 +78,9 @@ public:
 
 	// Inherited via IClickable
 	virtual void Unclick() override;
+
+
+	// Inherited via ISerializable
+	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
 
 };
