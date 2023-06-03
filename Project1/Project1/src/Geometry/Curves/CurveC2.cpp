@@ -410,3 +410,12 @@ nlohmann::json CurveC2::Serialize(Scene& scene, Indexer& indexer, std::map<int, 
 		{"deBoorPoints", pointIds }
 	};
 }
+
+void CurveC2::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result)
+{
+	for (int i = 0; i < points.size(); i++)
+		for (auto& c : collapsed)
+			if (points[i] == c)
+				points[i] = result;
+	UpdateMeshes();
+}

@@ -171,3 +171,12 @@ nlohmann::json CurveC0::Serialize(Scene& scene, Indexer& indexer, std::map<int, 
 		{"controlPoints", pointIds }
 	};
 }
+
+void CurveC0::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result)
+{
+	for (int i = 0; i < points.size(); i++)
+		for (auto& c : collapsed)
+			if (points[i] == c)
+				points[i] = result;
+	UpdateMeshes();
+}

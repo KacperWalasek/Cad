@@ -2,6 +2,7 @@
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
 #include "EventHandlers/ObjectFactory.h"
+#include "EventHandlers/Collapse.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -32,7 +33,8 @@ CadApp::CadApp()
 	selectedMovement = std::make_shared<SelectedMovement>(*scene, *camera);
 	window.keyCallbacks = {
 		selectedMovement,
-		std::make_shared<ObjectFactory>(*scene)
+		std::make_shared<ObjectFactory>(*scene),
+		std::make_shared<Collapse>(*scene)
 	};
 }
 

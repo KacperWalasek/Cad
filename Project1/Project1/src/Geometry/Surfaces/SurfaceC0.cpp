@@ -334,3 +334,12 @@ nlohmann::json SurfaceC0::Serialize(Scene& scene, Indexer& indexer, std::map<int
 			}
 		};
 }
+
+void SurfaceC0::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result)
+{
+	for (int i = 0; i < points.size(); i++)
+		for (auto& c : collapsed)
+			if (points[i].get() == c.get())
+				points[i] = result;
+	updateMeshes();
+}

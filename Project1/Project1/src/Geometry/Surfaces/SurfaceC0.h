@@ -66,4 +66,7 @@ public:
 
 	// Inherited via ISerializable
 	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
+
+	// Inherited via ISceneTracker
+	virtual void onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result) override;
 };
