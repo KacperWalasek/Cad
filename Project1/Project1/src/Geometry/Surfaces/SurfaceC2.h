@@ -8,7 +8,7 @@
 #include <vector>
 #include <memory>
 
-class SurfaceC2 : public ISceneElement, public IRenderable, public ISceneTracker, public IPointOwner, public IGui, public ISerializable
+class SurfaceC2 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, public ISerializable
 {
 	static Indexer indexer;
 
@@ -50,7 +50,7 @@ public:
 	virtual void onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
-	virtual bool CanBeDeleted(const Point& p) const override;
+	virtual bool CanChildBeDeleted() const override;
 
 	// Inherited via IGui
 	virtual bool RenderGui() override;

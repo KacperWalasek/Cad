@@ -30,8 +30,12 @@ Torus::Torus()
 Torus::Torus(nlohmann::json json)
 	:geometry(json["largeRadius"], json["smallRadius"]), 
 	majorDencity(json["samples"]["x"]), minorDencity(json["samples"]["y"]),
-	name(json["name"]), transform(json)
+	transform(json)
 {
+	if (json.contains("name"))
+		name = json["name"];
+	else
+		name = "Torus-" + std::to_string(indexer.getNewIndex());
 	UpdateMesh();
 }
 

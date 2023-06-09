@@ -11,8 +11,9 @@
 #include "../Rendering/Camera.h"
 #include "../Indexer.h"
 #include <GL/glew.h>
+#include <list>
 
-class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui, 
+class Point : public ISceneElement, public ITransformable, public IRenderable, public IGui,
 			  public IClickable, public ISelfControl, public ISerializable
 {
 	static Indexer indexer;
@@ -27,7 +28,7 @@ class Point : public ISceneElement, public ITransformable, public IRenderable, p
 
 public:
 	int getId() const;
-	std::weak_ptr<IPointOwner> po;
+	std::list<std::weak_ptr<IOwner>> po;
 
 	Point();
 	Point(nlohmann::json json);

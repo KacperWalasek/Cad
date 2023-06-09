@@ -17,9 +17,12 @@ InterpolationCurve::InterpolationCurve(std::vector<std::shared_ptr<Point>> point
 InterpolationCurve::InterpolationCurve(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
 	:InterpolationCurve()
 {
-	for (int pi : json["controlPoints"])
-		points.push_back(pointMap[pi]);
-	name = json["name"];
+	for (auto pi : json["controlPoints"])
+		points.push_back(pointMap[pi["id"]]);
+	if (json.contains("name"))
+		name = json["name"];
+	else
+		name = "InterpolationCurve-" + std::to_string(indexer.getNewIndex());
 
 	UpdateMeshes();
 }
@@ -210,9 +213,9 @@ void InterpolationCurve::onMove(Scene& scene, std::shared_ptr<ISceneElement> ele
 
 nlohmann::json InterpolationCurve::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
 {
-	std::vector<int> pointIds;
+	std::vector<nlohmann::json> pointIds;
 	for (auto& p : points)
-		pointIds.push_back(pointIndexMap.find(p->getId())->second);
+		pointIds.push_back({ { "id",pointIndexMap.find(p->getId())->second } });
 
 	return {
 		{"objectType", "interpolatedC2"},

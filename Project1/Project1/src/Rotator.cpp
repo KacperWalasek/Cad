@@ -29,3 +29,13 @@ glm::fvec4 Rotator::MatrixToEuler(glm::fmat4x4 r)
 	float z = atan2f(r[0][1]/cosf(y), r[0][0]/cosf(y));
 	return { x,y,z,0.0f };
 }
+
+float Rotator::DegToRad(float deg)
+{
+	return M_PI * deg/180.0f;
+}
+
+float Rotator::RadToDeg(float rad)
+{
+	return 180.0f * rad/M_PI;
+}

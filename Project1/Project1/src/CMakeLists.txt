@@ -68,7 +68,12 @@ set(PROJECT_SOURCES
 	"Rendering/Anaglyph/AnaglyphRenderer.h" 
 	"Rendering/Anaglyph/AnaglyphRenderer.cpp" 
 	"Rendering/Anaglyph/AnaglyphCamera.h" 
-	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" "Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  "interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h" "Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp" "interfaces/ISerializable.h" "EventHandlers/Collapse.h" "EventHandlers/Collapse.cpp")
+	"Rendering/Anaglyph/AnaglyphCamera.cpp" "Geometry/Surfaces/SurfaceC0.h" "Geometry/Surfaces/SurfaceC0.cpp" 
+	"Geometry/Surfaces/SurfaceCreator.h" "Geometry/Surfaces/SurfaceCreator.cpp" "interfaces/ISceneModifier.h"  
+	"interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h"
+	"Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp" "interfaces/ISerializable.h"
+	"EventHandlers/Collapse.h" "EventHandlers/Collapse.cpp" "Geometry/Surfaces/GregoryPatch.h" 
+	"Geometry/Surfaces/GregoryPatch.cpp"  )
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -87,6 +92,8 @@ set(SHADER_FILES
 	"Shaders/Surface/surfaceC2.tese"
 	"Shaders/Surface/surfaceChain.tesc"
 	"Shaders/Surface/surfaceChain.tese"
+	"Shaders/Surface/gregory.tesc"
+	"Shaders/Surface/gregory.tese"
 )
 add_executable(CAD ${PROJECT_SOURCES})
 

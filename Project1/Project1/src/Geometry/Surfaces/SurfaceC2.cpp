@@ -20,8 +20,8 @@ void SurfaceC2::updateMeshes()
 		{
 			int rowSize = cylinder ? countX : countX + 3;
 			int offset = i * rowSize + j;
-			for(int x = 0; x < 4; x++)
-				for (int y = 0; y < 4; y++)
+			for (int y = 0; y < 4; y++)
+				for(int x = 0; x < 4; x++)
 				{
 					if(cylinder && j+x>=countX)
 						inds.push_back(offset + y * rowSize + x - countX);
@@ -90,10 +90,13 @@ SurfaceC2::SurfaceC2(glm::fvec4 pos, int countX, int countY, float sizeX, float 
 SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
 	: SurfaceC2()
 {
-	name = json["name"];
+	if (json.contains("name"))
+		name = json["name"];
+	else
+		name = "SurfaceC2-" + std::to_string(indexer.getNewIndex());
 	countX = json["size"]["x"];
 	countY = json["size"]["y"];
-	cylinder = json["parameterWrapped"]["u"];
+	cylinder = false; // json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
 	points = std::vector<std::shared_ptr<Point>>((cylinder ? countX : 3 + countX) * (3 + countY));
@@ -103,23 +106,23 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 
 	float rowSize = cylinder ? countX : 3 + countX;
 	for (int i = 0; i < countY; i++)
-		for (int j = 0; j < countX-3; j++)
+		for (int j = 0; j < countX; j++)
 		{
-			std::vector<int> patch = patches[i * countX + j]["controlPoints"];
+			auto patch = patches[i * countX + j]["controlPoints"];
 			if (i == 0 && j == 0)
 			{
-				for (int x = 0; x < 3; x++)
-					for (int y = 0; y < 3; y++)
-						points[x * rowSize + y] = pointMap[patch[y * 4 + x]];
+				for (int y = 0; y < 3; y++)
+					for (int x = 0; x < 3; x++)
+						points[y * rowSize + x] = pointMap[patch[y * 4 + x]["id"]];
 			}
 			if (j == 0)
-				for(int x = 0; x<3; x++)
-					points[(3 + i)* rowSize + x] = pointMap[patch[3 + x * 4]];
+				for (int x = 0; x < 3; x++)
+					points[(3 + i) * rowSize + x] = pointMap[patch[12 + x]["id"]];
 			if (i == 0)
 				for (int y = 0; y < 3; y++)
-					points[y * rowSize + (3 + j)] = pointMap[patch[12 + y]];
+					points[y * rowSize + (3 + j)] = pointMap[patch[3 + y * 4]["id"]];
 
-			points[(3 + i) * rowSize + (3 + j)] = pointMap[patch[15]];
+			points[(3 + i) * rowSize + (3 + j)] = pointMap[patch[15]["id"]];
 		}
 
 	updateMeshes();
@@ -194,7 +197,11 @@ void SurfaceC2::onRemove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
 	if (elem.get() == this)
 		for (auto& p : points)
-			p->po.reset();
+		{
+			std::erase_if(p->po, [this](const std::weak_ptr<IOwner>& o) {
+				return o.lock().get() == this;
+				});
+		}
 }
 
 void SurfaceC2::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
@@ -207,7 +214,7 @@ void SurfaceC2::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 		shouldReload = true;
 }
 
-bool SurfaceC2::CanBeDeleted(const Point& p) const
+bool SurfaceC2::CanChildBeDeleted() const
 {
 	return false;
 }
@@ -219,7 +226,7 @@ bool SurfaceC2::RenderGui()
 	{
 		division[0] = glm::clamp(division[0], 2, 1000);
 		division[1] = glm::clamp(division[1], 2, 1000);
-		updateMeshes();
+		shouldReload = true;
 	}
 	ImGui::Checkbox("Show Chain", &showChain);
 	ImGui::End();
@@ -266,17 +273,17 @@ nlohmann::json SurfaceC2::Serialize(Scene& scene, Indexer& indexer, std::map<int
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
-			std::vector<int> patchPoints;
+			std::vector<nlohmann::json>  patchPoints;
 			int rowSize = cylinder ? countX : countX + 3;
 			int offset = i * rowSize + j;
 
-			for (int x = 0; x < 4; x++)
-				for (int y = 0; y < 4; y++)
+			for (int y = 0; y < 4; y++)
+				for (int x = 0; x < 4; x++)
 				{
 					if (cylinder && j + x >= countX)
-						patchPoints.push_back(pointIndexMap.find(points[offset + y * rowSize + x - countX]->getId())->second);
+						patchPoints.push_back({ {"id", pointIndexMap.find(points[offset + y * rowSize + x - countX]->getId())->second } });
 					else
-						patchPoints.push_back(pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second);
+						patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
 				}
 			
 			patches.push_back({
@@ -315,6 +322,8 @@ void SurfaceC2::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& co
 	for (int i = 0; i < points.size(); i++)
 		for (auto& c : collapsed)
 			if (points[i] == c)
+			{
 				points[i] = result;
-	updateMeshes();
+				shouldReload = true;
+			}
 }

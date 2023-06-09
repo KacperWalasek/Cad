@@ -1,6 +1,6 @@
 #include "Transform.h"
 #include <math.h>
-
+#include "../Rotator.h"
 Transform::Transform(nlohmann::json json)
 	: location(
 		json["position"]["x"],
@@ -9,9 +9,9 @@ Transform::Transform(nlohmann::json json)
 		0.0f
 	),
 	rotation(
-		json["rotation"]["x"],
-		json["rotation"]["y"],
-		json["rotation"]["z"],
+		Rotator::DegToRad(json["rotation"]["x"]),
+		Rotator::DegToRad(json["rotation"]["y"]),
+		Rotator::DegToRad(json["rotation"]["z"]),
 		0.0f
 	), 
 	scale(
@@ -149,9 +149,9 @@ nlohmann::json Transform::Serialize() const
 			{"z", location.z}
 		}},
 		{"rotation", {
-			{"x", rotation.x},
-			{"y", rotation.y},
-			{"z", rotation.z}
+			{"x", Rotator::RadToDeg(rotation.x)},
+			{"y", Rotator::RadToDeg(rotation.y)},
+			{"z", Rotator::RadToDeg(rotation.z)}
 		}},
 		{"scale", {
 			{"x", scale.x},

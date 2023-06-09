@@ -123,10 +123,14 @@ SurfaceC0::SurfaceC0(glm::fvec4 pos, int countX, int countY, float sizeX, float 
 SurfaceC0::SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
 	: SurfaceC0()
 {
-	name = json["name"];
+	if(json.contains("name"))
+		name = json["name"];
+	else
+		name = "SurfaceC0-" + std::to_string(indexer.getNewIndex());
+
 	countX = json["size"]["x"];
 	countY = json["size"]["y"];
-	cylinder = json["parameterWrapped"]["u"];
+	cylinder = false;// json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
 	points = std::vector<std::shared_ptr<Point>>((cylinder ? countX * 3 : 1 + 3 * countX) * (1 + 3 * countY));
@@ -134,16 +138,16 @@ SurfaceC0::SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
-			std::vector<int> path = patches[i * countX + j]["controlPoints"];
+			auto path = patches[i * countX + j]["controlPoints"];
 			int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
 			int offset = 3 * i * rowSize + 3 * j;
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
 					if (3 * j + x == rowSize && cylinder)
-						points[3 * i * rowSize + y * rowSize] = pointMap[path[y * 4+x]];
+						points[3 * i * rowSize + y * rowSize] = pointMap[path[y * 4+x]["id"]];
 					else
-						points[offset + y * rowSize + x] = pointMap[path[y * 4 + x]];
+						points[offset + y * rowSize + x] = pointMap[path[y * 4 + x]["id"]];
 
 				}
 		}
@@ -220,7 +224,11 @@ void SurfaceC0::onRemove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
 	if (elem.get() == this)
 		for (auto& p : points)
-			p->po.reset();
+		{
+			std::erase_if(p->po, [this](const std::weak_ptr<IOwner>& o) {
+				return o.lock().get() == this;
+				});
+		}
 }
 
 void SurfaceC0::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
@@ -233,7 +241,7 @@ void SurfaceC0::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 		shouldReload = true;
 }
 
-bool SurfaceC0::CanBeDeleted(const Point& p) const
+bool SurfaceC0::CanChildBeDeleted() const
 {
 	return false;
 }
@@ -245,7 +253,7 @@ bool SurfaceC0::RenderGui()
 	{
 		division[0] = glm::clamp(division[0], 2, 1000);
 		division[1] = glm::clamp(division[1], 2, 1000);
-		updateMeshes();
+		shouldReload = true;
 	}
 	ImGui::Checkbox("Show Chain", &showChain);
 	ImGui::End();
@@ -291,16 +299,16 @@ nlohmann::json SurfaceC0::Serialize(Scene& scene, Indexer& indexer, std::map<int
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
-			std::vector<int> patchPoints;
+			std::vector<nlohmann::json> patchPoints;
 			int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
 			int offset = 3 * i * rowSize + 3 * j;
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
 					if (3 * j + x == rowSize && cylinder)
-						patchPoints.push_back(pointIndexMap.find(points[3 * i * rowSize + y * rowSize]->getId())->second);
+						patchPoints.push_back({ {"id", pointIndexMap.find(points[3 * i * rowSize + y * rowSize]->getId())->second } });
 					else
-						patchPoints.push_back(pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second);
+						patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
 				}
 			patches.push_back({
 				{"objectType","bezierPatchC0"},
@@ -340,6 +348,16 @@ void SurfaceC0::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& co
 	for (int i = 0; i < points.size(); i++)
 		for (auto& c : collapsed)
 			if (points[i].get() == c.get())
+			{
 				points[i] = result;
-	updateMeshes();
+				shouldReload = true;
+			}
+}
+
+bool SurfaceC0::canBeDeleted() const
+{
+	for (auto& o : po)
+		if (!o.lock()->CanChildBeDeleted())
+			return false;
+	return true;
 }

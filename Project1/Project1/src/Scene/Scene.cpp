@@ -108,7 +108,7 @@ bool Scene::RenderGui()
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
-			auto po = std::dynamic_pointer_cast<IPointOwner>(objects[i].first);
+			auto po = std::dynamic_pointer_cast<IOwner>(objects[i].first);
 			if (po)
 			{
 				if (ImGui::Button("Select all points"))

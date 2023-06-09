@@ -99,8 +99,9 @@ void Point::Unclick()
 
 bool Point::canBeDeleted() const
 {
-	if (po.lock())
-		return po.lock()->CanBeDeleted(*this);
+	for (auto& o : po)
+		if (!o.lock()->CanChildBeDeleted())
+			return false;
 	return true;
 }
 

@@ -36,7 +36,7 @@ void SurfaceCreator::apply()
 		toAdd.push_back(surfaceC0);
 		for (auto& p : surfaceC0->points)
 		{
-			p->po = surfaceC0;
+			p->po.push_back(surfaceC0);
 			toAdd.push_back(p);
 		}
 	}
@@ -46,7 +46,7 @@ void SurfaceCreator::apply()
 		toAdd.push_back(surfaceC2);
 		for (auto& p : surfaceC2->points)
 		{
-			p->po = surfaceC2;
+			p->po.push_back(surfaceC2);
 			toAdd.push_back(p);
 		}
 	}

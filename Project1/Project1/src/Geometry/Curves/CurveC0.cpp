@@ -25,9 +25,12 @@ CurveC0::CurveC0(std::vector<std::shared_ptr<Point>> points)
 CurveC0::CurveC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap)
 	: CurveC0()
 {
-	for (int pi : json["controlPoints"])
-		points.push_back(pointMap[pi]);
-	name = json["name"];
+	for (auto pi : json["controlPoints"])
+		points.push_back(pointMap[pi["id"]]);
+	if(json.contains("name"))
+		name = json["name"];
+	else
+		name = "CurveC0-" + std::to_string(indexer.getNewIndex());
 	UpdateMeshes();
 }
 
@@ -160,9 +163,9 @@ void CurveC0::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 nlohmann::json CurveC0::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
 {
-	std::vector<int> pointIds;
+	std::vector<nlohmann::json> pointIds;
 	for (auto& p : points)
-		pointIds.push_back(pointIndexMap.find(p->getId())->second);
+		pointIds.push_back({ {"id", pointIndexMap.find(p->getId())->second } });
 
 	return {
 		{"objectType", "bezierC0"},

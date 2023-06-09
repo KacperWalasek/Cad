@@ -9,7 +9,7 @@
 #include <memory>
 
 
-class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IPointOwner, public IGui, public ISerializable
+class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, public ISerializable, public ISelfControl
 {
 	static Indexer indexer;
 
@@ -34,6 +34,7 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 	std::vector<glm::fvec4> positions;
 	SurfaceC0();
 public:
+	std::list<std::weak_ptr<IOwner>> po;
 	float sizeX, sizeY;
 	int countX, countY;
 	bool cylinder;
@@ -52,7 +53,7 @@ public:
 	virtual void onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 
-	virtual bool CanBeDeleted(const Point& p) const override;
+	virtual bool CanChildBeDeleted() const override;
 
 	// Inherited via IGui
 	virtual bool RenderGui() override;
@@ -69,4 +70,7 @@ public:
 
 	// Inherited via ISceneTracker
 	virtual void onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result) override;
+
+	// Inherited via ISelfControl
+	virtual bool canBeDeleted() const override;
 };
