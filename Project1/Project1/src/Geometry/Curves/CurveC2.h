@@ -13,6 +13,7 @@
 class CurveC2 : public ISceneElement, public IRenderable, public IGui,
 	public ISceneTracker, public IClickable, public ICustomMove, public ISerializable
 {
+
 	static Indexer indexer;
 
 	std::string name;
@@ -33,6 +34,9 @@ class CurveC2 : public ISceneElement, public IRenderable, public IGui,
 	Shader shader, deBoorShader;
 	CurveC2();
 public:
+	static glm::fvec3 deBoor(float t, std::array<glm::fvec3, 4> points);
+	static glm::fvec3 deBoor(float t, std::array<glm::fvec3, 3> points);
+
 	CurveC2(std::vector<std::shared_ptr<Point>> points);
 	CurveC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& pointMap);
 

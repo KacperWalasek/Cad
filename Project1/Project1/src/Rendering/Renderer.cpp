@@ -85,10 +85,14 @@ void Renderer::Init()
     variableManager.AddVariable("t0", 0.0f);
     variableManager.AddVariable("t1", 0.0f);
 
-    variableManager.AddVariable("reverse", false);
-
+    variableManager.AddVariable("reverse", false); 
+    variableManager.AddVariable("reverseIntersect", false);
+    
     variableManager.AddVariable("divisionU", 4);
     variableManager.AddVariable("divisionV", 4);
+
+    variableManager.AddVariable("interesectTex", 0);
+    variableManager.AddVariable("intersect", false);
 }
 
 void Renderer::BeginRender(Camera& camera)

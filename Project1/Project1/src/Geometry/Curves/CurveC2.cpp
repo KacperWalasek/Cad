@@ -5,6 +5,45 @@
 
 Indexer CurveC2::indexer;
 
+glm::fvec3 CurveC2::deBoor(float t, std::array<glm::fvec3, 4> points)
+{
+	std::array<glm::fvec3, 4> n{ glm::fvec3(0), glm::fvec3(0), glm::fvec3(0), glm::fvec3(1) };
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 2 - i; j < 4; j++)
+		{
+			int ind = j - 2;
+			int m = i + 1;
+			if (j != 2 - i)
+				n[j] *= (t - (ind - 1)) / (float)m;
+			if (j != 3)
+				n[j] = n[j] + n[j + 1] * (ind + m - t) / (float)m;
+		}
+
+	return n[0] * points[0] + n[1] * points[1] + n[2] * points[2] + n[3] * points[3];
+}
+
+glm::fvec3 CurveC2::deBoor(float t, std::array<glm::fvec3, 3> points)
+{
+	std::array<glm::fvec3, 3> n{ glm::fvec3(0), glm::fvec3(0), glm::fvec3(1) };
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 1 - i; j < 3; j++)
+		{
+			int ind = j - 1;
+			int m = i + 1;
+			if (j != 1 - i)
+				n[j] *= (t - (ind - 1)) / (float)m;
+			if (j != 2)
+				n[j] = n[j] + n[j + 1] * (ind + m - t) / (float)m;
+
+		}
+	}
+
+	return n[0] * points[0] + n[1] * points[1] + n[2] * points[2];
+}
+
 CurveC2::CurveC2()
 	:addSelected(false),
 	removeSelected(false),

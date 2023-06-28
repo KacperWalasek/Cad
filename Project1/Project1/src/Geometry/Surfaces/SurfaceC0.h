@@ -2,14 +2,16 @@
 #include "../../interfaces/ISceneElement.h"
 #include "../../interfaces/IPointOwner.h"
 #include "../../interfaces/ISerializable.h"
+#include "../../interfaces/IUVSurface.h"
 #include "../../Indexer.h"
 #include "../Point.h"
 #include "../../Rendering/Shader.h"
 #include <vector>
 #include <memory>
+#include "../Intersection.h"
 
 
-class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, public ISerializable, public ISelfControl
+class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, public ISerializable, public ISelfControl, public IUVSurface
 {
 	static Indexer indexer;
 
@@ -23,6 +25,8 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 	void CreatePointsCylinder();
 	void CreateSmiglo();
 	
+	int pointIndex(int sX, int sY, int pX, int pY) const;
+
 	int indicesSize;
 
 	glm::fvec4 pos;
@@ -30,6 +34,9 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 	bool showChain;
 
 	bool shouldReload;
+
+	std::vector<std::weak_ptr<Intersection>> intersections;
+	std::vector<unsigned int> intersectionTextures;
 
 	std::vector<glm::fvec4> positions;
 	SurfaceC0();
@@ -73,4 +80,17 @@ public:
 
 	// Inherited via ISelfControl
 	virtual bool canBeDeleted() const override;
+
+	// Inherited via IUVSurface
+	virtual glm::fvec3 f(float u, float v) const override;
+	virtual glm::fvec3 dfdu(float u, float v) const override;
+	virtual glm::fvec3 dfdv(float u, float v) const override;
+
+	// Inherited via IUVSurface
+	virtual bool wrappedU() override;
+	virtual bool wrappedV() override;
+
+	// Inherited via IUVSurface
+	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) override;
+	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) override;
 };

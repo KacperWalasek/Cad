@@ -13,7 +13,10 @@ class ObjectFactory : public IKeyEventHandler
 	bool checkEdge(std::vector<Patch>& patches, Patch& p, int c1, int c2);
 	bool isEdgeBorder(std::map<int, std::vector<std::pair<int,int>>>& border, int p, int c1, int c2);
 	std::vector<Hole> findHoles(std::vector<Patch>& patches);
+
 	void CreateFillPatch();
+	void CreateIntersection();
+
 	std::vector<Patch> surfaceToPatches(std::shared_ptr<SurfaceC0> surface);
 	bool isHoleBlinded(Hole& hole);
 public:

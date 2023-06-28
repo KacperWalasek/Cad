@@ -11,6 +11,7 @@ uniform bool reverse;
 uniform int divisionU, divisionV;
 
 patch in vec4 bp[16];
+in vec2 vertUv[];
 
 
 vec4 deBoor(float t, vec4 a, vec4 b, vec4 c, vec4 d)
@@ -31,6 +32,7 @@ vec4 deBoor(float t, vec4 a, vec4 b, vec4 c, vec4 d)
     return n[0]*a + n[1]*b + n[2]*c + n[3] * d;
 }
 
+out vec2 uv;
 void main()
 {   
     float t = gl_TessCoord.x;
@@ -42,6 +44,11 @@ void main()
         else
             curve[i] = deBoor(t, bp[i*4], bp[i*4+1],bp[i*4+2],bp[i*4+3]);
 
+    if(reverse)
+        uv.y = t;
+    else
+        uv.x = t;
+
     float d = reverse ? divisionU : divisionV;
     t = gl_TessCoord.y * d / (d-1);
 
@@ -50,4 +57,12 @@ void main()
     mat4 transform = projMtx * viewMtx * modelMtx;
     
     gl_Position = normalize(transform*pos);
+
+    if(reverse)
+        uv.x = t;
+    else
+        uv.y = t;
+
+
+    uv =  (1-uv) * vertUv[0] + uv * vertUv[1];
 }

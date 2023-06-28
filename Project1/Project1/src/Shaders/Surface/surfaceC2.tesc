@@ -15,12 +15,12 @@ void main()
 {
     if(gl_InvocationID == 0) {
             gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
-            vertUv[gl_InvocationID] = uv[0];
+            vertUv[gl_InvocationID] = uv[5];
     }
 
     if(gl_InvocationID == 1) {
             gl_out[gl_InvocationID].gl_Position = gl_in[3].gl_Position;
-            vertUv[gl_InvocationID] = uv[15];
+            vertUv[gl_InvocationID] = uv[10];
     }
 
 

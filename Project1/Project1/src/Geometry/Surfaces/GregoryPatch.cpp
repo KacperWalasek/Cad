@@ -1,5 +1,6 @@
 #include "GregoryPatch.h"
 #include "SurfaceC0.h"
+#include "../Curves/BezierCurve.h"
 
 Indexer GregoryPatch::indexer;
 std::array<std::pair<int, int>, 4> GregoryPatch::cornerIndices = { {
@@ -8,22 +9,6 @@ std::array<std::pair<int, int>, 4> GregoryPatch::cornerIndices = { {
     {3,3},
     {0,3}
 } };
-
-glm::fvec3 GregoryPatch::deCastljeu(float t, std::array<glm::fvec3, 4> p)
-{
-    float nt = 1 - t;
-
-    p[3] = p[3] * t + p[2] * nt;
-    p[2] = p[2] * t + p[1] * nt;
-    p[1] = p[1] * t + p[0] * nt;
-
-    p[3] = p[3] * t + p[2] * nt;
-    p[2] = p[2] * t + p[1] * nt;
-
-    p[3] = p[3] * t + p[2] * nt;
-
-    return p[3];
-}
 
 glm::fvec3 GregoryPatch::derivative(float t, Patch& p, std::pair<int, int> c1, std::pair<int, int> c2)
 {
@@ -42,7 +27,7 @@ glm::fvec3 GregoryPatch::derivative(float t, Patch& p, std::pair<int, int> c1, s
 std::array<std::array<std::pair<int, int>, 4>, 3> GregoryPatch::orderCorners()
 {
     /*
-           3     3
+           0     3
            |     |
            |  p1 |
            1 _ _ 2
@@ -115,7 +100,7 @@ glm::fvec3 GregoryPatch::edgeDeCasteljeu(float t, Patch& p, std::pair<int, int> 
         edge[j] = p.points[(int)roundf(c1.first * w1 + c2.first * w2)][(int)roundf(c1.second * w1 + c2.second * w2)]
             ->getTransform().location;
     }
-    return deCastljeu(t, edge);
+    return BezierCurve::deCastljeu(t, edge);
 }
 
 
@@ -158,7 +143,7 @@ void GregoryPatch::updateMeshes()
 
             secondRows[i][j] = p[i].points[x][y]->getTransform().location;
         }
-        middlesSecondRow[i] = deCastljeu(0.5f, secondRows[i]);
+        middlesSecondRow[i] = BezierCurve::deCastljeu(0.5f, secondRows[i]);
         glm::fvec3 middleDer = 3.0f * (middles[i] - middlesSecondRow[i]);
         p2[i] = middles[i] + middleDer / 3.0f;
         q[i] = (3.0f * p2[i] - middles[i]) / 2.0f;

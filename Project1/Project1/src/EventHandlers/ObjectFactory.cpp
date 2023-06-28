@@ -1,5 +1,6 @@
 #include "ObjectFactory.h"
 #include "../Geometry/Point.h"
+#include "../Geometry/Intersection.h"
 
 std::vector<Patch> ObjectFactory::getSelectedPatches()
 {
@@ -127,6 +128,32 @@ void ObjectFactory::CreateFillPatch()
 	}
 }
 
+void ObjectFactory::CreateIntersection()
+{
+	std::vector<std::shared_ptr<IUVSurface>> surfaces;
+	for (auto& [el, s] : scene.objects)
+	{
+		if (!s)
+			continue;
+
+		auto surface = std::dynamic_pointer_cast<IUVSurface>(el);
+		if (!surface)
+			continue;
+
+		surfaces.push_back(surface);
+		if (surfaces.size() == 2)
+		{
+			auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[1]);
+			scene.Add(intersection);
+
+			surfaces[0]->acceptIntersection(intersection);
+			surfaces[1]->acceptIntersection(intersection);
+			
+			return;
+		}
+	}
+}
+
 std::vector<Patch> ObjectFactory::surfaceToPatches(std::shared_ptr<SurfaceC0> surface)
 {
 	std::vector<Patch> patches;
@@ -188,8 +215,13 @@ void ObjectFactory::keyCallback(GLFWwindow* window, int key, int scancode, int a
 		{
 		case GLFW_KEY_P:
 			scene.Add(std::make_shared<Point>());
+			break;
 		case GLFW_KEY_F:
 			CreateFillPatch();
+			break;
+		case GLFW_KEY_I:
+			CreateIntersection();
+			break;
 		default:
 			break;
 		}

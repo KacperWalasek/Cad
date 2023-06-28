@@ -1,5 +1,6 @@
 #include "SurfaceC2.h"
-
+#include "../Curves/CurveC2.h"
+#include <array>
 Indexer SurfaceC2::indexer;
 
 void SurfaceC2::updateMeshes()
@@ -7,18 +8,22 @@ void SurfaceC2::updateMeshes()
 	std::vector<int> inds;
 	std::vector<float> vertices;
 
+	int rowSize = cylinder ? countX : countX + 3;
 	for (int i = 0; i < points.size() || i < positions.size(); i++)
 	{
+		float u = ((i % rowSize) - 1) / (float)countX;
+		float v = (floorf(i / rowSize) - 1) / (float)countY;
+
 		auto& pos = points.size() == 0 ? positions[i] : points[i]->getTransform().location;
-		vertices.push_back(pos.x);
-		vertices.push_back(pos.y);
-		vertices.push_back(pos.z);
+		vertices.insert(vertices.end(), {
+			pos.x,pos.y,pos.z,
+			u,v
+			});
 	}
 
 	for(int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
-			int rowSize = cylinder ? countX : countX + 3;
 			int offset = i * rowSize + j;
 			for (int y = 0; y < 4; y++)
 				for(int x = 0; x < 4; x++)
@@ -37,8 +42,11 @@ void SurfaceC2::updateMeshes()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(int), &inds[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	indicesSize = inds.size();
@@ -69,6 +77,18 @@ void SurfaceC2::CreatePointsCylinder()
 			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
 
 		}
+}
+
+int SurfaceC2::pointIndex(int sX, int sY, int pX, int pY) const
+{
+	int rowSize = cylinder ? countX : countX + 3;
+	int offset = sY * rowSize + sX;
+		
+	if (cylinder && sX + pX >= countX)
+		return offset + pY * rowSize + pX - countX;
+	else
+		return offset + pY * rowSize + pX;
+		
 }
 
 SurfaceC2::SurfaceC2(glm::fvec4 pos, int countX, int countY, float sizeX, float sizeY, bool cylinder)
@@ -128,14 +148,14 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	updateMeshes();
 }
 SurfaceC2::SurfaceC2()
-	: tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
+	: tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/uv.frag"),
 	chainShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
 	shouldReload(false),
 	showChain(false)
 {
 
 	tessShader.Init();
-	tessShader.loadShaderFile("Shaders/Surface/surfaceC0.tesc", GL_TESS_CONTROL_SHADER);
+	tessShader.loadShaderFile("Shaders/Surface/surfaceC2.tesc", GL_TESS_CONTROL_SHADER);
 	tessShader.loadShaderFile("Shaders/Surface/surfaceC2.tese", GL_TESS_EVALUATION_SHADER);
 	chainShader.Init();
 	chainShader.loadShaderFile("Shaders/Surface/surfaceChain.tesc", GL_TESS_CONTROL_SHADER);
@@ -163,6 +183,16 @@ void SurfaceC2::Render(bool selected, VariableManager& vm)
 	tessShader.use();
 	glBindVertexArray(VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
+	;
+	if (intersectionTextures.size() != 0)
+	{
+		auto intersection = intersections[0].lock();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, intersectionTextures[0]);
+
+		vm.SetVariable("reverseIntersect", intersection->reverse);
+		vm.SetVariable("intersect", intersection->intersect);
+	}
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
@@ -326,4 +356,123 @@ void SurfaceC2::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& co
 				points[i] = result;
 				shouldReload = true;
 			}
+}
+
+glm::fvec3 SurfaceC2::f(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+
+		subPoints[i] = CurveC2::deBoor(v, deBoorPoints);
+	}
+
+	return CurveC2::deBoor(u, subPoints);
+
+}
+
+glm::fvec3 SurfaceC2::dfdu(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+
+		subPoints[i] = CurveC2::deBoor(v, deBoorPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+	for (int i = 0; i < 3; i++)
+		derivative[i] = subPoints[i + 1] - subPoints[i];
+
+	return CurveC2::deBoor(u, derivative) * (float)countX;
+
+
+}
+
+glm::fvec3 SurfaceC2::dfdv(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, j, i)]->getTransform().location;
+
+		subPoints[i] = CurveC2::deBoor(u, deBoorPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+	for (int i = 0; i < 3; i++)
+		derivative[i] = subPoints[i + 1] - subPoints[i];
+
+	return CurveC2::deBoor(v, derivative) * (float)countY;
+}
+
+bool SurfaceC2::wrappedU()
+{
+	return cylinder;
+}
+
+bool SurfaceC2::wrappedV()
+{
+	return false;
+}
+
+void SurfaceC2::acceptIntersection(std::weak_ptr<Intersection> intersection)
+{
+	auto intLock = intersection.lock();
+
+	intersections.push_back(intersection);
+
+	if (this == intLock->s1.get())
+		intersectionTextures.push_back(intLock->uvS1Tex);
+
+	if (this == intLock->s2.get())
+		intersectionTextures.push_back(intLock->uvS2Tex);
+
+}
+
+void SurfaceC2::removeIntersection(std::weak_ptr<Intersection> intersection)
+{
+	auto intLock = intersection.lock();
+
+	std::erase_if(intersections, [intLock](const std::weak_ptr<Intersection>& i) {
+		return i.lock().get() == intLock.get();
+		});
+	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) {
+		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
+		});
 }

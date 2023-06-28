@@ -1,4 +1,5 @@
 #include "SurfaceC0.h"
+#include "../Curves/BezierCurve.h"
 
 Indexer SurfaceC0::indexer;
 
@@ -7,18 +8,21 @@ void SurfaceC0::updateMeshes()
 	std::vector<int> inds;
 	std::vector<float> vertices;
 
+	int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
 	for(int i =0; i<points.size() || i < positions.size(); i++) 
 	{
+		float u = (i % rowSize) / (float)(rowSize - 1);
+		float v = floorf(i/rowSize) / (float)(countY * 3);
 		auto& pos = points.size() == 0 ? positions[i] : points[i]->getTransform().location;
-		vertices.push_back(pos.x);
-		vertices.push_back(pos.y);
-		vertices.push_back(pos.z);
+		vertices.insert(vertices.end(), {
+			pos.x,pos.y,pos.z,
+			u,v
+			});
 	}
 
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
-			int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
 			int offset = 3 * i * rowSize + 3 * j;
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
@@ -39,8 +43,10 @@ void SurfaceC0::updateMeshes()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(int), &inds[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	indicesSize = inds.size();
@@ -61,25 +67,27 @@ void SurfaceC0::CreatePointsCylinder()
 	float distY = sizeY / (countY * 3);
 	glm::fvec4 middle(0, 0, sizeY / 2.0f, 0);
 	for (int h = 0; h < 1 + countY * 3; h++)
+	{
 		for (int a = 0; a < countX; a++)
 		{
 			float angle1 = 2 * 3.14 * a / countX;
-			float angle2 = 2 * 3.14 * (a+1) / countX;
+			float angle2 = 2 * 3.14 * (a + 1) / countX;
 
 			glm::fvec4 l1 = { sizeX * cosf(angle1) , sizeX * sinf(angle1) , h * distY, 0.0f };
 			glm::fvec4 l2 = { sizeX * cosf(angle2) , sizeX * sinf(angle2) , h * distY, 0.0f };
-			
+
 			glm::fvec4 s1 = glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f);
 			glm::fvec4 s2 = glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f);
 
-			float cosA = glm::dot(glm::normalize(s1), glm::normalize(l2-l1));
-			float mult = glm::length(l1-l2)/ 4.0f /cosA;
+			float cosA = glm::dot(glm::normalize(s1), glm::normalize(l2 - l1));
+			float mult = glm::length(l1 - l2) / 4.0f / cosA;
 
 			positions.push_back(pos - middle + l1);
-			positions.push_back(pos - middle + l1 + mult*glm::fvec4( -sinf(angle1), cosf(angle1), 0.0f, 0.0f ));
-			positions.push_back(pos - middle + l2 - mult*glm::fvec4( -sinf(angle2), cosf(angle2), 0.0f, 0.0f ));
+			positions.push_back(pos - middle + l1 + mult * glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f));
+			positions.push_back(pos - middle + l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f));
 
 		}
+	}
 }
 
 void SurfaceC0::CreateSmiglo()
@@ -104,6 +112,16 @@ void SurfaceC0::CreateSmiglo()
 			positions.push_back(l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f));
 
 		}
+}
+
+int SurfaceC0::pointIndex(int sX, int sY, int pX, int pY) const
+{
+	int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
+	int offset = 3 * sY * rowSize + 3 * sX;
+	if (3 * sX + pX == rowSize && cylinder)
+		return 3 * sY * rowSize + pY * rowSize;
+	else
+		return offset + pY * rowSize + pX;
 }
 
 SurfaceC0::SurfaceC0(glm::fvec4 pos, int countX, int countY, float sizeX, float sizeY, bool cylinder)
@@ -154,7 +172,7 @@ SurfaceC0::SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	updateMeshes();
 }
 SurfaceC0::SurfaceC0()
-	:tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
+	:tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/uv.frag"),
 	chainShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
 	shouldReload(false),
 	showChain(false)
@@ -190,6 +208,16 @@ void SurfaceC0::Render(bool selected, VariableManager& vm)
 	tessShader.use();
 	glBindVertexArray(VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
+
+	if (intersectionTextures.size() != 0)
+	{
+		auto intersection = intersections[0].lock();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, intersectionTextures[0]);
+
+		vm.SetVariable("reverseIntersect", intersection->reverse);
+		vm.SetVariable("intersect", intersection->intersect);
+	}
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
@@ -360,4 +388,124 @@ bool SurfaceC0::canBeDeleted() const
 		if (!o.lock()->CanChildBeDeleted())
 			return false;
 	return true;
+}
+
+glm::fvec3 SurfaceC0::f(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+	
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deCastiljeuPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deCastiljeuPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+
+		subPoints[i] = BezierCurve::deCastljeu(v, deCastiljeuPoints);
+	}
+
+	return BezierCurve::deCastljeu(u, subPoints);
+}
+
+glm::fvec3 SurfaceC0::dfdu(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deCastiljeuPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deCastiljeuPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+
+		subPoints[i] = BezierCurve::deCastljeu(v, deCastiljeuPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+
+	for (int i = 0; i < 3; i++)
+		derivative[i] = 3.0f * (subPoints[i + 1] - subPoints[i]);
+
+
+	return BezierCurve::deCastljeu(u, derivative) * (float)countX;
+}
+
+glm::fvec3 SurfaceC0::dfdv(float u, float v) const
+{
+	int sx = floor(countX * u);
+	int sy = floor(countY * v);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deCastiljeuPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deCastiljeuPoints[j] = points[pointIndex(sx, sy, j, i)]->getTransform().location;
+
+		subPoints[i] = BezierCurve::deCastljeu(u, deCastiljeuPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+
+	for (int i = 0; i < 3; i++)
+		derivative[i] = 3.0f * (subPoints[i + 1] - subPoints[i]);
+
+
+	return BezierCurve::deCastljeu(v, derivative) * (float)countY;
+}
+
+bool SurfaceC0::wrappedU()
+{
+	return cylinder;
+}
+
+bool SurfaceC0::wrappedV()
+{
+	return false;
+}
+
+void SurfaceC0::acceptIntersection(std::weak_ptr<Intersection> intersection)
+{
+	auto intLock = intersection.lock();
+
+	intersections.push_back(intersection);
+
+	if (this == intLock->s1.get())
+		intersectionTextures.push_back(intLock->uvS1Tex);
+
+	if (this == intLock->s2.get())
+		intersectionTextures.push_back(intLock->uvS2Tex);
+
+}
+
+void SurfaceC0::removeIntersection(std::weak_ptr<Intersection>intersection)
+{
+	auto intLock = intersection.lock();
+
+	std::erase_if(intersections, [intLock](const std::weak_ptr<Intersection>& i) {
+		return i.lock().get() == intLock.get();
+		});
+	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) {
+		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
+		});
 }

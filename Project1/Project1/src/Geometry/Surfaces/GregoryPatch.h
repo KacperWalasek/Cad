@@ -23,7 +23,6 @@ struct Hole
 class GregoryPatch : public ISceneElement, public IOwner, public IGui, public IRenderable, public ISceneTracker
 {
 	static Indexer indexer;
-
 	
 	std::string name;
 	std::array<std::array<glm::fvec3, 20>, 3> subPatches;
@@ -44,7 +43,6 @@ class GregoryPatch : public ISceneElement, public IOwner, public IGui, public IR
 
 	std::array<std::array<std::pair<int, int>, 4>, 3> orderCorners();
 
-	glm::fvec3 deCastljeu(float t, std::array<glm::fvec3, 4> p);
 	glm::fvec3 edgeDeCasteljeu(float t, Patch& p, std::pair<int, int> c1, std::pair<int, int> c2);
 	glm::fvec3 derivative(float t, Patch& p, std::pair<int, int> c1, std::pair<int, int> c2);
 

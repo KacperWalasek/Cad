@@ -73,11 +73,13 @@ set(PROJECT_SOURCES
 	"interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h"
 	"Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp" "interfaces/ISerializable.h"
 	"EventHandlers/Collapse.h" "EventHandlers/Collapse.cpp" "Geometry/Surfaces/GregoryPatch.h" 
-	"Geometry/Surfaces/GregoryPatch.cpp"  )
+	"Geometry/Surfaces/GregoryPatch.cpp"   "interfaces/IUVSurface.h" "Geometry/Intersection.h" "Geometry/Intersection.cpp" "UI/SceneVector.h" "UI/SceneVector.cpp" "Geometry/BrokenLine.h" "Geometry/BrokenLine.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
 	"Shaders/fragmentShader.frag"
+	"Shaders/torus.vert"
+	"Shaders/uv.frag"
 	"Shaders/ScreenTexture/screenTexture.vert"
 	"Shaders/ScreenTexture/texture.frag"
 	"Shaders/test.tesc"
@@ -89,11 +91,14 @@ set(SHADER_FILES
 	"Shaders/Surface/surfaceC0.tesc"
 	"Shaders/Surface/surfaceC0.tese"
 	"Shaders/Surface/surfaceC0.vert"
+	"Shaders/Surface/surfaceC2.tesc"
 	"Shaders/Surface/surfaceC2.tese"
 	"Shaders/Surface/surfaceChain.tesc"
 	"Shaders/Surface/surfaceChain.tese"
 	"Shaders/Surface/gregory.tesc"
 	"Shaders/Surface/gregory.tese"
+	"Shaders/2dShader.vert"
+	
 )
 add_executable(CAD ${PROJECT_SOURCES})
 

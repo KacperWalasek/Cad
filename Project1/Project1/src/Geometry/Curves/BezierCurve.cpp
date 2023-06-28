@@ -1,5 +1,32 @@
 #include "BezierCurve.h"
 
+glm::fvec3 BezierCurve::deCastljeu(float t, std::array<glm::fvec3, 4> p)
+{
+	float nt = 1 - t;
+
+	p[3] = p[3] * t + p[2] * nt;
+	p[2] = p[2] * t + p[1] * nt;
+	p[1] = p[1] * t + p[0] * nt;
+
+	p[3] = p[3] * t + p[2] * nt;
+	p[2] = p[2] * t + p[1] * nt;
+
+	p[3] = p[3] * t + p[2] * nt;
+
+	return p[3];
+}
+
+glm::fvec3 BezierCurve::deCastljeu(float t, std::array<glm::fvec3, 3> p)
+{
+	float nt = 1 - t;
+
+	p[2] = p[2] * t + p[1] * nt;
+	p[1] = p[1] * t + p[0] * nt;
+
+	p[2] = p[2] * t + p[1] * nt;
+
+	return p[2];
+}
 void BezierCurve::UpdateMeshes(std::vector<glm::fvec4> points)
 {
 	chainMesh = Mesh();
