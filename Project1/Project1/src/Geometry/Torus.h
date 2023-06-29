@@ -26,6 +26,8 @@ class Torus : public ISceneElement, public ITransformable, public IGui, public I
 
 	std::vector<std::weak_ptr<Intersection>> intersections;
 	std::vector<unsigned int> intersectionTextures;
+	std::vector<bool> intersectEnabled;
+	std::vector<bool> intersectReversed;
 
 	void UpdateMesh();
 public:

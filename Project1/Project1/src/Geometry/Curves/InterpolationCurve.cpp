@@ -233,3 +233,21 @@ void InterpolationCurve::onCollapse(Scene& scene, std::vector<std::shared_ptr<Po
 				points[i] = result;
 	UpdateMeshes();
 }
+
+void InterpolationCurve::SelectAll(Scene& scene) const
+{
+	for (auto& p : points)
+	{
+		auto it = std::find_if(scene.objects.begin(), scene.objects.end(),
+			[&p](const std::pair<std::shared_ptr<ISceneElement>, bool>& el) {
+				return el.first.get() == p.get();
+			});
+		if (it != scene.objects.end())
+			it->second = true;
+	}
+}
+
+bool InterpolationCurve::CanChildBeDeleted() const
+{
+	return true;
+}

@@ -10,6 +10,7 @@ class BrokenLine : public IRenderable
 	unsigned int VAO, VBO, EBO;
 public:
 	void setPoints(std::vector<glm::fvec3> points, bool cullLong = false);
+	std::vector<glm::fvec3> getPoints();
 	BrokenLine();
 	
 

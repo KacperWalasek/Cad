@@ -5,7 +5,7 @@
 #include "../Geometry/Surfaces/GregoryPatch.h"
 #include <set>
 
-class ObjectFactory : public IKeyEventHandler
+class ObjectFactory : public IKeyEventHandler, public IGui
 {
 	Scene& scene;
 	std::vector<Patch> getSelectedPatches();
@@ -19,8 +19,14 @@ class ObjectFactory : public IKeyEventHandler
 
 	std::vector<Patch> surfaceToPatches(std::shared_ptr<SurfaceC0> surface);
 	bool isHoleBlinded(Hole& hole);
+
+	float intersectionStep;
+	bool cursor;
 public:
 	ObjectFactory(Scene& scene);
 
 	virtual void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) override;
+
+	// Inherited via IGui
+	virtual bool RenderGui() override;
 };

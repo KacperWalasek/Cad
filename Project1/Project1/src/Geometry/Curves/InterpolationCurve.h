@@ -8,13 +8,14 @@
 #include "../../interfaces/ISceneTracker.h"
 #include "../../interfaces/ICustomMove.h"
 #include "../../interfaces/ISerializable.h"
+#include "../../interfaces/IPointOwner.h"
 #include "../Point.h"
 #include "../../Rendering/Camera.h"
 #include "../../Rendering/Shader.h"
 #include "../../Indexer.h"
 
 class InterpolationCurve : public ISceneElement, public IRenderable, public IGui, 
-	public ISceneTracker, public ISerializable
+	public ISceneTracker, public ISerializable, public IOwner
 {
 	static Indexer indexer;
 	std::string name;
@@ -55,5 +56,11 @@ public:
 
 	// Inherited via ISceneTracker
 	virtual void onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result) override;
+
+
+	// Inherited via IOwner
+	virtual void SelectAll(Scene& scene) const override;
+
+	virtual bool CanChildBeDeleted() const override;
 
 };

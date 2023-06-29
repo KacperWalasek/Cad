@@ -3,6 +3,25 @@
 #include <stack>
 Indexer Intersection::indexer;
 
+Intersection::Intersection(std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSurface> s2, bool cursor, glm::fvec3 cursorPos, float step)
+	: s1(s1), s2(s2), name("Intersection-" + std::to_string(indexer.getNewIndex())),
+	uvShader("Shaders/2dShader.vert", "Shaders/fragmentShader.frag"), step(step)
+{
+	uvShader.Init();
+	initTextures();
+
+	glm::fvec4 beginPoint = cursor ? closestToCursor(cursorPos, 10) : bestSample(10);
+	glm::fvec4 p = findIntersectionPoint(beginPoint);
+	if (s1.get() == s2.get() && p.x == p.z && p.y == p.w)
+		return;
+	extendIntersection(p);
+
+	glViewport(0, 0, 512, 512);
+	renderUVTexture(s1, uvS1Fb, uvS1Tex, s1UVLine);
+	renderUVTexture(s2, uvS2Fb, uvS2Tex, s2UVLine);
+	glViewport(0, 0, 1600, 900);
+}
+
 glm::fvec4 Intersection::wrap(glm::fvec4 x) const
 {
 	return glm::mod(x + 1.0f, 1.0f);
@@ -10,14 +29,12 @@ glm::fvec4 Intersection::wrap(glm::fvec4 x) const
 
 float Intersection::distSqr(glm::fvec4 x)
 {
-	x = wrap(x);
 	glm::fvec3 diff = s1->f(x.x,x.y) - s2->f(x.z, x.w);
 	return dot(diff, diff);
 }
 
 glm::fvec4 Intersection::distGrad(glm::fvec4 x)
 {
-	x = wrap(x);
 	glm::fvec3 diff = s1->f(x.x, x.y) - s2->f(x.z, x.w);
 
 	glm::fvec3 dfdu = s1->dfdu(x.x, x.y);
@@ -29,14 +46,157 @@ glm::fvec4 Intersection::distGrad(glm::fvec4 x)
 		     -glm::dot(diff,dgdu),-glm::dot(diff,dgdv) );
 }
 
-float Intersection::findAlpha(glm::fvec4 x, glm::fvec4 d)
+float Intersection::cursorDist(glm::fvec4 x, glm::fvec3 cursorPosition)
 {
-	float aL = 0, aR = findAlphaRange(x,d);
+	glm::fvec3 l1 = s1->f(x.x, x.y) - cursorPosition;
+	glm::fvec3 l2 = s2->f(x.z, x.w) - cursorPosition;
+	return glm::dot(l1, l1) + glm::dot(l2, l2);
+}
+glm::fvec4 Intersection::cursorGrad(glm::fvec4 x, glm::fvec3 cursorPosition)
+{
+	glm::fvec3 l1 = s1->f(x.x, x.y) - cursorPosition;
+	glm::fvec3 l2 = s2->f(x.z, x.w) - cursorPosition;
+	return {
+		2.0f * glm::dot(l1, s1->dfdu(x.x, x.y)) ,
+		2.0f * glm::dot(l1, s1->dfdv(x.x, x.y)),
+		2.0f * glm::dot(l2, s2->dfdu(x.z, x.w)),
+		2.0f * glm::dot(l2, s2->dfdv(x.z, x.w))
+	};
+}
+glm::fvec4 Intersection::closestToCursor(glm::fvec3 cursorPosition, int division)
+{
+	glm::fvec4 prevX = { 2.0f,2.0f,2.0f,2.0f};
+	glm::fvec4 x = bestSampleCursor(cursorPosition, division);
+	
+	
+	int it = 0;
+	glm::fvec4 grad(1);
+	while (glm::dot(x - prevX, x - prevX) > eps * eps)
+	{
+		grad = cursorGrad(x, cursorPosition);
+
+		float alpha = findAlpha(x, -grad, 
+			[this, &cursorPosition](glm::fvec4 x) {return cursorDist(x, cursorPosition); }, 
+			[this, &cursorPosition](glm::fvec4 x) {return cursorGrad(x, cursorPosition); });
+		prevX = x;
+		x = glm::clamp(x - alpha * grad, glm::fvec4(0), glm::fvec4(1));
+
+		it++;
+	}
+	return x;
+}
+glm::fvec4 Intersection::bestSampleCursor(glm::fvec3 cursorPosition, int division)
+{
+	glm::fvec4 bestX = { 0, 0, 0, 0 };
+	float bestV = cursorDist(bestX,cursorPosition);
+
+	for (int u = 0; u < division; u++)
+		for (int v = 0; v < division; v++)
+		{
+			glm::fvec4 x = { 
+				u / (float)(division - 1),
+				v / (float)(division - 1),
+				0, 0 };
+			
+			float val = cursorDist(x, cursorPosition);
+
+			if (val < bestV)
+			{
+				bestV = val;
+				bestX = x;
+			}
+		}
+
+	if (bestX.xy() == bestX.wz())
+	{
+		bestX.z = 1;
+		bestV = cursorDist(bestX, cursorPosition);
+	}
+
+	for (int u = 0; u < division; u++)
+		for (int v = 0; v < division; v++)
+		{
+			glm::fvec4 x = {
+				bestX.xy(),
+				u / (float)(division - 1),
+				v / (float)(division - 1),
+			};
+
+			if (s1.get() == s2.get() && x.x == x.z && x.y == x.w)
+				continue;
+
+			float val = cursorDist(x, cursorPosition);
+
+			if (val < bestV)
+			{
+				bestV = val;
+				bestX = x;
+			}
+		}
+	return bestX;
+}
+
+glm::fvec4 Intersection::bestSample(int division)
+{
+	glm::fvec4 bestX = {0,0,0.1f,0.1f};
+	float bestV = distSqr(bestX);
+
+	float valB = bestV;
+	if (s1.get() == s2.get())
+		bestV /= powf(glm::dot(bestX.xy() - bestX.zw(), bestX.xy() - bestX.zw()),2);
+	float valC = bestV;
+
+	for(int s1u = 0; s1u < division; s1u++)
+		for (int s1v = 0; s1v < division; s1v++)
+			for (int s2u = 0; s2u < division; s2u++)
+				for (int s2v = 0; s2v < division; s2v++)
+				{
+					glm::fvec4 x = { s1u,s1v,s2u,s2v };
+					x /= (float)(division-1);
+
+					float val = distSqr(x);
+					if (s1.get() == s2.get())
+						val /= powf(glm::dot(x.xy() - x.zw(), x.xy() - x.zw()),2);
+
+					if (val < bestV)
+					{
+						valB = distSqr(x);
+						valC = glm::dot(x.xy() - x.zw(), x.xy() - x.zw());
+						bestV = val;
+						bestX = x;
+					}
+				}
+	return bestX;
+}
+
+float Intersection::findMaxAlpha(glm::fvec4 x, glm::fvec4 dir)
+{
+	auto maxACond1 = (glm::fvec4(1.0f) - x) / dir;
+	auto maxACond2 = -x / dir;
+	std::vector<float> max = {
+		maxACond1.x, maxACond1.y, maxACond1.z, maxACond1.w,
+		maxACond2.x, maxACond2.y, maxACond2.z, maxACond2.w };
+	std::vector<bool> wrapped = {
+		s1->wrappedU(), s1->wrappedV(), s2->wrappedU(), s2->wrappedV()
+	};
+
+	float maxA = maxAlpha;
+	for (int i = 0; i < 8; i++)
+		if (max[i] > 0 && maxA > max[i] && !wrapped[i % 4])
+			maxA = max[i];
+
+	return maxA;
+
+}
+
+float Intersection::findAlpha(glm::fvec4 x, glm::fvec4 d, std::function<float(glm::fvec4)> val, std::function<glm::fvec4(glm::fvec4)> grad)
+{
+	float aL = 0, aR = findAlphaRange(x,d, val);
 	
 	while (glm::length((aR - aL)*d) > eps)
 	{
 		float aMiddle = (aL + aR) / 2.0f;
-		float dfdam = dot(distGrad(x + aMiddle * d), d);
+		float dfdam = dot(grad(x + aMiddle * d), d);
 		if (fabsf(dfdam) < eps)
 			return aMiddle;
 		if (dfdam > 0)
@@ -47,117 +207,6 @@ float Intersection::findAlpha(glm::fvec4 x, glm::fvec4 d)
 	return (aL + aR) / 2.0f;
 }
 
-Intersection::Intersection(std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSurface> s2)
-	: s1(s1), s2(s2), name("Intersection-" + std::to_string(indexer.getNewIndex())),
-	uvShader("Shaders/2dShader.vert", "Shaders/fragmentShader.frag")
-{
-	uvShader.Init();
-
-	glGenFramebuffers(1, &uvS1Fb);
-	glBindFramebuffer(GL_FRAMEBUFFER, uvS1Fb);
-
-	glGenTextures(1, &uvS1Tex);
-	glBindTexture(GL_TEXTURE_2D, uvS1Tex);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uvS1Tex, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glGenFramebuffers(1, &uvS2Fb);
-	glBindFramebuffer(GL_FRAMEBUFFER, uvS2Fb);
-
-	glGenTextures(1, &uvS2Tex);
-	glBindTexture(GL_TEXTURE_2D, uvS2Tex);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uvS2Tex, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-
-	glm::fvec4 p = findIntersectionPoint(); 
-	findIntersection(p);
-	std::vector<float> pos{
-		p.x,p.y,p.z
-	};
-	int ind = 0;
-
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float), &pos[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int), &ind, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-
-	glViewport(0, 0, 512, 512);
-
-	VariableManager vm;
-	vm.AddVariable("color", glm::fvec4(1, 1, 1, 1));
-
-	glBindFramebuffer(GL_FRAMEBUFFER, uvS1Fb);
-
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	uvShader.use();
-	vm.Apply(uvShader.ID);
-	s1UVLine.Render(false, vm);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, uvS2Fb);
-
-	glClearColor(0.2f, 0.2f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	uvShader.use();
-	vm.Apply(uvShader.ID);
-	s2UVLine.Render(false, vm);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-	std::vector<GLbyte> col(512 * 512 * 3, 0);
-	glBindTexture(GL_TEXTURE_2D, uvS1Tex); 
-
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
-
-	floodFill(col, { 512,512 }, { 255,255,255 }, { 0,0 }, { s1->wrappedU(), s1->wrappedV() });
-
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 512, 512, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
-
-	glBindTexture(GL_TEXTURE_2D, uvS2Tex);
-
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
-
-	floodFill(col, { 512,512 }, { 255,255,255 }, { 0,0 }, { s2->wrappedU(), s2->wrappedV() });
-
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 512, 512, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
-
-	
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glViewport(0, 0, 1600, 900);
-
-
-}
 
 int Intersection::pixelsInds(int x, int y)
 {
@@ -194,14 +243,19 @@ void Intersection::floodFill(std::vector<GLbyte>& pixels, glm::ivec2 size, glm::
 			points.push(ny);
 		
 	} while (!points.empty());
-
-
 }
 
-glm::fvec4 Intersection::findIntersectionPoint()
+glm::fvec4 Intersection::findIntersectionPoint(glm::fvec4 beginPoint)
 {
-	glm::fvec4 x = { 0.5f,0.5f,0.5f,0.5f };
-
+	glm::fvec4 x = beginPoint;
+	debugVec.push_back(std::make_unique<SceneVector>(
+		s1->f(x.x, x.y),
+		s1->f(x.x, x.y) + glm::fvec3(0, 1, 0),
+		glm::fvec4(1, 1, 0, 1)));
+	debugVec.push_back(std::make_unique<SceneVector>(
+			s2->f(x.z, x.w),
+			s2->f(x.z, x.w) + glm::fvec3(0, 1, 0),
+			glm::fvec4(1, 1, 0, 1)));
 
 	int it = 0;
 	float val = 1;
@@ -210,67 +264,29 @@ glm::fvec4 Intersection::findIntersectionPoint()
 	while (fabsf(val)>eps )
 	{
 		it++;
-		float alpha = findAlpha(x, d);
+		float alpha = findAlpha(x, d,
+			[this](glm::fvec4 x) {return distSqr(x); },
+			[this](glm::fvec4 x) {return distGrad(x); });
 		x  = wrap(x + alpha * d);
 		val = distSqr(x);
 
 		auto grad = distGrad(x);
 		float beta = glm::dot(grad,grad)/glm::dot(prevGrad,prevGrad);
-		d = -grad;// +beta * d;
+		d = -grad +beta * d;
 		prevGrad = grad;
 
-		/*debugVec.push_back(std::make_unique<SceneVector>(
-			glm::fvec3(x.x * 10.0f - 5.0f, 0, x.y * 10.0f - 5.0f),
-			glm::fvec3(x.x * 10.0f - 5.0f, 0, x.y * 10.0f - 5.0f) + glm::fvec3(grad.x * 10.0f - 5.0f, 0, grad.y * 10.0f - 5.0f),
-			glm::fvec4(1, 0, 0, 1)));
-		debugVec.push_back(std::make_unique<SceneVector>(
-			glm::fvec3(x.z * 10.0f - 5.0f, 0, x.w * 10.0f - 5.0f),
-			glm::fvec3(x.z * 10.0f - 5.0f, 0, x.w * 10.0f - 5.0f) + glm::fvec3(grad.z * 10.0f - 5.0f, 0, grad.w * 10.0f - 5.0f),
-			glm::fvec4(0, 1, 0, 1)));*/
-
-		//debugVec.push_back(std::make_unique<SceneVector>(
-		//	s1->f(x.x, x.y),
-		//	s1->f(x.x, x.y) + s1->dfdv(x.x, x.y),
-		//	glm::fvec4(0, 1, 0, 1)));
-		//debugVec.push_back(std::make_unique<SceneVector>(
-		//	s2->f(x.z, x.w),
-		//	s2->f(x.z, x.w) + s2->dfdv(x.z, x.w),
-		//	glm::fvec4(1, 0, 0, 1)));
-
-		//debugVec.push_back(std::make_unique<SceneVector>(
-		//	s1->f(x.x, x.y),
-		//	s1->f(x.x, x.y) + glm::fvec3(0, 1, 0),
-		//	glm::fvec4(1, 0, 1, 1)));
-		//debugVec.push_back(std::make_unique<SceneVector>(
-		//	s2->f(x.z, x.w),
-		//	s2->f(x.z, x.w) + glm::fvec3(0, 1, 0),
-		//	glm::fvec4(1, 1, 0, 1)));
 	}
 	return x;
 }
 
-float Intersection::findAlphaRange(glm::fvec4 x, glm::fvec4 d)
+float Intersection::findAlphaRange(glm::fvec4 x, glm::fvec4 d, std::function<float(glm::fvec4)> val)
 {
-	auto maxACond1 = (glm::fvec4(1.0f) - x) / d;
-	auto maxACond2 = -x / d;
-	std::vector<float> max = {
-		maxACond1.x, maxACond1.y, maxACond1.z, maxACond1.w,
-		maxACond2.x, maxACond2.y, maxACond2.z, maxACond2.w };
-	std::vector<bool> wrapped = {
-		s1->wrappedU(), s1->wrappedV(), s2->wrappedU(), s2->wrappedV()
-	};
-
-	float maxA = maxAlpha;
-	for(int i = 0; i<8; i++)
-		if (max[i] > 0 && maxA > max[i] && !wrapped[i%4])
-			maxA = max[i];
-
+	float maxA = findMaxAlpha(x,d);
 	float delta = maxA / 100.0f;
-
 	float a2 = delta;
 	
-	float f1 = distSqr(x), 
-		  f2 = distSqr(x + a2 * d);
+	float f1 = val(x),
+		  f2 = val(x + a2 * d);
 	if (f2 > f1)
 		return a2;
 	
@@ -280,7 +296,7 @@ float Intersection::findAlphaRange(glm::fvec4 x, glm::fvec4 d)
 		if (a3 > maxA)
 			return maxA;
 
-		float f3 = distSqr(x + a3 * d);
+		float f3 = val(x + a3 * d);
 		if (f3 > f2)
 			return a3;
 
@@ -304,7 +320,7 @@ glm::mat4x4 Intersection::jacoby(glm::fvec4 x, glm::fvec3 d) const
 	};
 }
 
-std::vector<glm::fvec4> Intersection::findIntersectionPointsInDirection(glm::fvec4 x, bool dir)
+std::tuple<std::vector<glm::fvec4>, bool> Intersection::findIntersectionPointsInDirection(glm::fvec4 x, bool dir)
 {
 	glm::bvec4 wrapped = {
 		s1->wrappedU(), s1->wrappedV(), s2->wrappedU(), s2->wrappedV()
@@ -335,28 +351,37 @@ std::vector<glm::fvec4> Intersection::findIntersectionPointsInDirection(glm::fve
 
 			auto diff = J * val;
 			x = x - diff;
-			if (glm::any(glm::lessThan(x, glm::fvec4(eps)) && glm::not_(wrapped)) || 
-				glm::any(glm::greaterThan(x, glm::fvec4(1 - eps)) && glm::not_(wrapped)))
-				return p;
+			if (glm::any(glm::lessThan(x, glm::fvec4(0)) && glm::not_(wrapped)) ||
+				glm::any(glm::greaterThan(x, glm::fvec4(1)) && glm::not_(wrapped)))
+			{
+				x = x + diff;
+				float a = findMaxAlpha(x, -diff);
+				p.push_back(x - a * diff);
+				return { p, false };
+			}
 			x = wrap(x);
 			val = { s1->f(x.x,x.y) - s2->f(x.z,x.w), glm::dot(s1->f(x.x,x.y) - s1->f(xPrev.x,xPrev.y),d) - step };
 		}
 		p.push_back(x);
 	} while (glm::length(begin - s1->f(x.x,x.y)) > step / 2.0f);
 
-	return p;
+	p.push_back(p[0]);
+	return { p, true };
 }
 
-void Intersection::findIntersection(glm::fvec4 x)
+void Intersection::extendIntersection(glm::fvec4 x)
 {
 	std::vector<glm::fvec4> uvs;
 	std::vector<glm::fvec3> points;
 	std::vector<glm::fvec3> s1uvs;
 	std::vector<glm::fvec3> s2uvs;
 
-	std::vector<glm::fvec4> p1 = findIntersectionPointsInDirection(x, true);
-	std::vector<glm::fvec4> p2 = findIntersectionPointsInDirection(x, false);
-	uvs.insert(uvs.end(), p2.rbegin(), p2.rend());
+	auto [p1,loop1] = findIntersectionPointsInDirection(x, true);
+	if(!loop1)
+	{
+		auto [p2, loop2] = findIntersectionPointsInDirection(x, false);
+		uvs.insert(uvs.end(), p2.rbegin(), p2.rend());
+	}
 	uvs.insert(uvs.end(), p1.begin(),  p1.end());
 	
 	for (auto p : uvs)
@@ -379,22 +404,129 @@ std::string Intersection::getName() const
 void Intersection::Render(bool selected, VariableManager& vm)
 {
 	sceneCurve.Render(selected, vm);
-	glBindVertexArray(VAO);
-	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, 0);
 
 	for(auto& v : debugVec)
 		v->Render(selected, vm);
-
 }
 
 bool Intersection::RenderGui()
 {
 	ImVec2 size{ 400,400 };
 	ImGui::Begin("Intersection");
-	ImGui::Checkbox("Enable", &intersect);
-	ImGui::Checkbox("Reverse", &reverse);
+	if (ImGui::Button("Make Curve"))
+	{
+		std::vector<std::shared_ptr<Point>> points;
+		auto linePoints = sceneCurve.getPoints();
+		std::transform(linePoints.begin(), linePoints.end(), std::back_inserter(points), [](const glm::fvec3& pos) {
+			return std::make_shared<Point>(glm::fvec4(pos,1.0f));
+			});
+		toAdd.push_back(std::make_shared<InterpolationCurve>(points));
+		toAdd.insert(toAdd.end(), points.begin(), points.end());
+	}
 	ImGui::Image((ImTextureID)uvS1Tex, size);
 	ImGui::Image((ImTextureID)uvS2Tex, size);
 	ImGui::End();
 	return false;
+}
+
+void Intersection::initTextures()
+{
+	glGenFramebuffers(1, &uvS1Fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, uvS1Fb);
+
+	glGenTextures(1, &uvS1Tex);
+	glBindTexture(GL_TEXTURE_2D, uvS1Tex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uvS1Tex, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenFramebuffers(1, &uvS2Fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, uvS2Fb);
+
+	glGenTextures(1, &uvS2Tex);
+	glBindTexture(GL_TEXTURE_2D, uvS2Tex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uvS2Tex, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void Intersection::renderUVTexture(std::shared_ptr<IUVSurface> s, unsigned int uvFb, unsigned int uvTex, BrokenLine& line)
+{
+	VariableManager vm;
+	vm.AddVariable("color", glm::fvec4(1, 1, 1, 1));
+
+	glBindFramebuffer(GL_FRAMEBUFFER, uvFb);
+
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	uvShader.use();
+	vm.Apply(uvShader.ID);
+	line.Render(false, vm);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	std::vector<GLbyte> col(512 * 512 * 3, 0);
+	glBindTexture(GL_TEXTURE_2D, uvTex);
+
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
+
+	floodFill(col, { 512,512 }, { 255,255,255 }, { 0,0 }, { s->wrappedU(), s->wrappedV() });
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 512, 512, GL_RGB, GL_UNSIGNED_BYTE, &col[0]);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+}
+
+void Intersection::onAdd(Scene& scene, std::shared_ptr<ISceneElement> elem)
+{
+}
+
+void Intersection::onRemove(Scene& scene, std::shared_ptr<ISceneElement> elem)
+{
+	if (elem.get() == this)
+	{
+		auto sharedThis = std::dynamic_pointer_cast<Intersection>(elem);
+		s1->removeIntersection(sharedThis);
+		s2->removeIntersection(sharedThis);
+	}
+}
+
+void Intersection::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result)
+{
+}
+
+void Intersection::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
+{
+}
+
+void Intersection::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
+{
+}
+
+std::vector<std::shared_ptr<ISceneElement>> Intersection::GetAddedObjects()
+{
+	auto ret = toAdd;
+	toAdd.clear();
+	return ret;
+}
+
+std::vector<std::shared_ptr<ISceneElement>> Intersection::GetRemovedObjects()
+{
+	return {};
 }

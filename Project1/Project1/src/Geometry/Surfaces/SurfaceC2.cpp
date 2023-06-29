@@ -1,6 +1,7 @@
 #include "SurfaceC2.h"
 #include "../Curves/CurveC2.h"
 #include <array>
+
 Indexer SurfaceC2::indexer;
 
 void SurfaceC2::updateMeshes()
@@ -8,7 +9,7 @@ void SurfaceC2::updateMeshes()
 	std::vector<int> inds;
 	std::vector<float> vertices;
 
-	int rowSize = cylinder ? countX : countX + 3;
+	int rowSize = countX + 3;
 	for (int i = 0; i < points.size() || i < positions.size(); i++)
 	{
 		float u = ((i % rowSize) - 1) / (float)countX;
@@ -28,10 +29,7 @@ void SurfaceC2::updateMeshes()
 			for (int y = 0; y < 4; y++)
 				for(int x = 0; x < 4; x++)
 				{
-					if(cylinder && j+x>=countX)
-						inds.push_back(offset + y * rowSize + x - countX);
-					else
-						inds.push_back(offset + y * rowSize + x);
+					inds.push_back(offset + y * rowSize + x);
 				}
 		}
 
@@ -71,7 +69,7 @@ void SurfaceC2::CreatePointsCylinder()
 	float R = sizeX * (3-cosf(da)) / 2.0f;
 
 	for(int h = 0; h < countY + 3; h++)
-		for (int a = 0; a < countX; a++)
+		for (int a = 0; a < countX + 3; a++)
 		{
 			float angle1 = 2 * 3.14 * a / countX;
 			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
@@ -81,13 +79,10 @@ void SurfaceC2::CreatePointsCylinder()
 
 int SurfaceC2::pointIndex(int sX, int sY, int pX, int pY) const
 {
-	int rowSize = cylinder ? countX : countX + 3;
+	int rowSize = countX + 3;
 	int offset = sY * rowSize + sX;
 		
-	if (cylinder && sX + pX >= countX)
-		return offset + pY * rowSize + pX - countX;
-	else
-		return offset + pY * rowSize + pX;
+	return offset + pY * rowSize + pX;
 		
 }
 
@@ -119,12 +114,12 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	cylinder = false; // json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
-	points = std::vector<std::shared_ptr<Point>>((cylinder ? countX : 3 + countX) * (3 + countY));
+	points = std::vector<std::shared_ptr<Point>>((3 + countX) * (3 + countY));
 	
 	division[0] = patches[0]["samples"]["x"];
 	division[1] = patches[0]["samples"]["y"];
 
-	float rowSize = cylinder ? countX : 3 + countX;
+	float rowSize = 3 + countX;
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
@@ -183,16 +178,27 @@ void SurfaceC2::Render(bool selected, VariableManager& vm)
 	tessShader.use();
 	glBindVertexArray(VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
-	;
-	if (intersectionTextures.size() != 0)
-	{
-		auto intersection = intersections[0].lock();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, intersectionTextures[0]);
 
-		vm.SetVariable("reverseIntersect", intersection->reverse);
-		vm.SetVariable("intersect", intersection->intersect);
+	int enabledIntCount = 0;
+	std::vector<bool> revInt;
+	for (int i = 0; i < intersections.size(); i++)
+	{
+		auto intersection = intersections[i].lock();
+		if (!intersectEnabled[i])
+			continue;
+
+		revInt.push_back(intersectReversed[i]);
+		enabledIntCount++;
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, intersectionTextures[i]);
 	}
+
+	std::vector<int> texInds(enabledIntCount);
+	std::iota(texInds.begin(), texInds.end(), 0);
+
+	vm.SetVariable("interesectTex", texInds);
+	vm.SetVariable("interesectCount", enabledIntCount);
+	vm.SetVariable("reverseIntersect", revInt);
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
@@ -259,6 +265,18 @@ bool SurfaceC2::RenderGui()
 		shouldReload = true;
 	}
 	ImGui::Checkbox("Show Chain", &showChain);
+	
+	for (int i = 0; i < intersections.size(); i++)
+	{
+		bool reversed = intersectReversed[i];
+		bool enabled = intersectEnabled[i];
+		ImGui::Text(intersections[i].lock()->getName().c_str());
+		if (ImGui::Checkbox(("Enabled"+std::to_string(i)).c_str(), &enabled))
+			intersectEnabled[i] = enabled;
+		if (ImGui::Checkbox(("Reversed"+ std::to_string(i)).c_str(), &reversed))
+			intersectReversed[i] = reversed;
+	}
+
 	ImGui::End();
 	return false;
 }
@@ -289,10 +307,20 @@ void SurfaceC2::Recalculate()
 
 void SurfaceC2::CreateControlPoints()
 {
-	for (auto& p : positions)
-	{
-		points.push_back(std::make_shared<Point>(p));
-	}
+	if(cylinder)
+		for (int h = 0; h < countY + 3; h++)
+		{
+			for (int a = 0; a < countX; a++)
+				points.push_back(std::make_shared<Point>(positions[h * (countX+3) + a]));
+			for (int i = 0; i < 3; i++)
+				points.push_back(points[h * (countX + 3) + i]);
+		
+		}
+	else
+		for (auto& p : positions)
+		{
+			points.push_back(std::make_shared<Point>(p));
+		}
 	positions.clear();
 }
 
@@ -304,16 +332,13 @@ nlohmann::json SurfaceC2::Serialize(Scene& scene, Indexer& indexer, std::map<int
 		for (int j = 0; j < countX; j++)
 		{
 			std::vector<nlohmann::json>  patchPoints;
-			int rowSize = cylinder ? countX : countX + 3;
+			int rowSize = countX + 3;
 			int offset = i * rowSize + j;
 
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
-					if (cylinder && j + x >= countX)
-						patchPoints.push_back({ {"id", pointIndexMap.find(points[offset + y * rowSize + x - countX]->getId())->second } });
-					else
-						patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
+					patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
 				}
 			
 			patches.push_back({
@@ -360,8 +385,8 @@ void SurfaceC2::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& co
 
 glm::fvec3 SurfaceC2::f(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -385,8 +410,8 @@ glm::fvec3 SurfaceC2::f(float u, float v) const
 
 glm::fvec3 SurfaceC2::dfdu(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -415,8 +440,8 @@ glm::fvec3 SurfaceC2::dfdu(float u, float v) const
 
 glm::fvec3 SurfaceC2::dfdv(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -462,6 +487,9 @@ void SurfaceC2::acceptIntersection(std::weak_ptr<Intersection> intersection)
 
 	if (this == intLock->s2.get())
 		intersectionTextures.push_back(intLock->uvS2Tex);
+
+	intersectEnabled.push_back(false);
+	intersectReversed.push_back(false);
 
 }
 

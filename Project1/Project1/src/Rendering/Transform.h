@@ -1,4 +1,5 @@
 #pragma once
+#define GLM_SWIZZLE
 #include "glm/glm.hpp"
 #include "../interfaces/IGui.h"
 #include <nlohmann/json.hpp>

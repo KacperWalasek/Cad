@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <algorithm>
 #include <iostream>
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
@@ -114,4 +115,25 @@ inline void ShaderVariable<bool>::Apply(unsigned int shaderId) const
 	unsigned int loc = getLoc(shaderId);
 
 	glUniform1i(loc, value);
+}
+
+template<>
+inline void ShaderVariable<std::vector<int>>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+
+	glUniform1iv(loc, value.size(), value.data());
+}
+
+template<>
+inline void ShaderVariable<std::vector<bool>>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+
+	std::vector<int> iVal;
+	std::transform(value.begin(), value.end(), std::back_inserter(iVal), [](const bool& v) {
+		return (int)v;
+		});
+
+	glUniform1iv(loc, value.size(), iVal.data());
 }

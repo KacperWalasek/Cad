@@ -143,7 +143,7 @@ void ObjectFactory::CreateIntersection()
 		surfaces.push_back(surface);
 		if (surfaces.size() == 2)
 		{
-			auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[1]);
+			auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[1], cursor, scene.cursor->transform.location.xyz(), intersectionStep);
 			scene.Add(intersection);
 
 			surfaces[0]->acceptIntersection(intersection);
@@ -151,6 +151,14 @@ void ObjectFactory::CreateIntersection()
 			
 			return;
 		}
+	}
+	if (surfaces.size() == 1)
+	{
+		auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[0], cursor, scene.cursor->transform.location.xyz(), intersectionStep);
+		scene.Add(intersection);
+
+		surfaces[0]->acceptIntersection(intersection);
+		//surfaces[1]->acceptIntersection(intersection);
 	}
 }
 
@@ -204,7 +212,7 @@ bool ObjectFactory::isHoleBlinded(Hole& hole)
 }
 
 ObjectFactory::ObjectFactory(Scene& scene)
-	: scene(scene)
+	: scene(scene), intersectionStep(1.0f), cursor(false)
 {
 }
 
@@ -225,4 +233,13 @@ void ObjectFactory::keyCallback(GLFWwindow* window, int key, int scancode, int a
 		default:
 			break;
 		}
+}
+
+bool ObjectFactory::RenderGui()
+{
+	ImGui::Begin("Intersections");
+	ImGui::Checkbox("Use cursor", &cursor);
+	ImGui::InputFloat("Newton step", &intersectionStep);
+	ImGui::End();
+	return false;
 }

@@ -34,6 +34,8 @@ class SurfaceC2 : public ISceneElement, public IRenderable, public ISceneTracker
 
 	std::vector<std::weak_ptr<Intersection>> intersections;
 	std::vector<unsigned int> intersectionTextures;
+	std::vector<bool> intersectEnabled;
+	std::vector<bool> intersectReversed;
 
 	std::vector<glm::fvec4> positions;
 	SurfaceC2();

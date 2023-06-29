@@ -1,4 +1,5 @@
 #include "SurfaceCreator.h"
+#include <set>
 
 Indexer SurfaceCreator::indexer;
 
@@ -29,7 +30,11 @@ void SurfaceCreator::apply()
 		});
 	
 	toRemove = it->first;
-	
+
+	std::set<std::shared_ptr<Point>, std::function< bool(const std::shared_ptr<Point>&, const std::shared_ptr<Point>&)>> pointSet(
+		[](const std::shared_ptr<Point>& p1, const std::shared_ptr<Point>& p2) {
+			return p1.get() < p2.get();
+		});
 	if (c0)
 	{
 		surfaceC0->CreateControlPoints();
@@ -37,8 +42,9 @@ void SurfaceCreator::apply()
 		for (auto& p : surfaceC0->points)
 		{
 			p->po.push_back(surfaceC0);
-			toAdd.push_back(p);
+			pointSet.insert(p);
 		}
+		toAdd.insert(toAdd.end(), pointSet.begin(), pointSet.end());
 	}
 	else
 	{
@@ -47,9 +53,16 @@ void SurfaceCreator::apply()
 		for (auto& p : surfaceC2->points)
 		{
 			p->po.push_back(surfaceC2);
-			toAdd.push_back(p);
+			pointSet.insert(p);
 		}
+		toAdd.insert(toAdd.end(), pointSet.begin(), pointSet.end());
 	}
+	std::sort(toAdd.begin(), toAdd.end(),
+		[](const std::shared_ptr<ISceneElement>& e1, const std::shared_ptr<ISceneElement>& e2) {
+			if(e1->getName().length() != e2->getName().length())
+				return e1->getName().length() < e2->getName().length();
+			return e1->getName() < e2->getName();
+		});
 }
 
 SurfaceCreator::SurfaceCreator(Scene& scene)

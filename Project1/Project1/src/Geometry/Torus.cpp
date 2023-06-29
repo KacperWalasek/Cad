@@ -115,6 +115,17 @@ bool Torus::RenderGui()
 	if (ImGui::InputFloat("Major radius", &(geometry.majorR)))
 		UpdateMesh();
 
+	for (int i = 0; i < intersections.size(); i++)
+	{
+		bool reversed = intersectReversed[i];
+		bool enabled = intersectEnabled[i];
+		ImGui::Text(intersections[i].lock()->getName().c_str());
+		if (ImGui::Checkbox(("Enabled" + std::to_string(i)).c_str(), &enabled))
+			intersectEnabled[i] = enabled;
+		if (ImGui::Checkbox(("Reversed" + std::to_string(i)).c_str(), &reversed))
+			intersectReversed[i] = reversed;
+	}
+
 	ImGui::End();
 	return false;
 }
@@ -127,15 +138,26 @@ Transform& Torus::getTransform()
 void Torus::Render(bool selected, VariableManager& vm)
 {
 	shader.use();
-	if(intersectionTextures.size() !=0)
+	int enabledIntCount = 0;
+	std::vector<bool> revInt;
+	for (int i = 0; i < intersections.size(); i++)
 	{
-		auto intersection = intersections[0].lock();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, intersectionTextures[0]);
+		auto intersection = intersections[i].lock();
+		if (!intersectEnabled[i])
+			continue;
 
-		vm.SetVariable("reverseIntersect", intersection->reverse);
-		vm.SetVariable("intersect", intersection->intersect);
+		revInt.push_back(intersectReversed[i]);
+		enabledIntCount++;
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, intersectionTextures[i]);
 	}
+
+	std::vector<int> texInds(enabledIntCount);
+	std::iota(texInds.begin(), texInds.end(), 0);
+
+	vm.SetVariable("interesectTex", texInds);
+	vm.SetVariable("interesectCount", enabledIntCount);
+	vm.SetVariable("reverseIntersect", revInt);
 	vm.Apply(shader.ID);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_LINES, elementSize, GL_UNSIGNED_INT, 0);
@@ -216,6 +238,9 @@ void Torus::acceptIntersection(std::weak_ptr<Intersection> intersection)
 
 	if (this == intLock->s2.get())
 		intersectionTextures.push_back(intLock->uvS2Tex);
+
+	intersectEnabled.push_back(false);
+	intersectReversed.push_back(false);
 }
 
 void Torus::removeIntersection(std::weak_ptr<Intersection> intersection)

@@ -86,13 +86,13 @@ void Renderer::Init()
     variableManager.AddVariable("t1", 0.0f);
 
     variableManager.AddVariable("reverse", false); 
-    variableManager.AddVariable("reverseIntersect", false);
     
     variableManager.AddVariable("divisionU", 4);
     variableManager.AddVariable("divisionV", 4);
 
-    variableManager.AddVariable("interesectTex", 0);
-    variableManager.AddVariable("intersect", false);
+    variableManager.AddVariable("interesectTex", std::vector<int>());
+    variableManager.AddVariable("interesectCount", 0);
+    variableManager.AddVariable("reverseIntersect", std::vector<bool>());
 }
 
 void Renderer::BeginRender(Camera& camera)

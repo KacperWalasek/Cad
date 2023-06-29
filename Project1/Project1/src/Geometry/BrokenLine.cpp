@@ -40,6 +40,11 @@ void BrokenLine::setPoints(std::vector<glm::fvec3> points, bool cullLong)
 	updateMesh(cullLong);
 }
 
+std::vector<glm::fvec3> BrokenLine::getPoints()
+{
+	return points;
+}
+
 BrokenLine::BrokenLine()
 {
 	glGenVertexArrays(1, &VAO);

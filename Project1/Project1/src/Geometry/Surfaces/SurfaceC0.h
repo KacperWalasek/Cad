@@ -11,7 +11,8 @@
 #include "../Intersection.h"
 
 
-class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, public ISerializable, public ISelfControl, public IUVSurface
+class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker, public IOwner, public IGui, 
+	public ISerializable, public ISelfControl, public IUVSurface
 {
 	static Indexer indexer;
 
@@ -37,6 +38,8 @@ class SurfaceC0 : public ISceneElement, public IRenderable, public ISceneTracker
 
 	std::vector<std::weak_ptr<Intersection>> intersections;
 	std::vector<unsigned int> intersectionTextures;
+	std::vector<bool> intersectEnabled;
+	std::vector<bool> intersectReversed;
 
 	std::vector<glm::fvec4> positions;
 	SurfaceC0();

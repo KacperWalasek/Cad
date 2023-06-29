@@ -15,12 +15,14 @@ CadApp::CadApp()
 	scene = std::make_shared<Scene>(
 		std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>(),
 		*camera);
-
+	auto factory = std::make_shared<ObjectFactory>(*scene);
+	
 	guis = {
 		camera,
 		scene,
 		std::make_shared<MainMenu>(*scene, *camera),
-		scene->cursor
+		scene->cursor,
+		factory	
 	};
 
 
@@ -33,7 +35,7 @@ CadApp::CadApp()
 	selectedMovement = std::make_shared<SelectedMovement>(*scene, *camera);
 	window.keyCallbacks = {
 		selectedMovement,
-		std::make_shared<ObjectFactory>(*scene),
+		factory,
 		std::make_shared<Collapse>(*scene)
 	};
 }

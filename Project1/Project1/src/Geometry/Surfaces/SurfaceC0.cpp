@@ -8,7 +8,7 @@ void SurfaceC0::updateMeshes()
 	std::vector<int> inds;
 	std::vector<float> vertices;
 
-	int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
+	int rowSize = countX * 3 + 1;
 	for(int i =0; i<points.size() || i < positions.size(); i++) 
 	{
 		float u = (i % rowSize) / (float)(rowSize - 1);
@@ -27,11 +27,7 @@ void SurfaceC0::updateMeshes()
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
-					if(3 * j + x == rowSize && cylinder)
-						inds.push_back(3 * i * rowSize + y * rowSize);
-					else
-						inds.push_back((offset + y * rowSize + x) );
-					
+					inds.push_back((offset + y * rowSize + x) );
 				}
 		}
 
@@ -68,6 +64,7 @@ void SurfaceC0::CreatePointsCylinder()
 	glm::fvec4 middle(0, 0, sizeY / 2.0f, 0);
 	for (int h = 0; h < 1 + countY * 3; h++)
 	{
+		int offset = positions.size();
 		for (int a = 0; a < countX; a++)
 		{
 			float angle1 = 2 * 3.14 * a / countX;
@@ -85,8 +82,8 @@ void SurfaceC0::CreatePointsCylinder()
 			positions.push_back(pos - middle + l1);
 			positions.push_back(pos - middle + l1 + mult * glm::fvec4(-sinf(angle1), cosf(angle1), 0.0f, 0.0f));
 			positions.push_back(pos - middle + l2 - mult * glm::fvec4(-sinf(angle2), cosf(angle2), 0.0f, 0.0f));
-
 		}
+		positions.push_back(positions[offset]);
 	}
 }
 
@@ -116,12 +113,9 @@ void SurfaceC0::CreateSmiglo()
 
 int SurfaceC0::pointIndex(int sX, int sY, int pX, int pY) const
 {
-	int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
+	int rowSize = countX * 3 + 1;
 	int offset = 3 * sY * rowSize + 3 * sX;
-	if (3 * sX + pX == rowSize && cylinder)
-		return 3 * sY * rowSize + pY * rowSize;
-	else
-		return offset + pY * rowSize + pX;
+	return offset + pY * rowSize + pX;
 }
 
 SurfaceC0::SurfaceC0(glm::fvec4 pos, int countX, int countY, float sizeX, float sizeY, bool cylinder)
@@ -151,22 +145,18 @@ SurfaceC0::SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	cylinder = false;// json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
-	points = std::vector<std::shared_ptr<Point>>((cylinder ? countX * 3 : 1 + 3 * countX) * (1 + 3 * countY));
+	points = std::vector<std::shared_ptr<Point>>( (1 + 3 * countX) * (1 + 3 * countY));
 
 	for (int i = 0; i < countY; i++)
 		for (int j = 0; j < countX; j++)
 		{
 			auto path = patches[i * countX + j]["controlPoints"];
-			int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
+			int rowSize = countX * 3 + 1;
 			int offset = 3 * i * rowSize + 3 * j;
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
-					if (3 * j + x == rowSize && cylinder)
-						points[3 * i * rowSize + y * rowSize] = pointMap[path[y * 4+x]["id"]];
-					else
-						points[offset + y * rowSize + x] = pointMap[path[y * 4 + x]["id"]];
-
+					points[offset + y * rowSize + x] = pointMap[path[y * 4 + x]["id"]];
 				}
 		}
 	updateMeshes();
@@ -209,15 +199,25 @@ void SurfaceC0::Render(bool selected, VariableManager& vm)
 	glBindVertexArray(VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 
-	if (intersectionTextures.size() != 0)
+	int enabledIntCount = 0;
+	std::vector<bool> revInt;
+	for (int i = 0; i < intersections.size(); i++)
 	{
-		auto intersection = intersections[0].lock();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, intersectionTextures[0]);
+		auto intersection = intersections[i].lock();
+		if (!intersectEnabled[i])
+			continue;
 
-		vm.SetVariable("reverseIntersect", intersection->reverse);
-		vm.SetVariable("intersect", intersection->intersect);
+		revInt.push_back(intersectReversed[i]);
+		enabledIntCount++;
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, intersectionTextures[i]);
 	}
+	std::vector<int> texInds(enabledIntCount);
+	std::iota(texInds.begin(), texInds.end(), 0);
+
+	vm.SetVariable("interesectTex", texInds);
+	vm.SetVariable("interesectCount", enabledIntCount);
+	vm.SetVariable("reverseIntersect", revInt);
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
@@ -251,12 +251,14 @@ void SurfaceC0::onAdd(Scene& scene, std::shared_ptr<ISceneElement> elem)
 void SurfaceC0::onRemove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
 	if (elem.get() == this)
+	{
 		for (auto& p : points)
 		{
 			std::erase_if(p->po, [this](const std::weak_ptr<IOwner>& o) {
 				return o.lock().get() == this;
 				});
 		}
+	}
 }
 
 void SurfaceC0::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
@@ -284,6 +286,17 @@ bool SurfaceC0::RenderGui()
 		shouldReload = true;
 	}
 	ImGui::Checkbox("Show Chain", &showChain);
+
+	for (int i = 0; i < intersections.size(); i++)
+	{
+		bool reversed = intersectReversed[i];
+		bool enabled = intersectEnabled[i];
+		ImGui::Text(intersections[i].lock()->getName().c_str());
+		if (ImGui::Checkbox(("Enabled" + std::to_string(i)).c_str(), &enabled))
+			intersectEnabled[i] = enabled;
+		if (ImGui::Checkbox(("Reversed" + std::to_string(i)).c_str(), &reversed))
+			intersectReversed[i] = reversed;
+	}
 	ImGui::End();
 	return false;
 }
@@ -314,10 +327,18 @@ void SurfaceC0::Recalculate()
 
 void SurfaceC0::CreateControlPoints()
 {
-	for (auto& p : positions)
-	{
-		points.push_back(std::make_shared<Point>(p));
-	}
+	if (cylinder)
+		for (int h = 0; h < 1 + countY * 3; h++)
+		{
+			for (int a = 0; a < countX*3; a++)
+				points.push_back(std::make_shared<Point>(positions[h * (countX*3+1) + a]));
+			points.push_back(points[h * (countX*3 + 1)]);
+		}
+	else
+		for (auto& p : positions)
+		{
+			points.push_back(std::make_shared<Point>(p));
+		}
 	positions.clear();
 }
 
@@ -328,15 +349,12 @@ nlohmann::json SurfaceC0::Serialize(Scene& scene, Indexer& indexer, std::map<int
 		for (int j = 0; j < countX; j++)
 		{
 			std::vector<nlohmann::json> patchPoints;
-			int rowSize = cylinder ? countX * 3 : (countX * 3 + 1);
+			int rowSize = countX * 3 + 1;
 			int offset = 3 * i * rowSize + 3 * j;
 			for (int y = 0; y < 4; y++)
 				for (int x = 0; x < 4; x++)
 				{
-					if (3 * j + x == rowSize && cylinder)
-						patchPoints.push_back({ {"id", pointIndexMap.find(points[3 * i * rowSize + y * rowSize]->getId())->second } });
-					else
-						patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
+					patchPoints.push_back({ {"id",pointIndexMap.find(points[offset + y * rowSize + x]->getId())->second}});
 				}
 			patches.push_back({
 				{"objectType","bezierPatchC0"},
@@ -392,8 +410,8 @@ bool SurfaceC0::canBeDeleted() const
 
 glm::fvec3 SurfaceC0::f(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 	
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -416,8 +434,8 @@ glm::fvec3 SurfaceC0::f(float u, float v) const
 
 glm::fvec3 SurfaceC0::dfdu(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -446,8 +464,8 @@ glm::fvec3 SurfaceC0::dfdu(float u, float v) const
 
 glm::fvec3 SurfaceC0::dfdv(float u, float v) const
 {
-	int sx = floor(countX * u);
-	int sy = floor(countY * v);
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
 
 	float unitX = 1.0f / (float)countX;
 	float unitY = 1.0f / (float)countY;
@@ -496,6 +514,8 @@ void SurfaceC0::acceptIntersection(std::weak_ptr<Intersection> intersection)
 	if (this == intLock->s2.get())
 		intersectionTextures.push_back(intLock->uvS2Tex);
 
+	intersectEnabled.push_back(false);
+	intersectReversed.push_back(false);
 }
 
 void SurfaceC0::removeIntersection(std::weak_ptr<Intersection>intersection)

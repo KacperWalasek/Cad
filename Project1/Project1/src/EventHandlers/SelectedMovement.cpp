@@ -10,6 +10,8 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 {
 	if (action == GLFW_PRESS)
 	{
+		if (mode != None)
+			return;
 		switch (key)
 		{
 		case GLFW_KEY_G:
