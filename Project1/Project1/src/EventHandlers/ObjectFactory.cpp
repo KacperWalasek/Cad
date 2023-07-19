@@ -144,6 +144,11 @@ void ObjectFactory::CreateIntersection()
 		if (surfaces.size() == 2)
 		{
 			auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[1], cursor, scene.cursor->transform.location.xyz(), intersectionStep);
+			if (!intersection->valid)
+			{
+				std::cout << "invalid intersection" << std::endl;
+				return;
+			}
 			scene.Add(intersection);
 
 			surfaces[0]->acceptIntersection(intersection);
@@ -155,6 +160,11 @@ void ObjectFactory::CreateIntersection()
 	if (surfaces.size() == 1)
 	{
 		auto intersection = std::make_shared<Intersection>(surfaces[0], surfaces[0], cursor, scene.cursor->transform.location.xyz(), intersectionStep);
+		if (!intersection->valid)
+		{
+			std::cout << "invalid intersection" << std::endl;
+			return;
+		}
 		scene.Add(intersection);
 
 		surfaces[0]->acceptIntersection(intersection);
@@ -212,7 +222,7 @@ bool ObjectFactory::isHoleBlinded(Hole& hole)
 }
 
 ObjectFactory::ObjectFactory(Scene& scene)
-	: scene(scene), intersectionStep(1.0f), cursor(false)
+	: scene(scene), intersectionStep(0.01f), cursor(false)
 {
 }
 

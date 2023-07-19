@@ -25,7 +25,7 @@ class Intersection : public ISceneElement, public IRenderable, public IGui, publ
 	
 	glm::fvec4 wrap(glm::fvec4 x) const;
 	int pixelsInds(int x, int y);
-	float findMaxAlpha(glm::fvec4 x, glm::fvec4 dir);
+	float findMaxAlpha(glm::fvec4 x, glm::fvec4 dir, bool wrap = true);
 
 	float distSqr(glm::fvec4 x);
 	glm::fvec4 distGrad(glm::fvec4 x);
@@ -57,6 +57,7 @@ class Intersection : public ISceneElement, public IRenderable, public IGui, publ
 	BrokenLine sceneCurve, s1UVLine, s2UVLine;
 	std::vector<std::shared_ptr<ISceneElement>> toAdd;
 public:
+	bool valid;
 	std::shared_ptr<IUVSurface> s1, s2;
 	unsigned int uvS1Tex, uvS2Tex;
 

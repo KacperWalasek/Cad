@@ -142,7 +142,7 @@ SurfaceC0::SurfaceC0(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 
 	countX = json["size"]["x"];
 	countY = json["size"]["y"];
-	cylinder = false;// json["parameterWrapped"]["u"];
+	cylinder = json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
 	points = std::vector<std::shared_ptr<Point>>( (1 + 3 * countX) * (1 + 3 * countY));

@@ -1,6 +1,7 @@
 #include "CadApp.h"
 #include "UI/MainMenu.h"
 #include "EventHandlers/ClickSelection.h"
+#include "EventHandlers/RectSelection.h"
 #include "EventHandlers/ObjectFactory.h"
 #include "EventHandlers/Collapse.h"
 
@@ -30,7 +31,8 @@ CadApp::CadApp()
 	window.mouseCallbacks = {
 		cameraMovement,
 		scene->cursor,
-		std::make_shared<ClickSelection>(*scene,*camera) };
+		std::make_shared<ClickSelection>(*scene,*camera),
+		std::make_shared<RectSelection>(*scene,*camera) };
 
 	selectedMovement = std::make_shared<SelectedMovement>(*scene, *camera);
 	window.keyCallbacks = {

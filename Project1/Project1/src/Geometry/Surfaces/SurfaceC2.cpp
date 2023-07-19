@@ -111,7 +111,7 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 		name = "SurfaceC2-" + std::to_string(indexer.getNewIndex());
 	countX = json["size"]["x"];
 	countY = json["size"]["y"];
-	cylinder = false; // json["parameterWrapped"]["u"];
+	cylinder = json["parameterWrapped"]["u"];
 
 	std::vector<nlohmann::json> patches = json["patches"];
 	points = std::vector<std::shared_ptr<Point>>((3 + countX) * (3 + countY));

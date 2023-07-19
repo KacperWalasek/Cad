@@ -5,21 +5,28 @@ Indexer Intersection::indexer;
 
 Intersection::Intersection(std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSurface> s2, bool cursor, glm::fvec3 cursorPos, float step)
 	: s1(s1), s2(s2), name("Intersection-" + std::to_string(indexer.getNewIndex())),
-	uvShader("Shaders/2dShader.vert", "Shaders/fragmentShader.frag"), step(step)
+	uvShader("Shaders/2dShader.vert", "Shaders/fragmentShader.frag"), step(step), valid(true)
 {
 	uvShader.Init();
 	initTextures();
 
-	glm::fvec4 beginPoint = cursor ? closestToCursor(cursorPos, 10) : bestSample(10);
+	glm::fvec4 beginPoint = cursor ? closestToCursor(cursorPos, 10) : bestSample(15);
 	glm::fvec4 p = findIntersectionPoint(beginPoint);
 	if (s1.get() == s2.get() && p.x == p.z && p.y == p.w)
+	{
+		valid = false;
+	}
+	if (!valid)
 		return;
 	extendIntersection(p);
 
+	GLint m_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, m_viewport);
+	
 	glViewport(0, 0, 512, 512);
 	renderUVTexture(s1, uvS1Fb, uvS1Tex, s1UVLine);
 	renderUVTexture(s2, uvS2Fb, uvS2Tex, s2UVLine);
-	glViewport(0, 0, 1600, 900);
+	glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
 }
 
 glm::fvec4 Intersection::wrap(glm::fvec4 x) const
@@ -65,7 +72,7 @@ glm::fvec4 Intersection::cursorGrad(glm::fvec4 x, glm::fvec3 cursorPosition)
 }
 glm::fvec4 Intersection::closestToCursor(glm::fvec3 cursorPosition, int division)
 {
-	glm::fvec4 prevX = { 2.0f,2.0f,2.0f,2.0f};
+	glm::fvec4 prevX(2.0f);
 	glm::fvec4 x = bestSampleCursor(cursorPosition, division);
 	
 	
@@ -87,6 +94,8 @@ glm::fvec4 Intersection::closestToCursor(glm::fvec3 cursorPosition, int division
 }
 glm::fvec4 Intersection::bestSampleCursor(glm::fvec3 cursorPosition, int division)
 {
+	bool selfCross = s1.get() == s2.get();
+
 	glm::fvec4 bestX = { 0, 0, 0, 0 };
 	float bestV = cursorDist(bestX,cursorPosition);
 
@@ -107,7 +116,7 @@ glm::fvec4 Intersection::bestSampleCursor(glm::fvec3 cursorPosition, int divisio
 			}
 		}
 
-	if (bestX.xy() == bestX.wz())
+	if (selfCross && bestX.xy() == bestX.wz())
 	{
 		bestX.z = 1;
 		bestV = cursorDist(bestX, cursorPosition);
@@ -122,8 +131,15 @@ glm::fvec4 Intersection::bestSampleCursor(glm::fvec3 cursorPosition, int divisio
 				v / (float)(division - 1),
 			};
 
-			if (s1.get() == s2.get() && x.x == x.z && x.y == x.w)
-				continue;
+			if (selfCross)
+			{
+				glm::fvec4 grad = distGrad(x);
+				float reverse = (s1->wrappedU() && glm::abs(x.x - x.z) > 0.5f) || (s1->wrappedV() && glm::abs(x.y - x.w) > 0.5f) ? -1 : 1;
+				if ((x.x == x.z && x.y == x.w) ||
+					(glm::dot(-grad.xy(), x.zw() - x.xy()) * reverse > 0) ||
+					(glm::dot(-grad.zw(), x.xy() - x.zw()) * reverse > 0))
+					continue;
+			}
 
 			float val = cursorDist(x, cursorPosition);
 
@@ -138,38 +154,45 @@ glm::fvec4 Intersection::bestSampleCursor(glm::fvec3 cursorPosition, int divisio
 
 glm::fvec4 Intersection::bestSample(int division)
 {
+	bool selfCross = s1.get() == s2.get();
+
 	glm::fvec4 bestX = {0,0,0.1f,0.1f};
 	float bestV = distSqr(bestX);
 
-	float valB = bestV;
-	if (s1.get() == s2.get())
-		bestV /= powf(glm::dot(bestX.xy() - bestX.zw(), bestX.xy() - bestX.zw()),2);
-	float valC = bestV;
+	float maxU = (selfCross && s1->wrappedU()) ? division - 1 : division;
+	float maxV = (selfCross && s1->wrappedV()) ? division - 1 : division;
 
-	for(int s1u = 0; s1u < division; s1u++)
-		for (int s1v = 0; s1v < division; s1v++)
-			for (int s2u = 0; s2u < division; s2u++)
-				for (int s2v = 0; s2v < division; s2v++)
+	for(int s1u = 0; s1u < maxU; s1u++)
+		for (int s1v = 0; s1v < maxV; s1v++)
+			for (int s2u = 0; s2u < maxU; s2u++)
+				for (int s2v = 0; s2v < maxV; s2v++)
 				{
 					glm::fvec4 x = { s1u,s1v,s2u,s2v };
 					x /= (float)(division-1);
 
 					float val = distSqr(x);
-					if (s1.get() == s2.get())
-						val /= powf(glm::dot(x.xy() - x.zw(), x.xy() - x.zw()),2);
+
+					if(selfCross)
+					{
+						glm::fvec4 grad = distGrad(x);
+						float reverse = (s1->wrappedU() && glm::abs(x.x - x.z) > 0.5f) || (s1->wrappedV() && glm::abs(x.y - x.w) > 0.5f) ? -1 : 1;
+						if ((s1u == s2u && s1v == s2v) ||
+							(glm::dot(-grad.xy(), x.zw() - x.xy()) * reverse > 0) ||
+							(glm::dot(-grad.zw(), x.xy() - x.zw()) * reverse > 0))
+							continue;
+					}
 
 					if (val < bestV)
 					{
-						valB = distSqr(x);
-						valC = glm::dot(x.xy() - x.zw(), x.xy() - x.zw());
 						bestV = val;
 						bestX = x;
 					}
 				}
+
 	return bestX;
 }
 
-float Intersection::findMaxAlpha(glm::fvec4 x, glm::fvec4 dir)
+float Intersection::findMaxAlpha(glm::fvec4 x, glm::fvec4 dir, bool wrap)
 {
 	auto maxACond1 = (glm::fvec4(1.0f) - x) / dir;
 	auto maxACond2 = -x / dir;
@@ -182,7 +205,7 @@ float Intersection::findMaxAlpha(glm::fvec4 x, glm::fvec4 dir)
 
 	float maxA = maxAlpha;
 	for (int i = 0; i < 8; i++)
-		if (max[i] > 0 && maxA > max[i] && !wrapped[i % 4])
+		if (max[i] >= 0 && maxA > max[i] && (!wrap || !wrapped[i % 4]))
 			maxA = max[i];
 
 	return maxA;
@@ -248,14 +271,6 @@ void Intersection::floodFill(std::vector<GLbyte>& pixels, glm::ivec2 size, glm::
 glm::fvec4 Intersection::findIntersectionPoint(glm::fvec4 beginPoint)
 {
 	glm::fvec4 x = beginPoint;
-	debugVec.push_back(std::make_unique<SceneVector>(
-		s1->f(x.x, x.y),
-		s1->f(x.x, x.y) + glm::fvec3(0, 1, 0),
-		glm::fvec4(1, 1, 0, 1)));
-	debugVec.push_back(std::make_unique<SceneVector>(
-			s2->f(x.z, x.w),
-			s2->f(x.z, x.w) + glm::fvec3(0, 1, 0),
-			glm::fvec4(1, 1, 0, 1)));
 
 	int it = 0;
 	float val = 1;
@@ -263,6 +278,11 @@ glm::fvec4 Intersection::findIntersectionPoint(glm::fvec4 beginPoint)
 	auto d = -prevGrad;
 	while (fabsf(val)>eps )
 	{
+		if (it > 10000)
+		{
+			valid = false;
+			return glm::fvec4(0);
+		}
 		it++;
 		float alpha = findAlpha(x, d,
 			[this](glm::fvec4 x) {return distSqr(x); },
@@ -282,6 +302,8 @@ glm::fvec4 Intersection::findIntersectionPoint(glm::fvec4 beginPoint)
 float Intersection::findAlphaRange(glm::fvec4 x, glm::fvec4 d, std::function<float(glm::fvec4)> val)
 {
 	float maxA = findMaxAlpha(x,d);
+	if (maxA == 0)
+		return 0;
 	float delta = maxA / 100.0f;
 	float a2 = delta;
 	
@@ -338,6 +360,8 @@ std::tuple<std::vector<glm::fvec4>, bool> Intersection::findIntersectionPointsIn
 
 		glm::fvec3 n1 = glm::cross(dfu, dfv);
 		glm::fvec3 n2 = glm::cross(dgu, dgv);
+		if (glm::all(glm::lessThan(glm::abs(glm::normalize(n1) - glm::normalize(n2)), glm::fvec3(eps))))
+			return { p, false };
 		glm::fvec3 d = dirSgn * normalize(glm::cross(n1, n2));
 
 		xPrev = x;
@@ -365,7 +389,18 @@ std::tuple<std::vector<glm::fvec4>, bool> Intersection::findIntersectionPointsIn
 		p.push_back(x);
 	} while (glm::length(begin - s1->f(x.x,x.y)) > step / 2.0f);
 
-	p.push_back(p[0]);
+	glm::fvec4 loopDir = p[0] - x;
+	if(glm::length(loopDir) < 0.5)
+		p.push_back(p[0]);
+	else
+	{
+		float a = findMaxAlpha(x, -loopDir, false);
+		p.push_back(x - a * loopDir);
+		
+		a = findMaxAlpha(p[0], loopDir, false);
+		p.insert(p.begin(), p[0] + a * loopDir);
+		
+	}
 	return { p, true };
 }
 
