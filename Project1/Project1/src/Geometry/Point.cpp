@@ -105,6 +105,17 @@ bool Point::canBeDeleted() const
 	return true;
 }
 
+bool Point::canBeMoved() const
+{
+	for (auto& o : po)
+	{
+		if (!o.lock()->CanChildBeMoved())
+			return false;
+	}
+	return true;
+}
+
+
 nlohmann::json Point::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
 {
 	int jsonId = indexer.getNewIndex();

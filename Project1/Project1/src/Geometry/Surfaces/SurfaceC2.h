@@ -31,6 +31,7 @@ class SurfaceC2 : public ISceneElement, public IRenderable, public ISceneTracker
 	bool showChain;
 
 	bool shouldReload;
+	bool mirrorU = false, mirrorV = false, anchor = false;
 
 	std::vector<std::weak_ptr<Intersection>> intersections;
 	std::vector<unsigned int> intersectionTextures;
@@ -88,4 +89,7 @@ public:
 	// Inherited via IUVSurface
 	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) override;
 	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) override;
+
+	// Inherited via IOwner
+	virtual bool CanChildBeMoved() const override;
 };

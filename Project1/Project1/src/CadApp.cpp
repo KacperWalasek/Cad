@@ -4,6 +4,7 @@
 #include "EventHandlers/RectSelection.h"
 #include "EventHandlers/ObjectFactory.h"
 #include "EventHandlers/Collapse.h"
+#include "EventHandlers/CameraMainPositions.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -38,7 +39,8 @@ CadApp::CadApp()
 	window.keyCallbacks = {
 		selectedMovement,
 		factory,
-		std::make_shared<Collapse>(*scene)
+		std::make_shared<Collapse>(*scene),
+		std::make_shared<CameraMainPositions>(*camera)
 	};
 }
 

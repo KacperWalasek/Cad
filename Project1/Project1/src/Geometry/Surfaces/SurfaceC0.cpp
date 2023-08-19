@@ -529,3 +529,13 @@ void SurfaceC0::removeIntersection(std::weak_ptr<Intersection>intersection)
 		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
 		});
 }
+
+bool SurfaceC0::CanChildBeMoved() const
+{
+	return true;
+}
+
+bool SurfaceC0::canBeMoved() const
+{
+	return true;
+}

@@ -7,4 +7,5 @@ class IOwner
 public:
 	virtual void SelectAll(Scene& scene) const = 0;
 	virtual bool CanChildBeDeleted() const = 0;
+	virtual bool CanChildBeMoved() const = 0;
 };

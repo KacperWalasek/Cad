@@ -402,3 +402,8 @@ void GregoryPatch::onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>&
                     }
         }
 }
+
+bool GregoryPatch::CanChildBeMoved() const
+{
+    return true;
+}

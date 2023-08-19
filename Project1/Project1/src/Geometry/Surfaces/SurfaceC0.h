@@ -96,4 +96,10 @@ public:
 	// Inherited via IUVSurface
 	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) override;
 	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) override;
+
+	// Inherited via IOwner
+	virtual bool CanChildBeMoved() const override;
+
+	// Inherited via ISelfControl
+	virtual bool canBeMoved() const override;
 };

@@ -49,4 +49,7 @@ public:
 
 	// Inherited via ISerializable
 	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
+
+	// Inherited via ISelfControl
+	virtual bool canBeMoved() const override;
 };

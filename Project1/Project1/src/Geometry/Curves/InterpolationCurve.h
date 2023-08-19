@@ -63,4 +63,8 @@ public:
 
 	virtual bool CanChildBeDeleted() const override;
 
+
+	// Inherited via IOwner
+	virtual bool CanChildBeMoved() const override;
+
 };

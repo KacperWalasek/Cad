@@ -74,4 +74,7 @@ public:
 	virtual void onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 	virtual void onMove(Scene& scene, std::shared_ptr<ISceneElement> elem) override;
 	virtual void onCollapse(Scene& scene, std::vector<std::shared_ptr<Point>>& collapsed, std::shared_ptr<Point> result) override;
+
+	// Inherited via IOwner
+	virtual bool CanChildBeMoved() const override;
 };

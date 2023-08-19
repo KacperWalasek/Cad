@@ -1,6 +1,7 @@
 #include "SurfaceC2.h"
 #include "../Curves/CurveC2.h"
 #include <array>
+#include <numbers>
 
 Indexer SurfaceC2::indexer;
 
@@ -62,16 +63,18 @@ void SurfaceC2::CreatePointsFlat()
 
 void SurfaceC2::CreatePointsCylinder()
 {
+	constexpr float pi = std::numbers::pi_v<float>;
+
 	float distY = sizeY / (countY * 1);
 	glm::fvec4 middle(0, 0, sizeY / 2.0f + distY, 0);
 
-	float da = 2 * 3.14 / countX;
+	float da = 2 * pi / countX;
 	float R = sizeX * (3-cosf(da)) / 2.0f;
 
 	for(int h = 0; h < countY + 3; h++)
 		for (int a = 0; a < countX + 3; a++)
 		{
-			float angle1 = 2 * 3.14 * a / countX;
+			float angle1 = 2 * pi * a / countX - pi/2.0f;
 			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
 
 		}
@@ -202,6 +205,8 @@ void SurfaceC2::Render(bool selected, VariableManager& vm)
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
+	if(anchor)
+		vm.SetVariable("color", glm::fvec4(0.3f, 0.3f, 0.3f, 1.0f));
 
 	vm.SetVariable("reverse", false);
 	vm.Apply(tessShader.ID);
@@ -246,8 +251,38 @@ void SurfaceC2::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 void SurfaceC2::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	if (std::find(points.begin(), points.end(), elem) != points.end())
+	int pointIndex = -1;
+	for (int i = 0; i < points.size(); i++)
+	{
+		if (points[i] == elem)
+		{
+			pointIndex = i;
+			break;
+		}
+	}
+	if (pointIndex != -1)
+	{
 		shouldReload = true;
+		if (mirrorU)
+		{
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int mirroredIndex = pointIndex - countInRow + ((cylinder ? countX : rowsize) - countInRow);
+			auto movedPoint = std::dynamic_pointer_cast<Point>(elem);
+			points[mirroredIndex]->getTransform().location = movedPoint->getTransform().location * glm::fvec4(-1,1,1,1);
+		}
+		if (mirrorV)
+		{
+			int rowCount = countY + 3;
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int rowNumber = floorf(pointIndex / rowsize);
+			int mirroredIndex = (rowCount - rowNumber - 1) * rowsize + countInRow;
+			auto movedPoint = std::dynamic_pointer_cast<Point>(elem);
+			points[mirroredIndex]->getTransform().location = movedPoint->getTransform().location * glm::fvec4(1, 1, -1, 1);
+		}
+	}
+
 }
 
 bool SurfaceC2::CanChildBeDeleted() const
@@ -276,6 +311,10 @@ bool SurfaceC2::RenderGui()
 		if (ImGui::Checkbox(("Reversed"+ std::to_string(i)).c_str(), &reversed))
 			intersectReversed[i] = reversed;
 	}
+
+	ImGui::Checkbox("Mirror U", &mirrorU);
+	ImGui::Checkbox("Mirror V", &mirrorV);
+	ImGui::Checkbox("Anchor", &anchor);
 
 	ImGui::End();
 	return false;
@@ -503,4 +542,9 @@ void SurfaceC2::removeIntersection(std::weak_ptr<Intersection> intersection)
 	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) {
 		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
 		});
+}
+
+bool SurfaceC2::CanChildBeMoved() const
+{
+	return !anchor;
 }

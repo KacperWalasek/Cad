@@ -251,3 +251,8 @@ bool InterpolationCurve::CanChildBeDeleted() const
 {
 	return true;
 }
+
+bool InterpolationCurve::CanChildBeMoved() const
+{
+	return true;
+}

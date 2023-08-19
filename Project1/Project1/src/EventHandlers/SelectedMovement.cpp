@@ -2,6 +2,7 @@
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
 #include "../interfaces/ICustomMove.h"
+#include "../interfaces/ISelfControl.h"
 
 SelectedMovement::SelectedMovement(Scene& scene, Camera& camera)
 	:scene(scene), camera(camera), mode(None)
@@ -10,6 +11,44 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 {
 	if (action == GLFW_PRESS)
 	{
+		switch (key)
+		{
+		case GLFW_KEY_X:
+			if (mode != None)
+			{
+				xOnly = !xOnly;
+				yOnly = false;
+				zOnly = false;
+			}
+			break;
+		case GLFW_KEY_Y:
+			if (mode != None)
+			{
+				xOnly = false;
+				yOnly = !yOnly;
+				zOnly = false;
+			}
+			break;
+		case GLFW_KEY_Z:
+			if (mode != None)
+			{
+				xOnly = false;
+				yOnly = false;
+				zOnly = !zOnly;
+			}
+			break;
+		case GLFW_KEY_Q:
+			if (mode != None)
+			{
+				for (int i = 0; i < stableTransforms.size(); i++)
+				{
+					auto objTransformable = std::dynamic_pointer_cast<ITransformable>(stableTransforms[i].first);
+					objTransformable->getTransform() = stableTransforms[i].second;
+				}
+				mode = None;
+			}
+			break;
+		}
 		if (mode != None)
 			return;
 		switch (key)
@@ -26,6 +65,13 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		default:
 			return;
 		}
+
+		if (key == GLFW_KEY_G || key == GLFW_KEY_R || key == GLFW_KEY_S)
+		{
+			xOnly = false;
+			yOnly = false;
+			zOnly = false;
+		}
 		
 		glm::dvec2 initPosDouble;
 		glfwGetCursorPos(window, &initPosDouble.x, &initPosDouble.y);
@@ -35,6 +81,10 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		for (auto& el : scene.objects)
 			if(el.second)
 			{
+				auto objSelfControl = std::dynamic_pointer_cast<ISelfControl>(el.first);
+				if (objSelfControl && !objSelfControl->canBeMoved())
+					continue;
+
 				auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
 				if (objTransformable)
 					stableTransforms.push_back({ el.first,objTransformable->getTransform() });
@@ -90,7 +140,6 @@ void SelectedMovement::Update(GLFWwindow* window)
 		}
 	if (forceFinish)
 		return;
-	auto translateVec = camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f);
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
 
@@ -104,6 +153,22 @@ void SelectedMovement::Update(GLFWwindow* window)
 		case SelectedMovement::None:
 			break;
 		case SelectedMovement::Translation:
+			auto translateVec = camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f);
+			if (xOnly)
+			{
+				translateVec.y = 0;
+				translateVec.z = 0;
+			}
+			if (yOnly)
+			{
+				translateVec.x = 0;
+				translateVec.z = 0;
+			}
+			if (zOnly)
+			{
+				translateVec.x = 0;
+				translateVec.y = 0;
+			}
 			selectedTransform.location = stableTransform.location + translateVec;
 			scene.center.UpdateTransform(scene.objects);
 			break;
@@ -156,6 +221,22 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fvec4 newPointView = selectionCenterView + scale * (modelCenterView - selectionCenterView);
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
+
+			if (xOnly)
+			{
+				newPointWorld.y = selectedTransform.location.y;
+				newPointWorld.z = selectedTransform.location.z;
+			}
+			if (yOnly)
+			{
+				newPointWorld.x = selectedTransform.location.x;
+				newPointWorld.z = selectedTransform.location.z;
+			}
+			if (zOnly)
+			{
+				newPointWorld.x = selectedTransform.location.x;
+				newPointWorld.y = selectedTransform.location.y;
+			}
 			selectedTransform.location = newPointWorld - glm::fvec4(0, 0, 0, 1);
 
 			break;
