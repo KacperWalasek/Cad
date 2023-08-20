@@ -49,11 +49,6 @@ std::string Point::getName() const
 	return name;
 }
 
-Transform& Point::getTransform()
-{
-	return transform;
-}
-
 const Transform& Point::getTransform() const
 {
 	return transform;
@@ -113,6 +108,32 @@ bool Point::canBeMoved() const
 			return false;
 	}
 	return true;
+}
+
+const void Point::setTransform(const Transform& transform)
+{
+	setLocation(transform.location);
+	setRotation(transform.rotation);
+	setScale(transform.scale);
+}
+
+const void Point::setLocation(const glm::fvec3& location)
+{
+	glm::fvec4 beforeMove = transform.location;
+	transform.location = { location, 0 };
+	if (glm::abs(location.x - beforeMove.x) + glm::abs(location.y - beforeMove.y) + glm::abs(location.z - beforeMove.z) > 0.000001f)
+		for (auto& owner : po)
+			owner.lock()->ChildMoved(*this);
+}
+
+const void Point::setRotation(const glm::fvec3& rotation)
+{
+	transform.rotation = { rotation, 0 };
+}
+
+const void Point::setScale(const glm::fvec3& scale)
+{
+	transform.location = { scale, 0 };
 }
 
 

@@ -42,8 +42,6 @@ public:
 
 	virtual bool RenderGui() override;
 
-	virtual Transform& getTransform() override;
-
 	virtual void Render(bool selected, VariableManager& vm) override;
 
 	virtual nlohmann::json Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const override;
@@ -67,5 +65,19 @@ public:
 	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) override;
 
 	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) override;
+
+
+	// Inherited via ITransformable
+	virtual const Transform& getTransform() const override;
+
+	virtual const void setTransform(const Transform& transform) override;
+
+
+	// Inherited via ITransformable
+	virtual const void setLocation(const glm::fvec3& location) override;
+
+	virtual const void setRotation(const glm::fvec3& rotation) override;
+
+	virtual const void setScale(const glm::fvec3& scale) override;
 
 };

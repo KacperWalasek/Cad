@@ -251,37 +251,6 @@ void SurfaceC2::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 void SurfaceC2::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	int pointIndex = -1;
-	for (int i = 0; i < points.size(); i++)
-	{
-		if (points[i] == elem)
-		{
-			pointIndex = i;
-			break;
-		}
-	}
-	if (pointIndex != -1)
-	{
-		shouldReload = true;
-		if (mirrorU)
-		{
-			int rowsize = countX + 3;
-			int countInRow = pointIndex % rowsize;
-			int mirroredIndex = pointIndex - countInRow + ((cylinder ? countX : rowsize) - countInRow);
-			auto movedPoint = std::dynamic_pointer_cast<Point>(elem);
-			points[mirroredIndex]->getTransform().location = movedPoint->getTransform().location * glm::fvec4(-1,1,1,1);
-		}
-		if (mirrorV)
-		{
-			int rowCount = countY + 3;
-			int rowsize = countX + 3;
-			int countInRow = pointIndex % rowsize;
-			int rowNumber = floorf(pointIndex / rowsize);
-			int mirroredIndex = (rowCount - rowNumber - 1) * rowsize + countInRow;
-			auto movedPoint = std::dynamic_pointer_cast<Point>(elem);
-			points[mirroredIndex]->getTransform().location = movedPoint->getTransform().location * glm::fvec4(1, 1, -1, 1);
-		}
-	}
 
 }
 
@@ -547,4 +516,43 @@ void SurfaceC2::removeIntersection(std::weak_ptr<Intersection> intersection)
 bool SurfaceC2::CanChildBeMoved() const
 {
 	return !anchor;
+}
+
+void SurfaceC2::ChildMoved(ISceneElement& child)
+{
+	int pointIndex = -1;
+	for (int i = 0; i < points.size(); i++)
+	{
+		if (points[i].get() == &child)
+		{
+			pointIndex = i;
+			break;
+		}
+	}
+	if (pointIndex != -1)
+	{
+		shouldReload = true;
+		if (mirrorU)
+		{
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int mirroredIndex = pointIndex - countInRow + ((cylinder ? countX : rowsize) - countInRow);
+			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
+			if (points[mirroredIndex] == points[pointIndex])
+				return;
+			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * glm::fvec4(-1, 1, 1, 1));
+		}
+		if (mirrorV)
+		{
+			int rowCount = countY + 3;
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int rowNumber = floorf(pointIndex / rowsize);
+			int mirroredIndex = (rowCount - rowNumber - 1) * rowsize + countInRow;
+			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
+			if (points[mirroredIndex] == points[pointIndex])
+				return;
+			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * glm::fvec4(1, 1, -1, 1));
+		}
+	}
 }

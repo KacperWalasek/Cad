@@ -34,8 +34,7 @@ public:
 	Point(nlohmann::json json);
 	Point(glm::fvec4 position);
 	virtual std::string getName() const override;
-	virtual Transform& getTransform() override;
-	const Transform& getTransform() const;
+	virtual const Transform& getTransform() const override;
 
 	virtual void Render(bool selected, VariableManager& vm) override;
 
@@ -52,4 +51,12 @@ public:
 
 	// Inherited via ISelfControl
 	virtual bool canBeMoved() const override;
+
+	// Inherited via ITransformable
+	virtual const void setTransform(const Transform& transform) override;
+
+	// Inherited via ITransformable
+	virtual const void setLocation(const glm::fvec3& location) override;
+	virtual const void setRotation(const glm::fvec3& rotation) override;
+	virtual const void setScale(const glm::fvec3& scale) override;
 };

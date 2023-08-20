@@ -374,17 +374,17 @@ bool CurveC2::Translate(glm::fvec4 translation)
 	if (selectedBezier < 0)
 		return false;
 	glm::fvec4 oldLoc = bezierPoints[selectedBezier].getTransform().location;
-	bezierPoints[selectedBezier].getTransform().location = movementStartPosition + translation;
+	bezierPoints[selectedBezier].setLocation(movementStartPosition + translation);
 	glm::fvec4 dif = bezierPoints[selectedBezier].getTransform().location- oldLoc;
 	int leftInd = floor(selectedBezier / 3) + 1;
 	int rightInd = leftInd + 1;
 	switch (selectedBezier % 3)
 	{
 	case 0:
-		points[leftInd]->getTransform().location += 2.0f*dif;
+		points[leftInd]->setLocation(points[leftInd]->getTransform().location + 2.0f*dif);
 
-		points[leftInd-1]->getTransform().location -= dif;
-		points[rightInd]->getTransform().location -= dif;
+		points[leftInd - 1]->setLocation(points[leftInd - 1]->getTransform().location - dif);
+		points[rightInd]->setLocation(points[rightInd]->getTransform().location - dif);
 		break;
 	case 1:
 		{
@@ -392,12 +392,11 @@ bool CurveC2::Translate(glm::fvec4 translation)
 			glm::fvec4 currPos = movementStartPosition + translation;
 			glm::fvec4 nextPos = bezierPoints[selectedBezier + 1].getTransform().location;
 			glm::fvec4 leftDeboor = 2.0f * currPos - nextPos;
-			points[leftInd]->getTransform().location = leftDeboor;
-			points[rightInd]->getTransform().location = 2.0f * nextPos - currPos;
+			points[leftInd]->setLocation(leftDeboor);
+			points[rightInd]->setLocation(2.0f * nextPos - currPos);
 			
 			glm::fvec4 prevprevPos = 2.0f * prevPos - currPos;
-			points[leftInd - 1]->getTransform().location = prevprevPos - 2.0f * (leftDeboor - prevprevPos);
-			
+			points[leftInd - 1]->setLocation(prevprevPos - 2.0f * (leftDeboor - prevprevPos));
 		}
 		break;
 	case 2:
@@ -406,11 +405,11 @@ bool CurveC2::Translate(glm::fvec4 translation)
 			glm::fvec4 currPos = movementStartPosition + translation;
 			glm::fvec4 nextPos = bezierPoints[selectedBezier + 1].getTransform().location;
 			glm::fvec4 rightDeboor = 2.0f * currPos - prevPos;
-			points[leftInd]->getTransform().location = 2.0f * prevPos - currPos;
-			points[rightInd]->getTransform().location = rightDeboor;
+			points[leftInd]->setLocation(2.0f * prevPos - currPos);
+			points[rightInd]->setLocation(rightDeboor);
 			
 			glm::fvec4 nextnextPos = 2.0f * nextPos - currPos;
-			points[rightInd + 1]->getTransform().location = nextnextPos + 2.0f * (nextnextPos - rightDeboor);
+			points[rightInd + 1]->setLocation(nextnextPos + 2.0f * (nextnextPos - rightDeboor));
 		}
 		break;
 	}

@@ -102,4 +102,7 @@ public:
 
 	// Inherited via ISelfControl
 	virtual bool canBeMoved() const override;
+
+	// Inherited via IOwner
+	virtual void ChildMoved(ISceneElement& child) override;
 };

@@ -19,7 +19,7 @@ void Scene::Add(std::shared_ptr<ISceneElement> obj, bool cursorPosition)
 	{
 		auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj);
 		if (objTransformable)
-			objTransformable->getTransform().location = cursor->transform.location;
+			objTransformable->setLocation(cursor->transform.location);
 	}
 	objects.push_back({ obj,false });
 	for (auto& tracker : trackers)

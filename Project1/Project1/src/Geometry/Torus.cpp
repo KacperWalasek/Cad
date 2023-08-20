@@ -130,11 +130,6 @@ bool Torus::RenderGui()
 	return false;
 }
 
-Transform& Torus::getTransform()
-{
-	return transform;
-}
-
 void Torus::Render(bool selected, VariableManager& vm)
 {
 	shader.use();
@@ -253,4 +248,31 @@ void Torus::removeIntersection(std::weak_ptr<Intersection> intersection)
 	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) { 
 		return i == intLock->uvS1Tex || i == intLock->uvS2Tex; 
 	});
+}
+
+const Transform& Torus::getTransform() const
+{
+	return transform;
+}
+
+const void Torus::setTransform(const Transform& transform)
+{
+	setLocation(transform.location);
+	setRotation(transform.rotation);
+	setScale(transform.scale);
+}
+
+const void Torus::setLocation(const glm::fvec3& location)
+{
+	transform.location = { location, 0 };
+}
+
+const void Torus::setRotation(const glm::fvec3& rotation)
+{
+	transform.rotation = { rotation, 0 };
+}
+
+const void Torus::setScale(const glm::fvec3& scale)
+{
+	transform.location = { scale, 0 };
 }

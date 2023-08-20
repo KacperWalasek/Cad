@@ -407,3 +407,9 @@ bool GregoryPatch::CanChildBeMoved() const
 {
     return true;
 }
+
+void GregoryPatch::ChildMoved(ISceneElement& child)
+{
+    // TODO[3] - move reloading from onMoved to here
+    shouldReload = true; // not used for now (onMove takes care of reload) 
+}

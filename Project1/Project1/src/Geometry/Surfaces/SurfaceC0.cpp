@@ -267,8 +267,6 @@ void SurfaceC0::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 void SurfaceC0::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	if (std::find(points.begin(), points.end(), elem) != points.end())
-		shouldReload = true;
 }
 
 bool SurfaceC0::CanChildBeDeleted() const
@@ -538,4 +536,9 @@ bool SurfaceC0::CanChildBeMoved() const
 bool SurfaceC0::canBeMoved() const
 {
 	return true;
+}
+
+void SurfaceC0::ChildMoved(ISceneElement& child)
+{
+	shouldReload = true;
 }

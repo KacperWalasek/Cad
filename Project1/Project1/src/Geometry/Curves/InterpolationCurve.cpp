@@ -207,8 +207,6 @@ void InterpolationCurve::onSelect(Scene& scene, std::shared_ptr<ISceneElement> e
 
 void InterpolationCurve::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	if (std::find(points.begin(), points.end(), elem) != points.end())
-		UpdateMeshes();
 }
 
 nlohmann::json InterpolationCurve::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
@@ -255,4 +253,9 @@ bool InterpolationCurve::CanChildBeDeleted() const
 bool InterpolationCurve::CanChildBeMoved() const
 {
 	return true;
+}
+
+void InterpolationCurve::ChildMoved(ISceneElement& child)
+{
+	UpdateMeshes();
 }
