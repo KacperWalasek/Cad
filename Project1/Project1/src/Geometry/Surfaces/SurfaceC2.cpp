@@ -66,7 +66,13 @@ void SurfaceC2::CreatePointsCylinder()
 	constexpr float pi = std::numbers::pi_v<float>;
 
 	float distY = sizeY / (countY * 1);
-	glm::fvec4 middle(0, 0, sizeY / 2.0f + distY, 0);
+	glm::fvec4 middle;
+	if (mainDirection == 0)
+		middle = { 0, 0, sizeY / 2.0f + distY, 0 };
+	else if (mainDirection == 1)
+		middle = { 0, sizeY / 2.0f + distY, 0, 0 };
+	else 
+		middle = { sizeY / 2.0f + distY, 0, 0, 0 };
 
 	float da = 2 * pi / countX;
 	float R = sizeX * (3-cosf(da)) / 2.0f;
@@ -75,7 +81,12 @@ void SurfaceC2::CreatePointsCylinder()
 		for (int a = 0; a < countX + 3; a++)
 		{
 			float angle1 = 2 * pi * a / countX - pi/2.0f;
-			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
+			if (mainDirection == 0)
+				positions.push_back(pos - middle + glm::fvec4(R * cosf(angle1), R * sinf(angle1), h * distY, 0.0f));
+			else if (mainDirection == 1)
+				positions.push_back(pos - middle + glm::fvec4(R * cosf(angle1), h * distY, R * sinf(angle1), 0.0f));
+			else
+				positions.push_back(pos - middle + glm::fvec4(h * distY, R * sinf(angle1), R * cosf(angle1), 0.0f));
 
 		}
 }
@@ -540,7 +551,14 @@ void SurfaceC2::ChildMoved(ISceneElement& child)
 			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
 			if (points[mirroredIndex] == points[pointIndex])
 				return;
-			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * glm::fvec4(-1, 1, 1, 1));
+			glm::fvec4 dirVec;
+			if (mainDirection == 0)
+				dirVec = { -1, 1, 1, 1 };
+			else if (mainDirection == 1)
+				dirVec = { -1, 1, 1, 1 };
+			else
+				dirVec = { 1, 1, -1, 1 };
+			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * dirVec);
 		}
 		if (mirrorV)
 		{
@@ -552,7 +570,14 @@ void SurfaceC2::ChildMoved(ISceneElement& child)
 			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
 			if (points[mirroredIndex] == points[pointIndex])
 				return;
-			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * glm::fvec4(1, 1, -1, 1));
+			glm::fvec4 dirVec;
+			if (mainDirection == 0)
+				dirVec = { 1, 1, -1, 1 };
+			else if (mainDirection == 1)
+				dirVec = { 1, -1, 1, 1 };
+			else
+				dirVec = { -1, 1, 1, 1 };
+			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * dirVec);
 		}
 	}
 }

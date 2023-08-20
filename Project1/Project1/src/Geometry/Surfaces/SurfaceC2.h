@@ -44,6 +44,7 @@ public:
 	float sizeX, sizeY;
 	int countX, countY;
 	bool cylinder;
+	int mainDirection = 0;
 
 	std::vector<std::shared_ptr<Point>> points;
 
