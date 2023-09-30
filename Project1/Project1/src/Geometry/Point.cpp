@@ -32,6 +32,8 @@ Point::Point()
 Point::Point(nlohmann::json json)
 	:Point()
 {
+	if (json.contains("name"))
+		name = json["name"];
 	transform.location.x = json["position"]["x"];
 	transform.location.y = json["position"]["y"];
 	transform.location.z = json["position"]["z"];
@@ -133,7 +135,7 @@ const void Point::setRotation(const glm::fvec3& rotation)
 
 const void Point::setScale(const glm::fvec3& scale)
 {
-	transform.location = { scale, 0 };
+	transform.scale = { scale, 0 };
 }
 
 
@@ -144,6 +146,7 @@ nlohmann::json Point::Serialize(Scene& scene, Indexer& indexer, std::map<int, in
 
 	nlohmann::json p = {
 		{"id", jsonId},
+		{"name", name},
 		{ "position", {
 			{"x", transform.location.x},
 			{"y", transform.location.y},

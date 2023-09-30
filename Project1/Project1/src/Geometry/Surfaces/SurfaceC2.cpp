@@ -154,6 +154,11 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 			points[(3 + i) * rowSize + (3 + j)] = pointMap[patch[15]["id"]];
 		}
 
+	pos = glm::fvec4{ 0,0,0,1 };
+	//for (auto& p : points)
+	//	pos += p->getTransform().location;
+	//pos /= points.size();
+
 	updateMeshes();
 }
 SurfaceC2::SurfaceC2()
@@ -295,6 +300,7 @@ bool SurfaceC2::RenderGui()
 	ImGui::Checkbox("Mirror U", &mirrorU);
 	ImGui::Checkbox("Mirror V", &mirrorV);
 	ImGui::Checkbox("Anchor", &anchor);
+	ImGui::InputInt("MainDirection", &mainDirection);
 
 	ImGui::End();
 	return false;
@@ -553,12 +559,13 @@ void SurfaceC2::ChildMoved(ISceneElement& child)
 				return;
 			glm::fvec4 dirVec;
 			if (mainDirection == 0)
-				dirVec = { -1, 1, 1, 1 };
+				dirVec = { 1, 0, 0, 0 };
 			else if (mainDirection == 1)
-				dirVec = { -1, 1, 1, 1 };
+				dirVec = { 1, 0, 0, 0 };
 			else
-				dirVec = { 1, 1, -1, 1 };
-			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * dirVec);
+				dirVec = { 0, 0, 1, 0 };
+			auto movedLoc = movedPoint->getTransform().location;
+			points[mirroredIndex]->setLocation(movedLoc - dirVec * 2.0f * (movedLoc - pos) );
 		}
 		if (mirrorV)
 		{
@@ -572,12 +579,13 @@ void SurfaceC2::ChildMoved(ISceneElement& child)
 				return;
 			glm::fvec4 dirVec;
 			if (mainDirection == 0)
-				dirVec = { 1, 1, -1, 1 };
+				dirVec = { 0, 0, 1, 0 };
 			else if (mainDirection == 1)
-				dirVec = { 1, -1, 1, 1 };
+				dirVec = { 0, 1, 0, 0 };
 			else
-				dirVec = { -1, 1, 1, 1 };
-			points[mirroredIndex]->setLocation(movedPoint->getTransform().location * dirVec);
+				dirVec = { 1, 0, 0, 0 };
+			auto movedLoc = movedPoint->getTransform().location;
+			points[mirroredIndex]->setLocation(movedLoc - dirVec * 2.0f * (movedLoc - pos));
 		}
 	}
 }

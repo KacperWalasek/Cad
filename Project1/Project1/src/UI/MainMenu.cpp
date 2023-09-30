@@ -106,11 +106,24 @@ bool MainMenu::RenderGui()
                     if (type == "bezierC2")
                         scene.Add(std::make_shared<CurveC2>(gJson, pointIndexMap), false);
                     if (type == "interpolatedC2")
+                    {
                         scene.Add(std::make_shared<InterpolationCurve>(gJson, pointIndexMap), false);
+                    }
                     if (type == "bezierSurfaceC0")
-                        scene.Add(std::make_shared<SurfaceC0>(gJson,pointIndexMap));
+                    {
+                        auto surface = std::make_shared<SurfaceC0>(gJson, pointIndexMap);
+                        for (auto p : surface->points)
+                            p->po.push_back(surface);
+                        scene.Add(surface);
+                    }
                     if (type == "bezierSurfaceC2")
-                        scene.Add(std::make_shared<SurfaceC2>(gJson, pointIndexMap));
+                    {
+                        auto surface = std::make_shared<SurfaceC2>(gJson, pointIndexMap);
+                        for (auto p : surface->points)
+                            p->po.push_back(surface);
+                        scene.Add(surface);
+                        
+                    }
                 }
 
 

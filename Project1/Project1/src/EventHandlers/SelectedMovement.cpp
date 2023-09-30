@@ -221,21 +221,20 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
 
-			const Transform& selectedTransform = objTransformable->getTransform();
 			if (xOnly)
 			{
-				newPointWorld.y = selectedTransform.location.y;
-				newPointWorld.z = selectedTransform.location.z;
+				newPointWorld.y = stableTransform.location.y;
+				newPointWorld.z = stableTransform.location.z;
 			}
 			if (yOnly)
 			{
-				newPointWorld.x = selectedTransform.location.x;
-				newPointWorld.z = selectedTransform.location.z;
+				newPointWorld.x = stableTransform.location.x;
+				newPointWorld.z = stableTransform.location.z;
 			}
 			if (zOnly)
 			{
-				newPointWorld.x = selectedTransform.location.x;
-				newPointWorld.y = selectedTransform.location.y;
+				newPointWorld.x = stableTransform.location.x;
+				newPointWorld.y = stableTransform.location.y;
 			}
 			objTransformable->setLocation(newPointWorld - glm::fvec4(0, 0, 0, 1));
 

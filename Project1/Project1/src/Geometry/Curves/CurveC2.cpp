@@ -77,7 +77,9 @@ CurveC2::CurveC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>& poi
 	: CurveC2()
 {
 	for (auto pi : json["deBoorPoints"])
+	{
 		points.push_back(pointMap[pi["id"]]);
+	}
 	if (json.contains("name"))
 		name = json["name"];
 	else
