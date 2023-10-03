@@ -9,10 +9,10 @@ include_directories(vendor/glfw/include)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(vendor/tinyfiledialogs)
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glm)
 add_subdirectory(vendor/imgui)
-add_subdirectory(vendor/json_validator)

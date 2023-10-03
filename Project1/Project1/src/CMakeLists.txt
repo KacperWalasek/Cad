@@ -107,8 +107,7 @@ target_link_libraries(${PROJECT_NAME} GLEW::GLEW)
 target_link_libraries(${PROJECT_NAME} glfw)
 target_link_libraries(${PROJECT_NAME} imgui)
 target_link_libraries(${PROJECT_NAME} tinyfiledialogs)
-target_link_libraries(${PROJECT_NAME} nlohmann_json)
-target_link_libraries(${PROJECT_NAME} nlohmann_json_schema_validator)
+target_link_libraries(${PROJECT_NAME} nlohmann_json nlohmann_json::nlohmann_json)
 
 # Copy shaders
 foreach (shader_file ${SHADER_FILES})

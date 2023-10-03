@@ -1,6 +1,7 @@
 #include "FileLoader.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include <string>
+#include <sstream>
 #include <windows.h>
 #include <fstream>
 

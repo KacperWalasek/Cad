@@ -7,12 +7,10 @@
 #include "../Geometry/Surfaces/SurfaceCreator.h"
 #include "FileLoader.h"
 #include "nlohmann/json.hpp"
-#include "json_validator/src/nlohmann/json-schema.hpp"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "../Geometry/Surfaces/SurfaceC0.h"
 
 using nlohmann::json;
-using nlohmann::json_schema::json_validator;
 
 MainMenu::MainMenu(Scene& scene, Camera& camera)
     :scene(scene), camera(camera)
