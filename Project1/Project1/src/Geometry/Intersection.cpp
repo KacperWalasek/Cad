@@ -10,7 +10,7 @@ Intersection::Intersection(std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSu
 	uvShader.Init();
 	initTextures();
 
-	glm::fvec4 beginPoint = cursor ? closestToCursor(cursorPos, 10) : bestSample(15);
+	glm::fvec4 beginPoint = cursor ? closestToCursor(cursorPos, 10) : bestSample(10);
 	glm::fvec4 p = findIntersectionPoint(beginPoint);
 	if (s1.get() == s2.get() && p.x == p.z && p.y == p.w)
 	{
@@ -273,7 +273,7 @@ glm::fvec4 Intersection::findIntersectionPoint(glm::fvec4 beginPoint)
 	glm::fvec4 x = beginPoint;
 
 	int it = 0;
-	float val = 1;
+	float val = distSqr(x);
 	auto prevGrad = distGrad(x);
 	auto d = -prevGrad;
 	while (fabsf(val)>eps )

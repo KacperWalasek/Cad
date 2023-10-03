@@ -8,6 +8,9 @@ class SelectedMovement : public IKeyEventHandler
 	enum Transformation {
 		None, Translation, Rotation, Scale
 	};
+	bool xOnly = false;
+	bool yOnly = false;	
+	bool zOnly = false;
 	Transformation mode;
 	glm::fvec2 initialPosition;
 	Scene& scene;

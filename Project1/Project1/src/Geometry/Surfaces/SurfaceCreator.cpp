@@ -107,10 +107,14 @@ bool SurfaceCreator::RenderGui()
 			sizeY = 1;
 		updateSurface();
 	}
-	
+	if (!c0)
+	{
+		if (ImGui::InputInt("MainDirection", &surfaceC2->mainDirection))
+			updateSurface();
+	}
+
 	if (ImGui::Button("Apply"))
 		apply();
-	
 	ImGui::End();
 	return false;
 }

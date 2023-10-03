@@ -267,8 +267,6 @@ void SurfaceC0::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 void SurfaceC0::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	if (std::find(points.begin(), points.end(), elem) != points.end())
-		shouldReload = true;
 }
 
 bool SurfaceC0::CanChildBeDeleted() const
@@ -528,4 +526,19 @@ void SurfaceC0::removeIntersection(std::weak_ptr<Intersection>intersection)
 	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) {
 		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
 		});
+}
+
+bool SurfaceC0::CanChildBeMoved() const
+{
+	return true;
+}
+
+bool SurfaceC0::canBeMoved() const
+{
+	return true;
+}
+
+void SurfaceC0::ChildMoved(ISceneElement& child)
+{
+	shouldReload = true;
 }

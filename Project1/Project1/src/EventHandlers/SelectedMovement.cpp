@@ -2,6 +2,7 @@
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
 #include "../interfaces/ICustomMove.h"
+#include "../interfaces/ISelfControl.h"
 
 SelectedMovement::SelectedMovement(Scene& scene, Camera& camera)
 	:scene(scene), camera(camera), mode(None)
@@ -10,6 +11,44 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 {
 	if (action == GLFW_PRESS)
 	{
+		switch (key)
+		{
+		case GLFW_KEY_X:
+			if (mode != None)
+			{
+				xOnly = !xOnly;
+				yOnly = false;
+				zOnly = false;
+			}
+			break;
+		case GLFW_KEY_Y:
+			if (mode != None)
+			{
+				xOnly = false;
+				yOnly = !yOnly;
+				zOnly = false;
+			}
+			break;
+		case GLFW_KEY_Z:
+			if (mode != None)
+			{
+				xOnly = false;
+				yOnly = false;
+				zOnly = !zOnly;
+			}
+			break;
+		case GLFW_KEY_Q:
+			if (mode != None)
+			{
+				for (int i = 0; i < stableTransforms.size(); i++)
+				{
+					auto objTransformable = std::dynamic_pointer_cast<ITransformable>(stableTransforms[i].first);
+					objTransformable->setTransform(stableTransforms[i].second);
+				}
+				mode = None;
+			}
+			break;
+		}
 		if (mode != None)
 			return;
 		switch (key)
@@ -26,6 +65,13 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		default:
 			return;
 		}
+
+		if (key == GLFW_KEY_G || key == GLFW_KEY_R || key == GLFW_KEY_S)
+		{
+			xOnly = false;
+			yOnly = false;
+			zOnly = false;
+		}
 		
 		glm::dvec2 initPosDouble;
 		glfwGetCursorPos(window, &initPosDouble.x, &initPosDouble.y);
@@ -35,6 +81,10 @@ void SelectedMovement::keyCallback(GLFWwindow* window, int key, int scancode, in
 		for (auto& el : scene.objects)
 			if(el.second)
 			{
+				auto objSelfControl = std::dynamic_pointer_cast<ISelfControl>(el.first);
+				if (objSelfControl && !objSelfControl->canBeMoved())
+					continue;
+
 				auto objTransformable = std::dynamic_pointer_cast<ITransformable>(el.first);
 				if (objTransformable)
 					stableTransforms.push_back({ el.first,objTransformable->getTransform() });
@@ -90,13 +140,11 @@ void SelectedMovement::Update(GLFWwindow* window)
 		}
 	if (forceFinish)
 		return;
-	auto translateVec = camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f);
 	for (int i = 0; i < stableTransforms.size(); i++)
 	{
 
 		auto objTransformable = std::dynamic_pointer_cast<ITransformable>(stableTransforms[i].first);
 
-		Transform& selectedTransform = objTransformable->getTransform();
 		Transform& stableTransform = stableTransforms[i].second;
 
 		switch (mode)
@@ -104,7 +152,23 @@ void SelectedMovement::Update(GLFWwindow* window)
 		case SelectedMovement::None:
 			break;
 		case SelectedMovement::Translation:
-			selectedTransform.location = stableTransform.location + translateVec;
+			auto translateVec = camera.transform.GetMatrix() * glm::fvec4(mouseMoveVector.x / 10, -mouseMoveVector.y / 10, 0.0f, 0.0f);
+			if (xOnly)
+			{
+				translateVec.y = 0;
+				translateVec.z = 0;
+			}
+			if (yOnly)
+			{
+				translateVec.x = 0;
+				translateVec.z = 0;
+			}
+			if (zOnly)
+			{
+				translateVec.x = 0;
+				translateVec.y = 0;
+			}
+			objTransformable->setLocation(stableTransform.location + translateVec);
 			scene.center.UpdateTransform(scene.objects);
 			break;
 		case SelectedMovement::Rotation:
@@ -117,7 +181,7 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fvec4 rotationAxis = camera.transform.GetMatrix() * glm::fvec4(0, 0, 1, 0);
 
 			glm::fmat4x4 rotationMatrix = Rotator::GetRotationMatrix(rotationAxis, angle) * stableTransform.GetRotationMatrix();
-			selectedTransform.rotation = Rotator::MatrixToEuler(rotationMatrix);
+			objTransformable->setRotation(Rotator::MatrixToEuler(rotationMatrix));
 			
 			// Translation
 			glm::fvec4 center4 = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
@@ -134,7 +198,7 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fvec4 newPointView = selectionCenterView + odl * glm::vec4(cosf(currAngle + angle), sinf(currAngle + angle),0,0);
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
-			selectedTransform.location = newPointWorld - glm::fvec4(0,0,0,1);
+			objTransformable->setLocation(newPointWorld - glm::fvec4(0, 0, 0, 1));
 			break;
 		}
 		case SelectedMovement::Scale:
@@ -142,7 +206,7 @@ void SelectedMovement::Update(GLFWwindow* window)
 			float odlInit = sqrt(pow(initPosProj.x - center.x, 2) + pow(initPosProj.y - center.y, 2));
 			float odl = sqrt(pow(currentPosProj.x - center.x, 2) + pow(currentPosProj.y - center.y, 2));
 			float scale = odl/odlInit;
-			selectedTransform.scale = stableTransform.scale * glm::fvec4(scale, scale, scale, 0);
+			objTransformable->setScale(stableTransform.scale * glm::fvec4(scale, scale, scale, 0));
 
 			// Translation
 			glm::fvec4 modelCenter = camera.GetProjectionMatrix() * camera.GetViewMatrix() * stableTransform.GetMatrix() * glm::fvec4(0, 0, 0, 1);
@@ -156,7 +220,23 @@ void SelectedMovement::Update(GLFWwindow* window)
 			glm::fvec4 newPointView = selectionCenterView + scale * (modelCenterView - selectionCenterView);
 			glm::fvec4 newPointWorld = camera.transform.GetMatrix() * newPointView;
 			newPointWorld /= newPointWorld.w;
-			selectedTransform.location = newPointWorld - glm::fvec4(0, 0, 0, 1);
+
+			if (xOnly)
+			{
+				newPointWorld.y = stableTransform.location.y;
+				newPointWorld.z = stableTransform.location.z;
+			}
+			if (yOnly)
+			{
+				newPointWorld.x = stableTransform.location.x;
+				newPointWorld.z = stableTransform.location.z;
+			}
+			if (zOnly)
+			{
+				newPointWorld.x = stableTransform.location.x;
+				newPointWorld.y = stableTransform.location.y;
+			}
+			objTransformable->setLocation(newPointWorld - glm::fvec4(0, 0, 0, 1));
 
 			break;
 		}

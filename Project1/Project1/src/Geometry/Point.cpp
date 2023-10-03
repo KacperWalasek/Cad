@@ -32,6 +32,8 @@ Point::Point()
 Point::Point(nlohmann::json json)
 	:Point()
 {
+	if (json.contains("name"))
+		name = json["name"];
 	transform.location.x = json["position"]["x"];
 	transform.location.y = json["position"]["y"];
 	transform.location.z = json["position"]["z"];
@@ -47,11 +49,6 @@ Point::Point(glm::fvec4 position)
 std::string Point::getName() const
 {
 	return name;
-}
-
-Transform& Point::getTransform()
-{
-	return transform;
 }
 
 const Transform& Point::getTransform() const
@@ -105,6 +102,43 @@ bool Point::canBeDeleted() const
 	return true;
 }
 
+bool Point::canBeMoved() const
+{
+	for (auto& o : po)
+	{
+		if (!o.lock()->CanChildBeMoved())
+			return false;
+	}
+	return true;
+}
+
+const void Point::setTransform(const Transform& transform)
+{
+	setLocation(transform.location);
+	setRotation(transform.rotation);
+	setScale(transform.scale);
+}
+
+const void Point::setLocation(const glm::fvec3& location)
+{
+	glm::fvec4 beforeMove = transform.location;
+	transform.location = { location, 0 };
+	if (glm::abs(location.x - beforeMove.x) + glm::abs(location.y - beforeMove.y) + glm::abs(location.z - beforeMove.z) > 0.000001f)
+		for (auto& owner : po)
+			owner.lock()->ChildMoved(*this);
+}
+
+const void Point::setRotation(const glm::fvec3& rotation)
+{
+	transform.rotation = { rotation, 0 };
+}
+
+const void Point::setScale(const glm::fvec3& scale)
+{
+	transform.scale = { scale, 0 };
+}
+
+
 nlohmann::json Point::Serialize(Scene& scene, Indexer& indexer, std::map<int, int>& pointIndexMap) const
 {
 	int jsonId = indexer.getNewIndex();
@@ -112,6 +146,7 @@ nlohmann::json Point::Serialize(Scene& scene, Indexer& indexer, std::map<int, in
 
 	nlohmann::json p = {
 		{"id", jsonId},
+		{"name", name},
 		{ "position", {
 			{"x", transform.location.x},
 			{"y", transform.location.y},

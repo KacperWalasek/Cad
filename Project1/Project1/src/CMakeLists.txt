@@ -73,7 +73,7 @@ set(PROJECT_SOURCES
 	"interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h"
 	"Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp" "interfaces/ISerializable.h"
 	"EventHandlers/Collapse.h" "EventHandlers/Collapse.cpp" "Geometry/Surfaces/GregoryPatch.h" 
-	"Geometry/Surfaces/GregoryPatch.cpp"   "interfaces/IUVSurface.h" "Geometry/Intersection.h" "Geometry/Intersection.cpp" "UI/SceneVector.h" "UI/SceneVector.cpp" "Geometry/BrokenLine.h" "Geometry/BrokenLine.cpp" "EventHandlers/RectSelection.h" "EventHandlers/RectSelection.cpp")
+	"Geometry/Surfaces/GregoryPatch.cpp"   "interfaces/IUVSurface.h" "Geometry/Intersection.h" "Geometry/Intersection.cpp" "UI/SceneVector.h" "UI/SceneVector.cpp" "Geometry/BrokenLine.h" "Geometry/BrokenLine.cpp" "EventHandlers/RectSelection.h" "EventHandlers/RectSelection.cpp" "EventHandlers/CameraMainPositions.h" "EventHandlers/CameraMainPositions.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

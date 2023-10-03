@@ -19,7 +19,7 @@ void Scene::Add(std::shared_ptr<ISceneElement> obj, bool cursorPosition)
 	{
 		auto objTransformable = std::dynamic_pointer_cast<ITransformable>(obj);
 		if (objTransformable)
-			objTransformable->getTransform().location = cursor->transform.location;
+			objTransformable->setLocation(cursor->transform.location);
 	}
 	objects.push_back({ obj,false });
 	for (auto& tracker : trackers)
@@ -31,6 +31,9 @@ void Scene::Add(std::shared_ptr<ISceneElement> obj, bool cursorPosition)
 
 void Scene::Remove(std::shared_ptr<ISceneElement> obj)
 {
+	auto sc = std::dynamic_pointer_cast<ISelfControl>(obj);
+	if (sc && !sc->canBeDeleted())
+		return;
 	if (lastSelected == obj)
 		lastSelected = nullptr;
 	for (auto& tracker : trackers)
@@ -96,7 +99,14 @@ bool Scene::RenderGui()
 
 			if (ImGui::Button("Delete"))
 			{
-				Remove(objects[i].first);
+				std::vector<std::shared_ptr<ISceneElement>> selected;
+				for (auto el : objects)
+				{
+					if (el.second)
+						selected.push_back(el.first);
+				}
+				for (auto el : selected)
+					Remove(el);
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
 				ImGui::End();

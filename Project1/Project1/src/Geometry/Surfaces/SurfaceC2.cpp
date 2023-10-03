@@ -1,6 +1,7 @@
 #include "SurfaceC2.h"
 #include "../Curves/CurveC2.h"
 #include <array>
+#include <numbers>
 
 Indexer SurfaceC2::indexer;
 
@@ -62,17 +63,30 @@ void SurfaceC2::CreatePointsFlat()
 
 void SurfaceC2::CreatePointsCylinder()
 {
-	float distY = sizeY / (countY * 1);
-	glm::fvec4 middle(0, 0, sizeY / 2.0f + distY, 0);
+	constexpr float pi = std::numbers::pi_v<float>;
 
-	float da = 2 * 3.14 / countX;
+	float distY = sizeY / (countY * 1);
+	glm::fvec4 middle;
+	if (mainDirection == 0)
+		middle = { 0, 0, sizeY / 2.0f + distY, 0 };
+	else if (mainDirection == 1)
+		middle = { 0, sizeY / 2.0f + distY, 0, 0 };
+	else 
+		middle = { sizeY / 2.0f + distY, 0, 0, 0 };
+
+	float da = 2 * pi / countX;
 	float R = sizeX * (3-cosf(da)) / 2.0f;
 
 	for(int h = 0; h < countY + 3; h++)
 		for (int a = 0; a < countX + 3; a++)
 		{
-			float angle1 = 2 * 3.14 * a / countX;
-			positions.push_back(pos - middle + glm::fvec4( R * cosf(angle1) , R * sinf(angle1) , h * distY, 0.0f ));
+			float angle1 = 2 * pi * a / countX - pi/2.0f;
+			if (mainDirection == 0)
+				positions.push_back(pos - middle + glm::fvec4(R * cosf(angle1), R * sinf(angle1), h * distY, 0.0f));
+			else if (mainDirection == 1)
+				positions.push_back(pos - middle + glm::fvec4(R * cosf(angle1), h * distY, R * sinf(angle1), 0.0f));
+			else
+				positions.push_back(pos - middle + glm::fvec4(h * distY, R * sinf(angle1), R * cosf(angle1), 0.0f));
 
 		}
 }
@@ -140,6 +154,11 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 			points[(3 + i) * rowSize + (3 + j)] = pointMap[patch[15]["id"]];
 		}
 
+	pos = glm::fvec4{ 0,0,0,1 };
+	//for (auto& p : points)
+	//	pos += p->getTransform().location;
+	//pos /= points.size();
+
 	updateMeshes();
 }
 SurfaceC2::SurfaceC2()
@@ -202,6 +221,8 @@ void SurfaceC2::Render(bool selected, VariableManager& vm)
 
 	vm.SetVariable("divisionU", division[0]);
 	vm.SetVariable("divisionV", division[1]);
+	if(anchor)
+		vm.SetVariable("color", glm::fvec4(0.3f, 0.3f, 0.3f, 1.0f));
 
 	vm.SetVariable("reverse", false);
 	vm.Apply(tessShader.ID);
@@ -246,8 +267,7 @@ void SurfaceC2::onSelect(Scene& scene, std::shared_ptr<ISceneElement> elem)
 
 void SurfaceC2::onMove(Scene& scene, std::shared_ptr<ISceneElement> elem)
 {
-	if (std::find(points.begin(), points.end(), elem) != points.end())
-		shouldReload = true;
+
 }
 
 bool SurfaceC2::CanChildBeDeleted() const
@@ -276,6 +296,11 @@ bool SurfaceC2::RenderGui()
 		if (ImGui::Checkbox(("Reversed"+ std::to_string(i)).c_str(), &reversed))
 			intersectReversed[i] = reversed;
 	}
+
+	ImGui::Checkbox("Mirror U", &mirrorU);
+	ImGui::Checkbox("Mirror V", &mirrorV);
+	ImGui::Checkbox("Anchor", &anchor);
+	ImGui::InputInt("MainDirection", &mainDirection);
 
 	ImGui::End();
 	return false;
@@ -503,4 +528,64 @@ void SurfaceC2::removeIntersection(std::weak_ptr<Intersection> intersection)
 	std::erase_if(intersectionTextures, [&intLock](const unsigned int& i) {
 		return i == intLock->uvS1Tex || i == intLock->uvS2Tex;
 		});
+}
+
+bool SurfaceC2::CanChildBeMoved() const
+{
+	return !anchor;
+}
+
+void SurfaceC2::ChildMoved(ISceneElement& child)
+{
+	int pointIndex = -1;
+	for (int i = 0; i < points.size(); i++)
+	{
+		if (points[i].get() == &child)
+		{
+			pointIndex = i;
+			break;
+		}
+	}
+	if (pointIndex != -1)
+	{
+		shouldReload = true;
+		if (mirrorU)
+		{
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int mirroredIndex = pointIndex - countInRow + ((cylinder ? countX : rowsize) - countInRow);
+			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
+			if (points[mirroredIndex] == points[pointIndex])
+				return;
+			glm::fvec4 dirVec;
+			if (mainDirection == 0)
+				dirVec = { 1, 0, 0, 0 };
+			else if (mainDirection == 1)
+				dirVec = { 1, 0, 0, 0 };
+			else
+				dirVec = { 0, 0, 1, 0 };
+			auto movedLoc = movedPoint->getTransform().location;
+			points[mirroredIndex]->setLocation(movedLoc - dirVec * 2.0f * (movedLoc - pos) );
+		}
+		if (mirrorV)
+		{
+			int rowCount = countY + 3;
+			int rowsize = countX + 3;
+			int countInRow = pointIndex % rowsize;
+			int rowNumber = floorf(pointIndex / rowsize);
+			int mirroredIndex = (rowCount - rowNumber - 1) * rowsize + countInRow;
+			auto movedPoint = std::dynamic_pointer_cast<Point>(points[pointIndex]);
+			if (points[mirroredIndex] == points[pointIndex])
+				return;
+			glm::fvec4 dirVec;
+			if (mainDirection == 0)
+				dirVec = { 0, 0, 1, 0 };
+			else if (mainDirection == 1)
+				dirVec = { 0, 1, 0, 0 };
+			else
+				dirVec = { 1, 0, 0, 0 };
+			auto movedLoc = movedPoint->getTransform().location;
+			points[mirroredIndex]->setLocation(movedLoc - dirVec * 2.0f * (movedLoc - pos));
+		}
+	}
 }
