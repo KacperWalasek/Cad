@@ -5,15 +5,16 @@
 #include "../Geometry/Curves/CurveC2.h"
 #include "../Geometry/Curves/InterpolationCurve.h"
 #include "../Geometry/Surfaces/SurfaceCreator.h"
+#include "../Geometry/Surfaces/SurfaceC0.h"
+#include "../Simulations/MillingMachine/MillingMachineSimulation.h"
 #include "FileLoader.h"
 #include "nlohmann/json.hpp"
 #include "tinyfiledialogs/tinyfiledialogs.h"
-#include "../Geometry/Surfaces/SurfaceC0.h"
 
 using nlohmann::json;
 
-MainMenu::MainMenu(Scene& scene, Camera& camera)
-    :scene(scene), camera(camera)
+MainMenu::MainMenu(Scene& scene, Camera& camera, Simulator& simulator)
+    :scene(scene), camera(camera), simulator(simulator)
 {}
 
 bool MainMenu::RenderGui()
@@ -76,6 +77,10 @@ bool MainMenu::RenderGui()
             if (ImGui::MenuItem("Surface", ""))
             {
                 scene.Add(std::make_shared<SurfaceCreator>(scene));
+            }
+            if (ImGui::MenuItem("Milling Simulation",""))
+            {
+                simulator.simulations.push_back(std::make_shared<MillingMachineSimulation>());
             }
             ImGui::EndMenu();
         }

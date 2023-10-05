@@ -17,14 +17,16 @@ CadApp::CadApp()
 	scene = std::make_shared<Scene>(
 		std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>(),
 		*camera);
+	simulator = std::make_shared<Simulator>();
 	auto factory = std::make_shared<ObjectFactory>(*scene);
 	
 	guis = {
 		camera,
 		scene,
-		std::make_shared<MainMenu>(*scene, *camera),
+		simulator,
+		std::make_shared<MainMenu>(*scene, *camera, *simulator),
 		scene->cursor,
-		factory	
+		factory
 	};
 
 
@@ -51,6 +53,7 @@ void CadApp::Run()
 	guis.push_back(anaglyphRenderer);
 	while (window.isOpen())
 	{
+		simulator->update();
 		window.Update();
 
 		cameraMovement->Update(window.window);

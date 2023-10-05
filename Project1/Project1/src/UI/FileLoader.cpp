@@ -49,3 +49,12 @@ nlohmann::json FileLoader::load(std::string path)
 	
 	return nlohmann::json::parse(buffer.str());
 }
+
+MillingPath FileLoader::loadPath(std::string path)
+{
+	std::ifstream is;
+	is.open(path, std::fstream::in);
+	std::stringstream buffer;
+	buffer << is.rdbuf();
+	return MillingPath(buffer);
+}
