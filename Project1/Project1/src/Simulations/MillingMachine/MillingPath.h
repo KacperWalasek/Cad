@@ -9,4 +9,5 @@ public:
 	std::vector<glm::fvec3> positions;
 
 	MillingPath(std::stringstream& ss);
+	MillingPath() {}
 };

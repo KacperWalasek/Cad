@@ -46,7 +46,6 @@ void CameraMovement::Update(GLFWwindow* window)
         glfwGetCursorPos(window, &posX, &posY);
         curentMouseVectorX = posX - initialMousePosX;
         curentMouseVectorY = posY - initialMousePosY;
-        std::cout << curentMouseVectorX << ", " << curentMouseVectorY << std::endl;
 
         if (isCrtlPressed)
         {

@@ -31,9 +31,7 @@ bool MillingMachineSimulation::RenderGui()
 	if (ImGui::Button("Load Path")) {
 		std::string filename = FileLoader::selectFile();
 		if (!filename.empty())
-		{
-			MillingPath path = FileLoader::loadPath(filename);
-		}
+			path = FileLoader::loadPath(filename);
 	}
 	ImGui::Text("Material");
 	ImGui::InputInt("division x", &divisions.x);
@@ -58,11 +56,12 @@ bool MillingMachineSimulation::RenderGui()
 	return false;
 }
 
-bool MillingMachineSimulation::loadPathFile()
+std::string MillingMachineSimulation::getName() const
 {
-	std::string filename = FileLoader::selectFile();
-	if (!filename.empty())
-	{
-	}
-	return false;
+	return "Milling simulation";
+}
+
+void MillingMachineSimulation::Render(bool selected, VariableManager& vm)
+{
+	cutter.Render(selected, vm);
 }

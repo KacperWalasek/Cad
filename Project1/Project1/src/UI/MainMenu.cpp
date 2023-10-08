@@ -80,7 +80,9 @@ bool MainMenu::RenderGui()
             }
             if (ImGui::MenuItem("Milling Simulation",""))
             {
-                simulator.simulations.push_back(std::make_shared<MillingMachineSimulation>());
+                auto simulation = std::make_shared<MillingMachineSimulation>();
+                simulator.simulations.push_back(simulation);
+                scene.Add(simulation);
             }
             ImGui::EndMenu();
         }
@@ -168,7 +170,6 @@ bool MainMenu::RenderGui()
                 {"points", points},
                 {"geometry", geometry}
             };
-            std::cout << sceneJson.dump(4) << std::endl;
             
             std::string saveDest = FileLoader::selectSaveDest();
             if (!saveDest.empty())
