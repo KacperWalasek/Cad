@@ -91,6 +91,7 @@ void Renderer::Init()
     variableManager.AddVariable("divisionV", 4);
 
     variableManager.AddVariable("interesectTex", std::vector<int>());
+    variableManager.AddVariable("tex", 0);
     variableManager.AddVariable("interesectCount", 0);
     variableManager.AddVariable("reverseIntersect", std::vector<bool>());
 }

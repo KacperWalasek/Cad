@@ -63,11 +63,17 @@ Cutter::Cutter()
 	createMesh(20);
 }
 
+void Cutter::setPosition(glm::fvec3 pos)
+{
+	translation = glm::translate(glm::identity<glm::fmat4x4>(), pos);
+}
+
 void Cutter::Render(bool selected, VariableManager& vm)
 {
 	shader.use();
 	glBindVertexArray(VAO);
 	vm.SetVariable("color", glm::fvec4(0.5, 0.5, 0.8, 0));
+	vm.SetVariable("modelMtx", translation);
 	vm.Apply(shader.ID);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 }
