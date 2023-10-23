@@ -11,7 +11,7 @@ class Shader
 {
     const char* vertexPath;
     const char* fragmentPath;
-public:
+public: 
     // the program ID
     unsigned int ID;
 

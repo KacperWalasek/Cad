@@ -28,7 +28,7 @@ Intersection::Intersection(std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSu
 	renderUVTexture(s2, uvS2Fb, uvS2Tex, s2UVLine);
 	glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
 }
-
+ 
 glm::fvec4 Intersection::wrap(glm::fvec4 x) const
 {
 	return glm::mod(x + 1.0f, 1.0f);

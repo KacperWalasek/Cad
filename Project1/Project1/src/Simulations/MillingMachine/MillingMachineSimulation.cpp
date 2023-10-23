@@ -17,20 +17,16 @@ glm::fvec3 MillingMachineSimulation::getPosition(float t)
 
 void MillingMachineSimulation::createTexture()
 {
-	for(int i =0; i<divisions[0]; i++)
-		for (int j = 0; j < divisions[1]; j++)
-		{
-				tex.setPixel(i, j, { GLbyte(0),GLbyte(255),GLbyte(0) });
-		}
-	glm::fvec3 last = { 0,0,0 };
+	renderer = std::make_shared<TextureRenderer>(divisions[0], divisions[1], 3, true);
+	
+	glm::fvec3 last = path.positions[0] / 100.0f;
 	for (int i = 1; i < path.positions.size(); i++)
 	{
-		glm::fvec3 pos = ((path.positions[i] + 100.0f) / 200.0f) * glm::fvec3(divisions[0],divisions[1],1.0f);
-		applyStep(last, pos);
-		last = pos;
+		glm::fvec3 pos = path.positions[i] / 100.0f;
+		hm.AddSegment(last, pos, 0.08f);
+		last = pos; 
 	}
-
-	tex.flush();
+	
 }
 
 void MillingMachineSimulation::applyStep(glm::fvec3 p1, glm::fvec3 p2)
@@ -49,7 +45,6 @@ void MillingMachineSimulation::start()
 {
 	running = true;
 	createTexture();
-	materialCube.setTexture(tex);
 }
 
 void MillingMachineSimulation::stop()
@@ -116,6 +111,11 @@ std::string MillingMachineSimulation::getName() const
 
 void MillingMachineSimulation::Render(bool selected, VariableManager& vm)
 {
-	cutter.Render(selected, vm);
-	materialCube.Render(selected, vm);
+	if (running) {
+		renderer->Clear({ 0,0,1,1 });
+		renderer->Render(hm, vm);
+		materialCube.setTexture(renderer->getTextureId());
+		cutter.Render(selected, vm);
+		materialCube.Render(selected, vm);
+	}
 }

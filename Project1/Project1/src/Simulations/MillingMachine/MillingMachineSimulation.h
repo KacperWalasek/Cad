@@ -7,10 +7,14 @@
 #include "MillingPath.h"
 #include "Cutter.h"
 #include "MaterialCube.h"
+#include "MillingHeightMapRenderer.h"
 
 class MillingMachineSimulation 
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
 {
+	MillingHeightMapRenderer hm;
+	std::shared_ptr<TextureRenderer> renderer;
+
 	// Visualisation
 	Cutter cutter;
 	MaterialCube materialCube;
@@ -26,7 +30,7 @@ class MillingMachineSimulation
 	glm::ivec2 divisions = { 600,600 };
 	glm::ivec3 materialSize = { 15,5,15 };
 	int baseHeight = 15;
-	
+
 	// Simulation
 	int speed = 10;
 	bool instant = false;

@@ -43,9 +43,9 @@ void MaterialCube::applyMap() const
 {
 }
 
-void MaterialCube::setTexture(const ProceduralTexture& texture)
+void MaterialCube::setTexture(unsigned int texture)
 {
-	heightMapTexture = texture.getTextureId();
+	heightMapTexture = texture;
 }
 
 void MaterialCube::Render(bool selected, VariableManager& vm)

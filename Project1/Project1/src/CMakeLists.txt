@@ -73,7 +73,7 @@ set(PROJECT_SOURCES
 	"interfaces/ISelfControl.h" "interfaces/IPointOwner.h" "Geometry/Surfaces/SurfaceC2.h"
 	"Geometry/Surfaces/SurfaceC2.cpp" "UI/FileLoader.h" "UI/FileLoader.cpp" "interfaces/ISerializable.h"
 	"EventHandlers/Collapse.h" "EventHandlers/Collapse.cpp" "Geometry/Surfaces/GregoryPatch.h" 
-	"Geometry/Surfaces/GregoryPatch.cpp"   "interfaces/IUVSurface.h" "Geometry/Intersection.h" "Geometry/Intersection.cpp" "UI/SceneVector.h" "UI/SceneVector.cpp" "Geometry/BrokenLine.h" "Geometry/BrokenLine.cpp" "EventHandlers/RectSelection.h" "EventHandlers/RectSelection.cpp" "EventHandlers/CameraMainPositions.h" "EventHandlers/CameraMainPositions.cpp" "simulations/MillingMachine/MillingMachineSimulation.h" "simulations/MillingMachine/MillingMachineSimulation.cpp" "Simulations/Simulator.h" "Simulations/Simulator.cpp" "Simulations/ISimulation.h" "Simulations/MillingMachine/MillingPath.h" "Simulations/MillingMachine/MillingPath.cpp" "Simulations/MillingMachine/Cutter.h" "Simulations/MillingMachine/Cutter.cpp" "Simulations/MillingMachine/MaterialCube.h" "Simulations/MillingMachine/MaterialCube.cpp" "Rendering/ProceduralTexture.h")
+	"Geometry/Surfaces/GregoryPatch.cpp"   "interfaces/IUVSurface.h" "Geometry/Intersection.h" "Geometry/Intersection.cpp" "UI/SceneVector.h" "UI/SceneVector.cpp" "Geometry/BrokenLine.h" "Geometry/BrokenLine.cpp" "EventHandlers/RectSelection.h" "EventHandlers/RectSelection.cpp" "EventHandlers/CameraMainPositions.h" "EventHandlers/CameraMainPositions.cpp" "simulations/MillingMachine/MillingMachineSimulation.h" "simulations/MillingMachine/MillingMachineSimulation.cpp" "Simulations/Simulator.h" "Simulations/Simulator.cpp" "Simulations/ISimulation.h" "Simulations/MillingMachine/MillingPath.h" "Simulations/MillingMachine/MillingPath.cpp" "Simulations/MillingMachine/Cutter.h" "Simulations/MillingMachine/Cutter.cpp" "Simulations/MillingMachine/MaterialCube.h" "Simulations/MillingMachine/MaterialCube.cpp" "Rendering/ProceduralTexture.h" "Rendering/TextureRenderer.h" "Rendering/TextureRenderer.cpp" "Simulations/MillingMachine/MillingHeightMapRenderer.h" "Simulations/MillingMachine/MillingHeightMapRenderer.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -102,6 +102,7 @@ set(SHADER_FILES
 	"Shaders/Phong/phong.frag"
 	"Shaders/texture.vert"
 	"Shaders/texture.frag"
+	"Shaders/baseColor.frag"
 	
 )
 add_executable(CAD ${PROJECT_SOURCES})

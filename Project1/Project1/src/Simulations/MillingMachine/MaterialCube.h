@@ -4,6 +4,7 @@
 #include "../../interfaces/IRenderable.h"
 #include "../../Rendering/Shader.h"
 #include "../../Rendering/ProceduralTexture.h"
+#include "../../Rendering/TextureRenderer.h"
 
 class MaterialCube : public IRenderable {
 	Shader heightMapShader;
@@ -15,7 +16,7 @@ class MaterialCube : public IRenderable {
 public:
 	MaterialCube();
 	void applyMap() const;
-	void setTexture(const ProceduralTexture& texture);
+	void setTexture(unsigned int texture);
 
 
 	// Inherited via IRenderable
