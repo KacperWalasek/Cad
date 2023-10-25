@@ -6,10 +6,10 @@ void TextureRenderer::createTexture(bool depthTest)
 	switch (chanels)
 	{
 	case 1:
-		format = GL_R;
+		format = GL_ALPHA;
 	case 2:
 		format = GL_RG;
-	case 3:
+	case 3: 
 		format = GL_RGB;
 	case 4:
 		format = GL_RGBA;
@@ -21,7 +21,7 @@ void TextureRenderer::createTexture(bool depthTest)
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sizeX, sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, sizeX, sizeY, 0, format, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -38,8 +38,8 @@ void TextureRenderer::createTexture(bool depthTest)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-}
-
+} 
+ 
 TextureRenderer::TextureRenderer(int sizeX, int sizeY, int chanels, bool depthTest)
 	: sizeX(sizeX), sizeY(sizeY), chanels(chanels)
 {

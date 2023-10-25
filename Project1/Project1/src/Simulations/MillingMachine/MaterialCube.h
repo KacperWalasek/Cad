@@ -12,9 +12,11 @@ class MaterialCube : public IRenderable {
 	unsigned int VBO, EBO, VAO;
 
 	unsigned int pathsVBO, pathsEBO, pathsVAO;
+
+	int divisionX, divisionY;
 	void createHeightMapQuad();
 public:
-	MaterialCube();
+	MaterialCube(int divisionX, int divisionY);
 	void applyMap() const;
 	void setTexture(unsigned int texture);
 

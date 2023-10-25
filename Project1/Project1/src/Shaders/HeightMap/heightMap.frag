@@ -4,12 +4,23 @@ layout(location = 0) out vec4 FragColor;
 uniform vec4 color;
 uniform vec4 lightColor;
 
-in vec3 normal;
 in vec3 lightVec;
 in vec3 viewVec;
+in vec4 worldPos;
 
 void main()
 {
+    float dxdu = dFdx(worldPos.x);
+    float dxdv = dFdy(worldPos.x);
+
+    float dydu = dFdx(worldPos.y);
+    float dydv = dFdy(worldPos.y);
+
+    float dzdu = dFdx(worldPos.z);
+    float dzdv = dFdy(worldPos.z);
+
+    vec3 normal = normalize(cross(vec3(dxdu,dydu,dzdu), vec3(dxdv,dydv,dzdv)));
+  
     // ambient
     float ambientStrength = 0.5;
     vec3 ambient = ambientStrength * color.xyz;    
@@ -24,4 +35,4 @@ void main()
     
     vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);
-}
+} 

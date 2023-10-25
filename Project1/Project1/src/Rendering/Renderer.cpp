@@ -59,10 +59,10 @@ void Renderer::RenderScene(Camera& camera, Scene& scene)
         variableManager.SetVariable("color", glm::fvec4(1.0f, 0.0f, 0.0f, 1.0f));
         variableManager.Apply(shader.ID);
         scene.center.Render(false, variableManager);
-    }
+    } 
 
 }
-
+  
 Renderer::Renderer(Window& window)
     :shader("Shaders/vertexShader.vert", "Shaders/fragmentShader.frag"), window(window)
 {
@@ -75,26 +75,38 @@ void Renderer::Init()
     glDepthFunc(GL_LESS);
     shader.Init();
     shader.use();
-    glPointSize(5);
+    glPointSize(5); 
     
     variableManager.AddVariable("projMtx", glm::identity<glm::fmat4x4>());
     variableManager.AddVariable("viewMtx", glm::identity<glm::fmat4x4>());
     variableManager.AddVariable("modelMtx", glm::identity<glm::fmat4x4>());
-
+     
     variableManager.AddVariable("color", glm::fvec4());
     variableManager.AddVariable("t0", 0.0f);
     variableManager.AddVariable("t1", 0.0f);
-
+     
+    variableManager.AddVariable("offsetUBeg", 0.0f);
+    variableManager.AddVariable("offsetUEnd", 0.0f); 
+    variableManager.AddVariable("offsetVBeg", 0.0f);
+    variableManager.AddVariable("offsetVEnd", 0.0f);
+      
     variableManager.AddVariable("reverse", false); 
-    
-    variableManager.AddVariable("divisionU", 4);
-    variableManager.AddVariable("divisionV", 4);
 
+    variableManager.AddVariable("divisionV", 4);
+    variableManager.AddVariable("divisionU", 4);
+      
     variableManager.AddVariable("interesectTex", std::vector<int>());
     variableManager.AddVariable("tex", 0);
     variableManager.AddVariable("interesectCount", 0);
     variableManager.AddVariable("reverseIntersect", std::vector<bool>());
-}
+     
+    variableManager.AddVariable("lightPos", glm::fvec3(100,100,100));
+    variableManager.AddVariable("lightColor", glm::fvec4(1, 1, 1, 1));
+    variableManager.AddVariable("cameraPos", glm::fvec3(0, 0, 0));
+    variableManager.AddVariable("radius", 1.0f);
+    variableManager.AddVariable("flatMilling", false);
+
+}  
 
 void Renderer::BeginRender(Camera& camera)
 {
@@ -104,7 +116,7 @@ void Renderer::BeginRender(Camera& camera)
 
     variableManager.SetVariable("projMtx", camera.GetProjectionMatrix());
     variableManager.SetVariable("viewMtx", camera.GetViewMatrix());
-
+    variableManager.SetVariable("cameraPos", camera.transform.location.xyz);
 }
 
 

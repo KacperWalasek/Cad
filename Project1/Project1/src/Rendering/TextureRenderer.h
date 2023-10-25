@@ -4,7 +4,7 @@
 #include <memory>
 
 class TextureRenderer {
-	int sizeX, sizeY, chanels;
+	int sizeX, sizeY, chanels; 
 	
 	unsigned int tex, fb, depth;
 	void createTexture(bool depthTest);
@@ -14,4 +14,4 @@ public:
 
 	void Clear(glm::fvec4 color);
 	void Render(IRenderable& object, VariableManager& variableManager);
-};
+}; 

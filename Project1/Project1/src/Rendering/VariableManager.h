@@ -79,8 +79,8 @@ public:
 
 template<>
 inline void ShaderVariable<glm::fmat4x4>::Apply(unsigned int shaderId) const
-{
-	unsigned int loc = getLoc(shaderId);
+{ 
+	unsigned int loc = getLoc(shaderId); 
 	
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
@@ -91,6 +91,15 @@ inline void ShaderVariable<glm::fvec4>::Apply(unsigned int shaderId) const
 	unsigned int loc = getLoc(shaderId);
 
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
+
+} 
+
+template<>
+inline void ShaderVariable<glm::fvec3>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+
+	glUniform3f(loc, value.x, value.y, value.z);
 }
 
 template<>

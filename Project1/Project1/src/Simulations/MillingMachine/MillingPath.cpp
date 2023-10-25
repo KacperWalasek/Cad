@@ -34,7 +34,8 @@ void MillingPath::update()
 		times[i] /= totalLength;
 }
 
-MillingPath::MillingPath(std::stringstream& ss)
+MillingPath::MillingPath(std::stringstream& ss, float radius, bool flat)
+	: radius(radius), flat(flat)
 {
 	readPositions(ss);
 	update();

@@ -103,6 +103,12 @@ set(SHADER_FILES
 	"Shaders/texture.vert"
 	"Shaders/texture.frag"
 	"Shaders/baseColor.frag"
+	"Shaders/HeightMap/heightMap.tese"
+	"Shaders/HeightMap/heightMap.tesc"
+	"Shaders/HeightMap/heightMap.vert"
+	"Shaders/HeightMap/heightMap.frag"
+	"Shaders/MillingPath/millingPath.vert"
+	"Shaders/MillingPath/millingPath.frag"
 	
 )
 add_executable(CAD ${PROJECT_SOURCES})

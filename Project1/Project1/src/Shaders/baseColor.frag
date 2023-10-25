@@ -7,5 +7,5 @@ in vec4 gl_FragCoord;
 
 void main()
 {
-    FragColor = vec4(0,gl_FragCoord.z,0,1);
+    FragColor = vec4(gl_FragCoord.z,0,0,1);
 }

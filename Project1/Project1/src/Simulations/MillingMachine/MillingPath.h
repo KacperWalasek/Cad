@@ -11,7 +11,9 @@ public:
 	std::vector<glm::fvec3> positions;
 	float totalLength = 0;
 	std::vector<float> times;
+	bool flat;
+	float radius;
 
-	MillingPath(std::stringstream& ss);
+	MillingPath(std::stringstream& ss, float radius, bool flat);
 	MillingPath() = default;
 };

@@ -9,18 +9,18 @@ void Cutter::createMesh(int divisions)
 	int vertCount = (divisions + 2) * 2;
 	std::vector<float> vert;
 	std::vector<int> inds;
-	vert.reserve(vertCount * 3);
+	vert.reserve(vertCount * 6);
 	inds.reserve(indexCount);
 	vert.insert(vert.end(), {
-		0.0f, 0.0f,   0.0f,
-		0.0f, 10.0f, 0.0f
+		0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f,
+		0.0f, 10.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 		});
 	for (int i = 0; i < divisions+1; i++)
 	{
 		auto [baseX,baseZ] = sampleBase(divisions, i);
 		vert.insert(vert.end(), {
-			baseX, 0.0f,   baseZ,
-			baseX, 10.0f, baseZ
+			baseX, 0.0f,  baseZ, baseX, 0.0f, baseZ,
+			baseX, 10.0f, baseZ, baseX, 0.0f, baseZ,
 			});
 
 		inds.insert(inds.end(), {
@@ -43,8 +43,11 @@ void Cutter::createMesh(int divisions)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(int), &inds[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

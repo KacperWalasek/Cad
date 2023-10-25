@@ -1,12 +1,18 @@
 #pragma once
 #include <vector>
 #include <GL/glew.h>
-
+ 
 class ProceduralTexture {
 	std::vector<GLbyte> pixels;
 	int sizeU, sizeV;
 	unsigned int tex, fb;
 public:
+	~ProceduralTexture()
+	{ 
+		glDeleteTextures(1, &tex);
+		glDeleteFramebuffers(1, &fb);
+		
+	}
 	ProceduralTexture(int sizeU, int sizeV)
 		: sizeU(sizeU), sizeV(sizeV), pixels(sizeU*sizeV*3)
 	{

@@ -52,9 +52,13 @@ nlohmann::json FileLoader::load(std::string path)
 
 MillingPath FileLoader::loadPath(std::string path)
 {
+	std::string extention = path.substr(path.find_last_of(".") + 1);
+	bool flat = extention.at(0) == 'f';
+	int diameter = std::stoi(extention.substr(1, extention.size()-1));
+
 	std::ifstream is;
 	is.open(path, std::fstream::in);
 	std::stringstream buffer;
 	buffer << is.rdbuf();
-	return MillingPath(buffer);
+	return MillingPath(buffer, diameter/2.0f, flat);
 }
