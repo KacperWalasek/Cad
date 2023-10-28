@@ -25,7 +25,7 @@ void main()
     vec2 begin = vec2(offsetUBeg,offsetVBeg);
     vec2 end = vec2(offsetUEnd,offsetVEnd);
     vec2 uv = begin + gl_TessCoord.xy * (end-begin);
-    float h =  texture(tex,uv).x;
+    float h =  (texture(tex,uv).x - 0.7f) * 3.333f;
     
     vec4 p00 = gl_in[0].gl_Position;
     vec4 p01 = gl_in[1].gl_Position;

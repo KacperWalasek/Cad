@@ -9,8 +9,9 @@ class MillingPath {
 	void update();
 public:
 	std::vector<glm::fvec3> positions;
+	glm::fvec2 zRange;
 	float totalLength = 0;
-	std::vector<float> times;
+	std::vector<float> dists;
 	bool flat;
 	float radius;
 

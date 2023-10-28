@@ -1,5 +1,18 @@
 #include "MillingHeightMapRenderer.h"
 
+float MillingHeightMapRenderer::stretchZ(float z) const
+{
+	return z;
+	float rangeMin = normalizeZ(path.zRange.x);
+	float rangeMax = normalizeZ(path.zRange.y);
+	return (z - rangeMin) / (rangeMax - rangeMin);
+}
+
+float MillingHeightMapRenderer::normalizeZ(float z) const
+{
+	return (1.0f + z) / 2.0f;
+}
+
 void MillingHeightMapRenderer::flush()
 {
 	std::vector<float> vertices;
@@ -11,7 +24,7 @@ void MillingHeightMapRenderer::flush()
 	indices.reserve(inds.size() + temporaryInds.size());
 	indices.insert(indices.end(), inds.begin(), inds.end());
 	indices.insert(indices.end(), temporaryInds.begin(), temporaryInds.end());
-
+	
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
@@ -48,25 +61,85 @@ void MillingHeightMapRenderer::addSegment(std::vector<float>& vertices, std::vec
 
 	int indOffset = vert.size() / 5;
 	vertices.insert(vertices.end(), {
-		p11.x, p11.y, (1.0f + p11.z) / 2.0f, 0, 0,
-		p21.x, p21.y, (1.0f + p21.z) / 2.0f, 1, 0,
-		p22.x, p22.y, (1.0f + p22.z) / 2.0f, 1, 1,
-		p12.x, p12.y, (1.0f + p12.z) / 2.0f, 0, 1
+	//  x,     y,     z,                           u, v
+		p11.x, p11.y, stretchZ(normalizeZ(p11.z)), 0, 0,
+		p21.x, p21.y, stretchZ(normalizeZ(p21.z)), 1, 0,
+		p22.x, p22.y, stretchZ(normalizeZ(p22.z)), 1, 1,
+		p12.x, p12.y, stretchZ(normalizeZ(p12.z)), 0, 1
 		});
 	indices.insert(indices.end(), {
 		indOffset, indOffset + 1, indOffset + 2,
 		indOffset, indOffset + 2, indOffset + 3
 		});
-	flush();
 }
 
-MillingHeightMapRenderer::MillingHeightMapRenderer()
-	: shader("Shaders/MillingPath/millingPath.vert", "Shaders/MillingPath/millingPath.frag")
+MillingHeightMapRenderer::MillingHeightMapRenderer(MillingPath path)
+	: shader("Shaders/MillingPath/millingPath.vert", "Shaders/MillingPath/millingPath.frag"),
+	path(path)
 {
 	shader.Init();
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
+}
+
+glm::fvec3 MillingHeightMapRenderer::SetDistance(float distance)
+{
+	auto [prevIndex, nextIndex, currentPosition] = getPosition(distance);
+
+	if (lastVisited != prevIndex)
+	{
+		for (int i = lastVisited; i < prevIndex; i++)
+			addFixedSegment(path.positions[i] * sizeMultiplier,
+				path.positions[i + 1] * sizeMultiplier,
+				path.radius * sizeMultiplier);
+		lastVisited = prevIndex;
+	}
+
+	if (nextIndex == path.positions.size() - 1 && path.positions[prevIndex] == currentPosition)
+		lastVisited = path.positions.size() - 1;
+	else
+		addTemporarySegment(path.positions[prevIndex] * sizeMultiplier,
+			currentPosition * sizeMultiplier,
+			path.radius * sizeMultiplier);
+
+	flush();
+	return currentPosition;
+}
+
+glm::fvec3 MillingHeightMapRenderer::Finalize()
+{
+	for (int i = lastVisited; i < path.positions.size() - 1; i++)
+		addFixedSegment(path.positions[i] * sizeMultiplier,
+			path.positions[i + 1] * sizeMultiplier,
+			path.radius * sizeMultiplier);
+	lastVisited = path.positions.size() - 1;
+	flush();
+	return *path.positions.rbegin();
+}
+
+float MillingHeightMapRenderer::GetLength()
+{
+	return path.totalLength;
+}
+
+PathState MillingHeightMapRenderer::GetState() const
+{
+	if (vert.empty() && temporaryVert.empty())
+		return PathState::Off;
+	if (lastVisited == path.positions.size() - 1)
+		return PathState::Finished;
+	return PathState::Running;
+}
+
+bool MillingHeightMapRenderer::IsFlat() const
+{
+	return path.flat;
+}
+
+float MillingHeightMapRenderer::GetRadius() const
+{
+	return path.radius;
 }
 
 void MillingHeightMapRenderer::Clear()
@@ -82,12 +155,29 @@ void MillingHeightMapRenderer::clearTemporary()
 	temporaryInds.clear();
 }
 
-void MillingHeightMapRenderer::AddSegment(glm::fvec3 p1, glm::fvec3 p2, float r)
+std::tuple<int, int, glm::fvec3> MillingHeightMapRenderer::getPosition(float distance)
+{
+	float distNorm = distance / (path.totalLength * sizeMultiplier);
+
+	for (int i = 0; i < path.dists.size() - 1; i++)
+	{
+		if (path.dists[i] > distNorm)
+		{
+			float distDiff = path.dists[i] - path.dists[i - 1];
+			float wsp = (distNorm - path.dists[i - 1]) / distDiff;
+			return { i - 1,i, wsp * path.positions[i] + (1 - wsp) * path.positions[i - 1] };
+		}
+	}
+	return { path.positions.size() - 2, path.positions.size() - 1, path.positions[path.positions.size() - 1] };
+
+}
+
+void MillingHeightMapRenderer::addFixedSegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
 	addSegment(vert, inds, p1, p2, r);
 }
 
-void MillingHeightMapRenderer::AddTemporarySegment(glm::fvec3 p1, glm::fvec3 p2, float r)
+void MillingHeightMapRenderer::addTemporarySegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
 	addSegment(temporaryVert, temporaryInds, p1, p2, r);
 }
@@ -97,18 +187,8 @@ void MillingHeightMapRenderer::Render(bool selected, VariableManager& vm)
 	shader.use();
 	glBindVertexArray(VAO);
 	vm.SetVariable("color", glm::fvec4(1, 0, 0, 1));
-	vm.SetVariable("radius", radius);
-	vm.SetVariable("flatMilling", flat);
+	vm.SetVariable("radius", path.radius * sizeMultiplier);
+	vm.SetVariable("flatMilling", path.flat);
 	vm.Apply(shader.ID);
 	glDrawElements(GL_TRIANGLES, inds.size() + temporaryInds.size(), GL_UNSIGNED_INT, 0);
-}
-
-void MillingHeightMapRenderer::setRadius(float radius)
-{
-	this->radius = radius;
-}
-
-void MillingHeightMapRenderer::setFlat(bool flat)
-{
-	this->flat = flat;
 }

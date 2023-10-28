@@ -7,7 +7,7 @@ uniform vec4 lightColor;
 in vec3 lightVec;
 in vec3 viewVec;
 in vec4 worldPos;
-
+ 
 void main()
 {
     float dxdu = dFdx(worldPos.x);

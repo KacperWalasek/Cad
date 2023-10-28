@@ -68,7 +68,7 @@ Cutter::Cutter()
 
 void Cutter::setPosition(glm::fvec3 pos)
 {
-	translation = glm::translate(glm::identity<glm::fmat4x4>(), pos);
+	translation = glm::translate(glm::scale(glm::identity<glm::fmat4x4>(), glm::fvec3(0.05, 0.05, 0.05)), pos*20.0f);
 }
 
 void Cutter::Render(bool selected, VariableManager& vm)

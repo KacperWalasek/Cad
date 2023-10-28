@@ -13,28 +13,30 @@ class MillingMachineSimulation
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
 {
 	const float sizeMultiplier = 0.01f;
+	
+	std::vector<std::pair<std::string, MillingHeightMapRenderer>> hms;
+	int selectedHM = 0;
 
-	MillingHeightMapRenderer hm;
 	std::shared_ptr<TextureRenderer> renderer;
 
 	// Visualisation
 	Cutter cutter;
-	MaterialCube materialCube = {600,600};
+	MaterialCube materialCube = {1200,1200 };
 	
 	// State
 	bool running = false;
-	float timePassed = 0;
+	float passedPathLength = 0.0f;
 	MillingPath path;
-	ProceduralTexture tex = { 600,600 };
+	ProceduralTexture tex = { 1200,1200 };
 	int lastVisited = 0;
 
 	// Material
-	glm::ivec2 divisions = { 600,600 };
+	glm::ivec2 divisions = { 1200,1200 };
 	glm::ivec3 materialSize = { 15,5,15 };
 	int baseHeight = 15;
 
 	// Simulation
-	int speed = 10;
+	float speed = 0.02f;
 	bool instant = false;
 	bool finished = false;
 	

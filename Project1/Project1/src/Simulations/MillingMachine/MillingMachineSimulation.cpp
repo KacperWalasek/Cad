@@ -3,12 +3,12 @@
 
 std::tuple<int, int, glm::fvec3> MillingMachineSimulation::getPosition(float t)
 { 
-	for (int i = 0; i < path.times.size()-1; i++)
+	for (int i = 0; i < path.dists.size()-1; i++)
 	{
-		if (path.times[i] > t)
+		if (path.dists[i] > t)
 		{
-			float timeDiff = path.times[i] - path.times[i - 1];
-			float wsp = (t - path.times[i - 1]) / timeDiff;
+			float distDiff = path.dists[i] - path.dists[i - 1];
+			float wsp = (t - path.dists[i - 1]) / distDiff;
 			return { i-1,i, wsp * path.positions[i] + (1 - wsp) * path.positions[i - 1] };
 		}
 	}
@@ -29,11 +29,7 @@ void MillingMachineSimulation::applyStep(glm::fvec3 p1, glm::fvec3 p2)
 
 void MillingMachineSimulation::renderInstant()
 {
-	for (int i = lastVisited; i < path.positions.size()-1; i++)
-		hm.AddSegment(path.positions[i] * sizeMultiplier,
-			path.positions[i + 1] * sizeMultiplier,
-			path.radius * sizeMultiplier);
-
+	hms[selectedHM].second.Finalize();
 	finished = true;
 }
 
@@ -41,7 +37,6 @@ MillingMachineSimulation::MillingMachineSimulation()
 	: renderer(std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true))
 {
 	cutter.setPosition({0,0,0});
-
 }
 
 void MillingMachineSimulation::start()
@@ -57,37 +52,24 @@ void MillingMachineSimulation::stop()
 
 void MillingMachineSimulation::reset()
 {
-	timePassed = 0;
+	passedPathLength = 0;
 	running = true;
 }
 
 void MillingMachineSimulation::update(float dt)
 {
+	if (hms.empty())
+		return;
 	if (instant) {
 		renderInstant();
 		running = false;
+		instant = false;
 		return;
 	}
 
-	timePassed += dt;
-	float timeNormalized = timePassed / speed/5.0f;
-	auto [prevIndex, nextIndex, currentPosition] = getPosition(timeNormalized);
-	
-	if (lastVisited != prevIndex)
-	{
-		for (int i = lastVisited; i < prevIndex; i++)
-			hm.AddSegment(path.positions[i] * sizeMultiplier,
-				path.positions[i + 1] * sizeMultiplier,
-				path.radius * sizeMultiplier);
-		lastVisited = prevIndex;
-	}
-
-	hm.AddTemporarySegment(path.positions[prevIndex] * sizeMultiplier,
-		currentPosition * sizeMultiplier,
-		path.radius * sizeMultiplier);
-
-	cutter.setPosition(currentPosition);
-	
+	passedPathLength += dt * speed;
+	glm::fvec3 currentPosition = hms[selectedHM].second.SetDistance(passedPathLength);
+	cutter.setPosition(currentPosition * sizeMultiplier);
 }
 
 bool MillingMachineSimulation::isRunning() const
@@ -103,8 +85,7 @@ bool MillingMachineSimulation::RenderGui()
 		if (!filename.empty())
 		{
 			path = FileLoader::loadPath(filename);
-			hm.setRadius(path.radius * sizeMultiplier);
-			hm.setFlat(path.flat);
+			hms.push_back({ filename, {path} });
 		}
 	}
 	ImGui::Text("Material");
@@ -117,17 +98,54 @@ bool MillingMachineSimulation::RenderGui()
 	ImGui::InputInt("base height", &baseHeight);
 
 	ImGui::Text("Simulation");
-	ImGui::InputInt("speed", &speed);
+	ImGui::InputFloat("speed", &speed);
 	if (ImGui::Button("Start"))
 		start();
 	if (ImGui::Button("Instant"))
 		instant = true;
 
 	ImGui::Text("Cutter");
-	ImGui::InputInt("size", &cutterSize);
 	ImGui::InputInt("height", &height);
-	ImGui::Checkbox("flat", &flat);
 
+	if (!hms.empty())
+	{
+		ImGui::BeginDisabled();
+		bool flat = hms[selectedHM].second.IsFlat();
+		float radius = hms[selectedHM].second.GetRadius();
+		ImGui::Checkbox("flat", &flat);
+		ImGui::InputFloat("size", &radius);
+		ImGui::EndDisabled();
+	}
+
+	ImGui::Text("Paths:");
+	static int item_current = 0;
+	for (int i = 0; i < hms.size(); i++)
+	{
+		bool selected = selectedHM == i;
+		std::string p = hms[i].first;
+		std::string name = p.substr(p.find_last_of("\\") + 1).c_str();
+
+		PathState state = hms[i].second.GetState();
+		switch (state)
+		{
+		case PathState::Off:
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
+			break;
+		case PathState::Running:
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+			break;
+		case PathState::Finished:
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
+			break;
+		}
+
+		if (ImGui::Selectable(name.c_str(), selected))
+		{
+			if (selectedHM != i)
+				selectedHM = i;
+		}
+		ImGui::PopStyleColor();
+	}
 	ImGui::End();
 	return false;
 }
@@ -141,7 +159,8 @@ void MillingMachineSimulation::Render(bool selected, VariableManager& vm)
 {
 	// depth is in r
 	renderer->Clear({ 1,0,0,1 });
-	renderer->Render(hm, vm);
+	for(auto& hm : hms)
+		renderer->Render(hm.second, vm);
 	materialCube.setTexture(renderer->getTextureId());
 	cutter.Render(selected, vm);
 	materialCube.Render(selected, vm);

@@ -23,15 +23,26 @@ void MillingPath::readPositions(std::stringstream& ss)
 void MillingPath::update()
 {
 	totalLength = 0;
-	times = { 0 };
-	times.reserve(positions.size());
+	dists = { 0 };
+	if (positions.empty())
+		return;
+	dists.reserve(positions.size());
 	for (int i = 1; i < positions.size(); i++) {
 		float len = (positions[i] - positions[i - 1]).length();
-		times.push_back(times[i - 1] + len);
+		dists.push_back(dists[i - 1] + len);
 		totalLength += len;
 	}
 	for (int i = 0; i < positions.size(); i++)
-		times[i] /= totalLength;
+		dists[i] /= totalLength;
+
+	zRange = { positions[0].z,30 };
+	for (const auto& p : positions) 
+	{
+		if (p.z < zRange.x)
+			zRange.x = p.z;
+		if (p.z > zRange.y)
+			zRange.y = p.z;
+	}
 }
 
 MillingPath::MillingPath(std::stringstream& ss, float radius, bool flat)

@@ -14,8 +14,9 @@ void main()
     if (!flatMilling)
     {
         float dist = abs(uv.y - 0.5f);
-        float sphereF = radius * ( 1.0f - sqrt(1 - dist));
+        float sphereF = radius * ( 1.0f - sqrt(1.0f - dist));
         z = z + sphereF;
     }
     FragColor = vec4(z,0,0,1);
+    gl_FragDepth = z;
 }

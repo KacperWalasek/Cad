@@ -7,7 +7,7 @@ void MaterialCube::createHeightMapQuad()
 		0,0,1,
 		1,0,0,
 		1,0,1,
-	};
+	}; 
 	std::vector<int> inds = {
 		0,1,2,3
 	};
