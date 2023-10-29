@@ -7,14 +7,18 @@
 #include "../../Rendering/TextureRenderer.h"
 
 class MaterialCube : public IRenderable {
-	Shader heightMapShader;
+	Shader heightMapShader, phongShader, wallsShader;
 	unsigned int heightMapTexture;
-	unsigned int VBO, EBO, VAO;
+	unsigned int VBO, EBO_quad, EBO_triangle, VAO_quads, VAO_triangles;
 
 	unsigned int pathsVBO, pathsEBO, pathsVAO;
 
 	int divisionX, divisionY;
 	void createHeightMapQuad();
+
+	void renderBottom(VariableManager& vm);
+	void renderTop(VariableManager& vm);
+	void renderWalls(VariableManager& vm);
 public:
 	MaterialCube(int divisionX, int divisionY);
 	void applyMap() const;

@@ -12,7 +12,7 @@
 class MillingMachineSimulation 
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
 {
-	const float sizeMultiplier = 0.01f;
+	const float sizeMultiplier = 0.0125f;
 	
 	std::vector<std::pair<std::string, MillingHeightMapRenderer>> hms;
 	int selectedHM = 0;

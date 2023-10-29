@@ -10,7 +10,7 @@ enum class PathState {
 };
 
 class MillingHeightMapRenderer : public IRenderable {
-	const float sizeMultiplier = 0.01f;
+	const float sizeMultiplier = 0.0125f;
 
 	unsigned int VAO, VBO, EBO;
 	std::vector<float> vert;

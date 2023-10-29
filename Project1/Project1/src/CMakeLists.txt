@@ -107,6 +107,8 @@ set(SHADER_FILES
 	"Shaders/HeightMap/heightMap.tesc"
 	"Shaders/HeightMap/heightMap.vert"
 	"Shaders/HeightMap/heightMap.frag"
+	"Shaders/HeightMap/wall.tese"
+	"Shaders/HeightMap/wall.tesc"
 	"Shaders/MillingPath/millingPath.vert"
 	"Shaders/MillingPath/millingPath.frag"
 	
