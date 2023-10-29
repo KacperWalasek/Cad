@@ -1,4 +1,5 @@
 #include "MillingHeightMapRenderer.h"
+#include <numbers>
 
 float MillingHeightMapRenderer::stretchZ(float z) const
 {
@@ -15,22 +16,23 @@ float MillingHeightMapRenderer::normalizeZ(float z) const
 
 void MillingHeightMapRenderer::flush()
 {
+	// flush rectangles
 	std::vector<float> vertices;
-	vertices.reserve(vert.size() + temporaryVert.size());
-	vertices.insert(vertices.end(), vert.begin(), vert.end());
-	vertices.insert(vertices.end(), temporaryVert.begin(), temporaryVert.end());
+	vertices.reserve(vert_rect.size() + temporaryVert_rect.size());
+	vertices.insert(vertices.end(), vert_rect.begin(), vert_rect.end());
+	vertices.insert(vertices.end(), temporaryVert_rect.begin(), temporaryVert_rect.end());
 
 	std::vector<int> indices;
-	indices.reserve(inds.size() + temporaryInds.size());
-	indices.insert(indices.end(), inds.begin(), inds.end());
-	indices.insert(indices.end(), temporaryInds.begin(), temporaryInds.end());
+	indices.reserve(inds_rect.size() + temporaryInds_rect.size());
+	indices.insert(indices.end(), inds_rect.begin(), inds_rect.end());
+	indices.insert(indices.end(), temporaryInds_rect.begin(), temporaryInds_rect.end());
 	
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(VAO_rect);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_rect);
 
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_rect);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -42,9 +44,38 @@ void MillingHeightMapRenderer::flush()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	// flush circles
+	vertices.clear();
+	vertices.reserve(vert_circ.size() + temporaryVert_circ.size());
+	vertices.insert(vertices.end(), vert_circ.begin(), vert_circ.end());
+	vertices.insert(vertices.end(), temporaryVert_circ.begin(), temporaryVert_circ.end());
+
+	indices.clear();
+	indices.reserve(inds_circ.size() + temporaryInds_circ.size());
+	indices.insert(indices.end(), inds_circ.begin(), inds_circ.end());
+	indices.insert(indices.end(), temporaryInds_circ.begin(), temporaryInds_circ.end());
+	glBindVertexArray(VAO_circ);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_circ);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_circ);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
 }
 
-void MillingHeightMapRenderer::addSegment(std::vector<float>& vertices, std::vector<int>& indices, glm::fvec3 p1, glm::fvec3 p2, float r)
+void MillingHeightMapRenderer::addSegment(std::vector<float>& v_rect, std::vector<int>& i_rect, 
+										  std::vector<float>& v_circ, std::vector<int>& i_circ,
+										  glm::fvec3 p1, glm::fvec3 p2, float r)
 {
 	clearTemporary();
 
@@ -59,28 +90,57 @@ void MillingHeightMapRenderer::addSegment(std::vector<float>& vertices, std::vec
 	glm::fvec3 p21 = p2 + perp1 * r;
 	glm::fvec3 p22 = p2 + perp2 * r;
 
-	int indOffset = vert.size() / 5;
-	vertices.insert(vertices.end(), {
+	int indOffset = vert_rect.size() / 5;
+	v_rect.insert(v_rect.end(), {
 	//  x,     y,     z,                           u, v
 		p11.x, p11.y, stretchZ(normalizeZ(p11.z)), 0, 0,
 		p21.x, p21.y, stretchZ(normalizeZ(p21.z)), 1, 0,
 		p22.x, p22.y, stretchZ(normalizeZ(p22.z)), 1, 1,
 		p12.x, p12.y, stretchZ(normalizeZ(p12.z)), 0, 1
 		});
-	indices.insert(indices.end(), {
+	i_rect.insert(i_rect.end(), {
 		indOffset, indOffset + 1, indOffset + 2,
 		indOffset, indOffset + 2, indOffset + 3
 		});
+	
+	// circle
+	indOffset = vert_circ.size() / 4;
+	glm::fvec3 center = { p2.x,p2.y,stretchZ(normalizeZ(p2.z)) };
+	v_circ.insert(v_circ.end(), {
+	//	x,	  y,	z,	  dist
+		center.x, center.y, center.z, 0.0f
+		});
+	for (int i = 0; i < circleDivisions + 1; i++) {
+		float angle = i * 2.0f * std::numbers::pi / (float)circleDivisions;
+		glm::fvec3 p = center + glm::fvec3(r * cosf(angle), r * sinf(angle), 0);
+		v_circ.insert(v_circ.end(), {
+		//	x,	 y,   z,   dist
+			p.x, p.y, p.z, 1.0f
+			});
+		if (i != circleDivisions)
+			i_circ.insert(i_circ.end(), {
+				indOffset, indOffset + i + 2, indOffset + i + 1
+				});
+
+	}
+
 }
 
 MillingHeightMapRenderer::MillingHeightMapRenderer(MillingPath path)
-	: shader("Shaders/MillingPath/millingPath.vert", "Shaders/MillingPath/millingPath.frag"),
+	: rectShader("Shaders/MillingPath/millingPath.vert", "Shaders/MillingPath/millingPath.frag"),
+	circShader("Shaders/MillingPath/millingPathCirc.vert", "Shaders/MillingPath/millingPathCirc.frag"),
 	path(path)
 {
-	shader.Init();
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	rectShader.Init();
+	circShader.Init();
+
+	glGenVertexArrays(1, &VAO_rect);
+	glGenBuffers(1, &VBO_rect);
+	glGenBuffers(1, &EBO_rect);
+
+	glGenVertexArrays(1, &VAO_circ);
+	glGenBuffers(1, &VBO_circ);
+	glGenBuffers(1, &EBO_circ);
 }
 
 glm::fvec3 MillingHeightMapRenderer::SetDistance(float distance)
@@ -125,7 +185,7 @@ float MillingHeightMapRenderer::GetLength()
 
 PathState MillingHeightMapRenderer::GetState() const
 {
-	if (vert.empty() && temporaryVert.empty())
+	if (vert_rect.empty() && temporaryVert_rect.empty())
 		return PathState::Off;
 	if (lastVisited == path.positions.size() - 1)
 		return PathState::Finished;
@@ -144,15 +204,19 @@ float MillingHeightMapRenderer::GetRadius() const
 
 void MillingHeightMapRenderer::Clear()
 {
-	vert.clear();
-	inds.clear();
+	vert_rect.clear();
+	inds_rect.clear();
+	vert_circ.clear();
+	inds_circ.clear();
 	flush();
 }
 
 void MillingHeightMapRenderer::clearTemporary()
 {
-	temporaryVert.clear();
-	temporaryInds.clear();
+	temporaryVert_rect.clear();
+	temporaryInds_rect.clear();
+	temporaryVert_circ.clear();
+	temporaryInds_circ.clear();
 }
 
 std::tuple<int, int, glm::fvec3> MillingHeightMapRenderer::getPosition(float distance)
@@ -174,21 +238,27 @@ std::tuple<int, int, glm::fvec3> MillingHeightMapRenderer::getPosition(float dis
 
 void MillingHeightMapRenderer::addFixedSegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
-	addSegment(vert, inds, p1, p2, r);
+	addSegment(vert_rect, inds_rect, vert_circ, inds_circ, p1, p2, r);
 }
 
 void MillingHeightMapRenderer::addTemporarySegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
-	addSegment(temporaryVert, temporaryInds, p1, p2, r);
+	addSegment(temporaryVert_rect, temporaryInds_rect, temporaryVert_circ, temporaryInds_circ, p1, p2, r);
 }
 
 void MillingHeightMapRenderer::Render(bool selected, VariableManager& vm)
 {
-	shader.use();
-	glBindVertexArray(VAO);
 	vm.SetVariable("color", glm::fvec4(1, 0, 0, 1));
 	vm.SetVariable("radius", path.radius * sizeMultiplier);
 	vm.SetVariable("flatMilling", path.flat);
-	vm.Apply(shader.ID);
-	glDrawElements(GL_TRIANGLES, inds.size() + temporaryInds.size(), GL_UNSIGNED_INT, 0);
+
+	rectShader.use();
+	vm.Apply(rectShader.ID);
+	glBindVertexArray(VAO_rect);
+	glDrawElements(GL_TRIANGLES, inds_rect.size() + temporaryInds_rect.size(), GL_UNSIGNED_INT, 0);
+
+	circShader.use();
+	vm.Apply(circShader.ID);
+	glBindVertexArray(VAO_circ);
+	glDrawElements(GL_TRIANGLES, inds_circ.size() + temporaryInds_circ.size(), GL_UNSIGNED_INT, 0);
 }

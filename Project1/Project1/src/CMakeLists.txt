@@ -111,6 +111,8 @@ set(SHADER_FILES
 	"Shaders/HeightMap/wall.tesc"
 	"Shaders/MillingPath/millingPath.vert"
 	"Shaders/MillingPath/millingPath.frag"
+	"Shaders/MillingPath/millingPathCirc.vert"
+	"Shaders/MillingPath/millingPathCirc.frag"
 	
 )
 add_executable(CAD ${PROJECT_SOURCES})
