@@ -21,8 +21,7 @@ void TextureRenderer::createTexture(bool depthTest)
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, sizeX*2, sizeY*2, 0, format, GL_UNSIGNED_BYTE, NULL);
-
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, sizeX, sizeY, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -32,7 +31,7 @@ void TextureRenderer::createTexture(bool depthTest)
 	{
 		glGenTextures(1, &depth);
 		glBindTexture(GL_TEXTURE_2D, depth);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, sizeX * 2, sizeY * 2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, sizeX, sizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 	}
 
@@ -63,7 +62,7 @@ void TextureRenderer::Render(IRenderable& object, VariableManager& variableManag
 {
 	GLint m_viewport[4];
 	glGetIntegerv(GL_VIEWPORT, m_viewport);
-	glViewport(0, 0, sizeX * 2, sizeY * 2);
+	glViewport(0, 0, sizeX, sizeY);
 	glDepthFunc(GL_LESS);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	object.Render(false, variableManager);

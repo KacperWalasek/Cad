@@ -9,6 +9,7 @@ class MillingErrorHandler : public IErrorHandler
 	std::vector<std::string> messages;
 	unsigned int tex;
 	std::shared_ptr<Shader> circErrorShader, rectErrorShader;
+	void readErrorTexture(unsigned int errorTexture, int stepCount);
 public:
 	MillingErrorHandler();
 

@@ -175,7 +175,7 @@ bool MillingMachineSimulation::RenderGui()
 	ImGui::End();
 	return false;
 }
- 
+
 std::string MillingMachineSimulation::getName() const
 {
 	return "Milling simulation";
