@@ -5,6 +5,7 @@
 #include "EventHandlers/ObjectFactory.h"
 #include "EventHandlers/Collapse.h"
 #include "EventHandlers/CameraMainPositions.h"
+#include "ErrorDisplayer.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -18,15 +19,17 @@ CadApp::CadApp()
 		std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>(),
 		*camera);
 	simulator = std::make_shared<Simulator>();
+
 	auto factory = std::make_shared<ObjectFactory>(*scene);
-	
+	auto errorDisplayer = std::make_shared<ErrorDisplayer>();
 	guis = {
 		camera,
 		scene,
 		simulator,
-		std::make_shared<MainMenu>(*scene, *camera, *simulator),
+		std::make_shared<MainMenu>(*scene, *camera, *simulator, *errorDisplayer),
 		scene->cursor,
-		factory
+		factory,
+		errorDisplayer
 	};
 
 

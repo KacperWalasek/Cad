@@ -25,7 +25,14 @@ class MillingHeightMapRenderer : public IRenderable {
 	Shader rectShader, circShader;
 	MillingPath path;
 	int lastVisited = 0;
-	
+
+	// Modes
+	bool renderOneSegment = false;
+	bool useExternalShader = false;
+	int segmentToRender = 0;
+	std::shared_ptr<Shader> externalShaderRect, externalShaderCirc;
+
+
 	float normalizeZ(float z) const;
 	float stretchZ(float z) const;
 	void flush();
@@ -37,8 +44,10 @@ class MillingHeightMapRenderer : public IRenderable {
 	std::tuple<int,int,glm::fvec3> getPosition(float distance);
 	void addFixedSegment(glm::fvec3 p1, glm::fvec3 p2, float r);
 	void addTemporarySegment(glm::fvec3 p1, glm::fvec3 p2, float r);
-public:
 
+	void renderAll(VariableManager& vm);
+	void renderSegment(VariableManager& vm);
+public:
 	MillingHeightMapRenderer(MillingPath path);
 	
 	glm::fvec3 SetDistance(float distance);
@@ -47,7 +56,15 @@ public:
 	PathState GetState() const;
 	bool IsFlat() const;
 	float GetRadius() const;
+	const MillingPath& GetPath() const;
 
 	void Clear();
 	virtual void Render(bool selected, VariableManager& vm) override;
+
+	void SetRenderOneSegment(int i);
+	void SetRenderAll();
+
+	void SetUseExternalShaders(std::shared_ptr<Shader> externalShaderRect, std::shared_ptr<Shader> externalShaderCirc);
+	void SetUseInternalShaders();
+
 };

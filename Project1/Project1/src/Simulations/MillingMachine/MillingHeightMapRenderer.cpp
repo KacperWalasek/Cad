@@ -202,6 +202,11 @@ float MillingHeightMapRenderer::GetRadius() const
 	return path.radius;
 }
 
+const MillingPath& MillingHeightMapRenderer::GetPath() const
+{
+	return path;
+}
+
 void MillingHeightMapRenderer::Clear()
 {
 	vert_rect.clear();
@@ -239,11 +244,72 @@ std::tuple<int, int, glm::fvec3> MillingHeightMapRenderer::getPosition(float dis
 void MillingHeightMapRenderer::addFixedSegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
 	addSegment(vert_rect, inds_rect, vert_circ, inds_circ, p1, p2, r);
-}
+} 
 
 void MillingHeightMapRenderer::addTemporarySegment(glm::fvec3 p1, glm::fvec3 p2, float r)
 {
 	addSegment(temporaryVert_rect, temporaryInds_rect, temporaryVert_circ, temporaryInds_circ, p1, p2, r);
+} 
+  
+void MillingHeightMapRenderer::renderAll(VariableManager& vm)
+{   
+	if (useExternalShader)
+	{
+		externalShaderRect->use();
+		vm.Apply(externalShaderRect->ID);
+	}
+	else
+	{
+		rectShader.use();
+		vm.Apply(rectShader.ID);
+	}
+	glBindVertexArray(VAO_rect);
+	glDrawElements(GL_TRIANGLES, inds_rect.size() + temporaryInds_rect.size(), GL_UNSIGNED_INT, 0);
+
+	if (useExternalShader)
+	{
+		externalShaderCirc->use();
+		vm.Apply(externalShaderCirc->ID);
+	}
+	else
+	{
+		circShader.use();
+		vm.Apply(circShader.ID);
+	}
+	glBindVertexArray(VAO_circ);
+	glDrawElements(GL_TRIANGLES, inds_circ.size() + temporaryInds_circ.size(), GL_UNSIGNED_INT, 0);
+	  
+}
+
+void MillingHeightMapRenderer::renderSegment(VariableManager& vm)
+{ 
+	if (useExternalShader)
+	{
+		externalShaderRect->use(); 
+		vm.Apply(externalShaderRect->ID);
+	}
+	else
+	{
+		rectShader.use();
+		vm.Apply(rectShader.ID);
+	}
+	glBindVertexArray(VAO_rect);
+	int indInSegment = 6;
+	glDrawElements(GL_TRIANGLES, indInSegment, GL_UNSIGNED_INT, (void*)(indInSegment * segmentToRender * sizeof(unsigned int)));
+
+	if (useExternalShader)
+	{
+		externalShaderCirc->use();
+		vm.Apply(externalShaderCirc->ID);
+	}
+	else
+	{
+		circShader.use();
+		vm.Apply(circShader.ID);
+	}
+	glBindVertexArray(VAO_circ);
+	indInSegment = 3 * circleDivisions;
+	glDrawElements(GL_TRIANGLES, indInSegment, GL_UNSIGNED_INT, (void*)(indInSegment * segmentToRender * sizeof(unsigned int)));
 }
 
 void MillingHeightMapRenderer::Render(bool selected, VariableManager& vm)
@@ -252,13 +318,31 @@ void MillingHeightMapRenderer::Render(bool selected, VariableManager& vm)
 	vm.SetVariable("radius", path.radius * sizeMultiplier);
 	vm.SetVariable("flatMilling", path.flat);
 
-	rectShader.use();
-	vm.Apply(rectShader.ID);
-	glBindVertexArray(VAO_rect);
-	glDrawElements(GL_TRIANGLES, inds_rect.size() + temporaryInds_rect.size(), GL_UNSIGNED_INT, 0);
+	if (renderOneSegment)
+		renderSegment(vm);
+	else
+		renderAll(vm);
+}
 
-	circShader.use();
-	vm.Apply(circShader.ID);
-	glBindVertexArray(VAO_circ);
-	glDrawElements(GL_TRIANGLES, inds_circ.size() + temporaryInds_circ.size(), GL_UNSIGNED_INT, 0);
+void MillingHeightMapRenderer::SetRenderOneSegment(int i)
+{
+	renderOneSegment = true;
+	segmentToRender = i;
+}
+
+void MillingHeightMapRenderer::SetRenderAll()
+{
+	renderOneSegment = false;
+}
+
+void MillingHeightMapRenderer::SetUseExternalShaders(std::shared_ptr<Shader> externalShaderRect, std::shared_ptr<Shader> externalShaderCirc)
+{
+	this->externalShaderRect = externalShaderRect;
+	this->externalShaderCirc = externalShaderCirc;
+	useExternalShader = true;
+}
+
+void MillingHeightMapRenderer::SetUseInternalShaders()
+{
+	useExternalShader = false;
 }

@@ -13,8 +13,8 @@
 
 using nlohmann::json;
 
-MainMenu::MainMenu(Scene& scene, Camera& camera, Simulator& simulator)
-    :scene(scene), camera(camera), simulator(simulator)
+MainMenu::MainMenu(Scene& scene, Camera& camera, Simulator& simulator, ErrorDisplayer& errorDisplayer)
+    :scene(scene), camera(camera), simulator(simulator), errorDisplayer(errorDisplayer)
 {}
 
 bool MainMenu::RenderGui()
@@ -83,6 +83,7 @@ bool MainMenu::RenderGui()
                 auto simulation = std::make_shared<MillingMachineSimulation>();
                 simulator.simulations.push_back(simulation);
                 scene.Add(simulation);
+                errorDisplayer.AddHandler(simulation->GetErrorHandler());
             }
             ImGui::EndMenu();
         }

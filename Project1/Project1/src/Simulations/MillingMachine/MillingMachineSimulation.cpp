@@ -33,8 +33,22 @@ void MillingMachineSimulation::renderInstant()
 	finished = true;
 }
 
+void MillingMachineSimulation::handleErrors()
+{
+	VariableManager vm;
+	// create copy of height map before selected path
+	TextureRenderer tr(1200, 1200, 1, true);
+	tr.Clear({ 1,0,0,1 });
+	for (int i = 0; i < hms.size(); i++)
+		if (i != selectedHM)
+			tr.Render(hms[i].second, vm);
+
+	errorHandler->validate(tr, hms[selectedHM].second.GetPath());
+}
+
 MillingMachineSimulation::MillingMachineSimulation()
-	: renderer(std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true))
+	: renderer(std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true)),
+	errorHandler(std::make_shared<MillingErrorHandler>())
 {
 	cutter.setPosition({0,0,0});
 }
@@ -43,6 +57,7 @@ void MillingMachineSimulation::start()
 {
 	running = true;
 	renderer = std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true);
+	handleErrors();
 }
 
 void MillingMachineSimulation::stop()
@@ -75,6 +90,11 @@ void MillingMachineSimulation::update(float dt)
 bool MillingMachineSimulation::isRunning() const
 {
 	return running;
+}
+
+std::shared_ptr<MillingErrorHandler> MillingMachineSimulation::GetErrorHandler()
+{
+	return errorHandler;
 }
 
 bool MillingMachineSimulation::RenderGui()

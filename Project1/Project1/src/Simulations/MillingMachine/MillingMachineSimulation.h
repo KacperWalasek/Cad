@@ -8,6 +8,7 @@
 #include "Cutter.h"
 #include "MaterialCube.h"
 #include "MillingHeightMapRenderer.h"
+#include "MillingErrorHandler.h"
 
 class MillingMachineSimulation 
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
@@ -17,6 +18,7 @@ class MillingMachineSimulation
 	std::vector<std::pair<std::string, MillingHeightMapRenderer>> hms;
 	int selectedHM = 0;
 
+	std::shared_ptr<MillingErrorHandler> errorHandler;
 	std::shared_ptr<TextureRenderer> renderer;
 
 	// Visualisation
@@ -39,6 +41,7 @@ class MillingMachineSimulation
 	float speed = 0.02f;
 	bool instant = false;
 	bool finished = false;
+	bool started = false;
 	
 	// Cutter
 	int cutterSize = 1;
@@ -47,6 +50,7 @@ class MillingMachineSimulation
 	std::tuple<int, int, glm::fvec3> getPosition(float t);
 	void applyStep(glm::fvec3 p1, glm::fvec3 p2);
 	void renderInstant();
+	void handleErrors();
 public:
 	MillingMachineSimulation();
 
@@ -55,6 +59,8 @@ public:
 	virtual void reset() override;
 	virtual void update(float dt) override;
 	virtual bool isRunning() const override;
+
+	std::shared_ptr<MillingErrorHandler> GetErrorHandler();
 
 	// Inherited via IGui
 	virtual bool RenderGui() override;
