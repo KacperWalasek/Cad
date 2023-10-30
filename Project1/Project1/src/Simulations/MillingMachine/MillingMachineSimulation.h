@@ -9,6 +9,7 @@
 #include "MaterialCube.h"
 #include "MillingHeightMapRenderer.h"
 #include "MillingErrorHandler.h"
+#include "MillingPathVisualizer.h"
 
 class MillingMachineSimulation 
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
@@ -24,6 +25,7 @@ class MillingMachineSimulation
 	// Visualisation
 	Cutter cutter;
 	MaterialCube materialCube = {1200,1200 };
+	MillingPathVisualizer millingPathVisualizer;
 	
 	// State
 	bool running = false;
@@ -41,7 +43,7 @@ class MillingMachineSimulation
 	float speed = 0.02f;
 	bool instant = false;
 	bool finished = false;
-	bool started = false;
+	bool showPaths = false;
 	
 	// Cutter
 	int cutterSize = 1;

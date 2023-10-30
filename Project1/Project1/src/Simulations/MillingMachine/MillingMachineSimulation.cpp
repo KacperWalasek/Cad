@@ -105,6 +105,8 @@ bool MillingMachineSimulation::RenderGui()
 		if (!filename.empty())
 		{
 			path = FileLoader::loadPath(filename);
+			if (hms.size() == 0)
+				millingPathVisualizer.setMillingPath(path);
 			hms.push_back({ filename, {path} });
 		}
 	}
@@ -123,6 +125,7 @@ bool MillingMachineSimulation::RenderGui()
 		start();
 	if (ImGui::Button("Instant"))
 		instant = true;
+	ImGui::Checkbox("Show paths", &showPaths);
 
 	ImGui::Text("Cutter");
 	ImGui::InputInt("height", &height);
@@ -161,8 +164,11 @@ bool MillingMachineSimulation::RenderGui()
 
 		if (ImGui::Selectable(name.c_str(), selected))
 		{
-			if (selectedHM != i)
+			if (selectedHM != i) 
+			{
+				millingPathVisualizer.setMillingPath(hms[i].second.GetPath());
 				selectedHM = i;
+			}
 		}
 		ImGui::PopStyleColor();
 	}
@@ -184,4 +190,6 @@ void MillingMachineSimulation::Render(bool selected, VariableManager& vm)
 	materialCube.setTexture(renderer->getTextureId());
 	cutter.Render(selected, vm);
 	materialCube.Render(selected, vm);
+	if(showPaths)
+		millingPathVisualizer.Render(selected, vm);
 }

@@ -101,7 +101,7 @@ set(PROJECT_SOURCES
 	"Simulations/MillingMachine/MillingHeightMapRenderer.cpp" 
 	"interfaces/IErrorHandler.h" 
 	"ErrorDisplayer.h" "ErrorDisplayer.cpp" "Simulations/MillingMachine/MillingErrorHandler.h" 
-	"Simulations/MillingMachine/MillingErrorHandler.cpp")
+	"Simulations/MillingMachine/MillingErrorHandler.cpp" "Simulations/MillingMachine/MillingPathVisualizer.h" "Simulations/MillingMachine/MillingPathVisualizer.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
