@@ -3,9 +3,8 @@
 
 float MillingHeightMapRenderer::stretchZ(float z) const
 {
-	return z; 
-	float rangeMin = normalizeZ(path.zRange.x);
-	float rangeMax = normalizeZ(path.zRange.y);
+	float rangeMin = normalizeZ(0);
+	float rangeMax = normalizeZ(materialSize.y*10.0f);
 	return (z - rangeMin) / (rangeMax - rangeMin);
 }
 
@@ -92,11 +91,11 @@ void MillingHeightMapRenderer::addSegment(std::vector<float>& v_rect, std::vecto
 
 	int indOffset = vert_rect.size() / 5;
 	v_rect.insert(v_rect.end(), {
-	//  x,     y,     z,                           u, v
-		p11.x, p11.y, stretchZ(normalizeZ(p11.z)), 0, 0,
-		p21.x, p21.y, stretchZ(normalizeZ(p21.z)), 1, 0,
-		p22.x, p22.y, stretchZ(normalizeZ(p22.z)), 1, 1,
-		p12.x, p12.y, stretchZ(normalizeZ(p12.z)), 0, 1
+	//  x,     y,     z,              u, v
+		p11.x, p11.y, stretchZ(p1.z), 0, 0,
+		p21.x, p21.y, stretchZ(p2.z), 1, 0,
+		p22.x, p22.y, stretchZ(p2.z), 1, 1,
+		p12.x, p12.y, stretchZ(p1.z), 0, 1
 		});
 	i_rect.insert(i_rect.end(), {
 		indOffset, indOffset + 1, indOffset + 2,
@@ -105,7 +104,7 @@ void MillingHeightMapRenderer::addSegment(std::vector<float>& v_rect, std::vecto
 	
 	// circle
 	indOffset = vert_circ.size() / 4;
-	glm::fvec3 center = { p2.x,p2.y,stretchZ(normalizeZ(p2.z)) };
+	glm::fvec3 center = { p2.x,p2.y,stretchZ(p2.z) };
 	v_circ.insert(v_circ.end(), {
 	//	x,	  y,	z,	  dist
 		center.x, center.y, center.z, 0.0f
@@ -126,7 +125,7 @@ void MillingHeightMapRenderer::addSegment(std::vector<float>& v_rect, std::vecto
 
 }
 
-MillingHeightMapRenderer::MillingHeightMapRenderer(MillingPath path)
+MillingHeightMapRenderer::MillingHeightMapRenderer(MillingPath path, glm::fvec3 materialSize)
 	: rectShader("Shaders/MillingPath/millingPath.vert", "Shaders/MillingPath/millingPath.frag"),
 	circShader("Shaders/MillingPath/millingPathCirc.vert", "Shaders/MillingPath/millingPathCirc.frag"),
 	path(path)
@@ -141,6 +140,8 @@ MillingHeightMapRenderer::MillingHeightMapRenderer(MillingPath path)
 	glGenVertexArrays(1, &VAO_circ);
 	glGenBuffers(1, &VBO_circ);
 	glGenBuffers(1, &EBO_circ);
+
+	SetMaterialSize(materialSize);
 }
 
 glm::fvec3 MillingHeightMapRenderer::SetDistance(float distance)
@@ -152,7 +153,7 @@ glm::fvec3 MillingHeightMapRenderer::SetDistance(float distance)
 		for (int i = lastVisited; i < prevIndex; i++)
 			addFixedSegment(path.positions[i] * sizeMultiplier,
 				path.positions[i + 1] * sizeMultiplier,
-				path.radius * sizeMultiplier);
+				path.radius * sizeMultiplier.x);
 		lastVisited = prevIndex;
 	}
 
@@ -161,10 +162,16 @@ glm::fvec3 MillingHeightMapRenderer::SetDistance(float distance)
 	else
 		addTemporarySegment(path.positions[prevIndex] * sizeMultiplier,
 			currentPosition * sizeMultiplier,
-			path.radius * sizeMultiplier);
+			path.radius * sizeMultiplier.x);
 
 	flush();
 	return currentPosition;
+}
+
+void MillingHeightMapRenderer::SetMaterialSize(glm::fvec3 materialSize)
+{
+	this->materialSize = materialSize;
+	sizeMultiplier = { 2.0f / (materialSize.x * 10.0f), 2.0f / (materialSize.x * 10.0f), 1.0f }; //TODO
 }
 
 glm::fvec3 MillingHeightMapRenderer::Finalize()
@@ -172,7 +179,7 @@ glm::fvec3 MillingHeightMapRenderer::Finalize()
 	for (int i = lastVisited; i < path.positions.size() - 1; i++)
 		addFixedSegment(path.positions[i] * sizeMultiplier,
 			path.positions[i + 1] * sizeMultiplier,
-			path.radius * sizeMultiplier);
+			path.radius * sizeMultiplier.x);
 	lastVisited = path.positions.size() - 1;
 	flush();
 	return *path.positions.rbegin();
@@ -226,7 +233,7 @@ void MillingHeightMapRenderer::clearTemporary()
 
 std::tuple<int, int, glm::fvec3> MillingHeightMapRenderer::getPosition(float distance)
 {
-	float distNorm = distance / (path.totalLength * sizeMultiplier);
+	float distNorm = distance / (path.totalLength * sizeMultiplier.x);
 
 	for (int i = 0; i < path.dists.size() - 1; i++)
 	{
@@ -315,7 +322,7 @@ void MillingHeightMapRenderer::renderSegment(VariableManager& vm)
 void MillingHeightMapRenderer::Render(bool selected, VariableManager& vm)
 {
 	vm.SetVariable("color", glm::fvec4(1, 0, 0, 1));
-	vm.SetVariable("radius", path.radius * sizeMultiplier);
+	vm.SetVariable("radius", path.radius * sizeMultiplier.x);
 	vm.SetVariable("flatMilling", path.flat);
 
 	if (renderOneSegment)

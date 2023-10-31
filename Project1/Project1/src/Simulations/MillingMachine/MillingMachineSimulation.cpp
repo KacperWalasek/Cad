@@ -43,7 +43,7 @@ void MillingMachineSimulation::handleErrors()
 		if (i != selectedHM)
 			tr.Render(hms[i].second, vm);
 
-	errorHandler->validate(tr, hms[selectedHM].second.GetPath());
+	errorHandler->validate(tr, hms[selectedHM].second.GetPath(), materialSize);
 }
 
 MillingMachineSimulation::MillingMachineSimulation()
@@ -51,6 +51,7 @@ MillingMachineSimulation::MillingMachineSimulation()
 	errorHandler(std::make_shared<MillingErrorHandler>())
 {
 	cutter.setPosition({0,0,0});
+	materialCube.setSize(materialSize.x, materialSize.y + baseHeight, materialSize.z);
 }
 
 void MillingMachineSimulation::start()
@@ -84,7 +85,7 @@ void MillingMachineSimulation::update(float dt)
 
 	passedPathLength += dt * speed;
 	glm::fvec3 currentPosition = hms[selectedHM].second.SetDistance(passedPathLength);
-	cutter.setPosition(currentPosition * sizeMultiplier);
+	cutter.setPosition(currentPosition);
 }
 
 bool MillingMachineSimulation::isRunning() const
@@ -107,7 +108,7 @@ bool MillingMachineSimulation::RenderGui()
 			path = FileLoader::loadPath(filename);
 			if (hms.size() == 0)
 				millingPathVisualizer.setMillingPath(path);
-			hms.push_back({ filename, {path} });
+			hms.push_back({ filename, {path, materialSize + glm::ivec3(0,baseHeight,0)} });
 		}
 	}
 	ImGui::Text("Material");

@@ -14,7 +14,6 @@
 class MillingMachineSimulation 
 	: public ISimulation, public IGui, public ISceneElement, public IRenderable 
 {
-	const float sizeMultiplier = 0.0125f;
 	
 	std::vector<std::pair<std::string, MillingHeightMapRenderer>> hms;
 	int selectedHM = 0;
@@ -37,7 +36,7 @@ class MillingMachineSimulation
 	// Material
 	glm::ivec2 divisions = { 1200,1200 };
 	glm::ivec3 materialSize = { 15,5,15 };
-	int baseHeight = 15;
+	int baseHeight = 5;
 
 	// Simulation
 	float speed = 0.02f;

@@ -56,7 +56,7 @@ void MaterialCube::renderBottom(VariableManager& vm)
 {
 	phongShader.use();
 	vm.SetVariable("color", glm::fvec4(0, 1, 0, 0));
-	vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
+	//vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
 	glBindVertexArray(VAO_triangles);
 	vm.Apply(phongShader.ID);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -68,7 +68,7 @@ void MaterialCube::renderTop(VariableManager& vm)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, heightMapTexture);
 	vm.SetVariable("color", glm::fvec4(0, 1, 0, 0));
-	vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
+	//vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
 	for (int i = 0; i < divisionX / 100.0f; i++)
 		for (int j = 0; j < divisionX / 100.0f; j++)
 		{
@@ -91,7 +91,7 @@ void MaterialCube::renderWalls(VariableManager& vm)
 	glActiveTexture(GL_TEXTURE0); 
 	glBindTexture(GL_TEXTURE_2D, heightMapTexture);
 	vm.SetVariable("color", glm::fvec4(0, 1, 0, 0));
-	vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
+	//vm.SetVariable("modelMtx", glm::identity<glm::fmat4x4>());
 	for (int i = 0; i < 4; i++) { 
 		vm.SetVariable("index", i);
 		for (int i = 0; i < divisionX / 100.0f; i++)
@@ -111,7 +111,7 @@ MaterialCube::MaterialCube(int divisionX, int divisionY)
 	: heightMapShader("Shaders/HeightMap/heightMap.vert","Shaders/HeightMap/heightMap.frag"),
 	phongShader("Shaders/Phong/phong.vert", "Shaders/Phong/phong.frag"),
 	wallsShader("Shaders/HeightMap/heightMap.vert", "Shaders/HeightMap/heightMap.frag"),
-	divisionX(divisionX), divisionY(divisionY)
+	divisionX(divisionX), divisionY(divisionY), scale(glm::identity<glm::fmat4x4>())
 {
 	heightMapShader.Init();
 	heightMapShader.loadShaderFile("Shaders/HeightMap/heightMap.tesc", GL_TESS_CONTROL_SHADER);
@@ -131,10 +131,18 @@ void MaterialCube::applyMap() const
 void MaterialCube::setTexture(unsigned int texture)
 {
 	heightMapTexture = texture;
-} 
+}
+
+void MaterialCube::setSize(float x, float y, float z)
+{
+	height = y;
+	scale = glm::scale(glm::identity<glm::fmat4x4>(), glm::fvec3(x, y, z));
+}
+
 
 void MaterialCube::Render(bool selected, VariableManager& vm)
-{ 
+{
+	vm.SetVariable("modelMtx", scale);
 	renderBottom(vm);
 	renderWalls(vm);
 	renderTop(vm);

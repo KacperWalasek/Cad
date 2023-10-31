@@ -101,7 +101,7 @@ void Renderer::Init()
     variableManager.AddVariable("reverseIntersect", std::vector<bool>());
     variableManager.AddVariable("index", 0);
 
-    variableManager.AddVariable("lightPos", glm::fvec3(100,100,100));
+    variableManager.AddVariable("lightPos", glm::fvec3(0,-100,0));
     variableManager.AddVariable("lightColor", glm::fvec4(1, 1, 1, 1));
     variableManager.AddVariable("cameraPos", glm::fvec3(0, 0, 0));
     variableManager.AddVariable("radius", 1.0f);

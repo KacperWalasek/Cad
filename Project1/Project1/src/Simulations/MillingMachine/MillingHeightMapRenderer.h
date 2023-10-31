@@ -10,7 +10,7 @@ enum class PathState {
 };
 
 class MillingHeightMapRenderer : public IRenderable {
-	const float sizeMultiplier = 0.0125f;
+
 	const int circleDivisions = 10;
 
 	unsigned int VAO_rect, VAO_circ, 
@@ -25,6 +25,8 @@ class MillingHeightMapRenderer : public IRenderable {
 	Shader rectShader, circShader;
 	MillingPath path;
 	int lastVisited = 0;
+	glm::fvec3 materialSize; 
+	glm::fvec3 sizeMultiplier;
 
 	// Modes
 	bool renderOneSegment = false;
@@ -48,7 +50,8 @@ class MillingHeightMapRenderer : public IRenderable {
 	void renderAll(VariableManager& vm);
 	void renderSegment(VariableManager& vm);
 public:
-	MillingHeightMapRenderer(MillingPath path);
+	MillingHeightMapRenderer(MillingPath path, glm::fvec3 materialSize);
+	void SetMaterialSize(glm::fvec3 materialSize);
 	
 	glm::fvec3 SetDistance(float distance);
 	glm::fvec3 Finalize();

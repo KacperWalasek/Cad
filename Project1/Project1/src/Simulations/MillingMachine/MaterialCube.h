@@ -14,7 +14,11 @@ class MaterialCube : public IRenderable {
 	unsigned int pathsVBO, pathsEBO, pathsVAO;
 
 	int divisionX, divisionY;
+
+	glm::fmat4x4 scale;
+	float height = 0;
 	void createHeightMapQuad();
+
 
 	void renderBottom(VariableManager& vm);
 	void renderTop(VariableManager& vm);
@@ -23,7 +27,7 @@ public:
 	MaterialCube(int divisionX, int divisionY);
 	void applyMap() const;
 	void setTexture(unsigned int texture);
-
+	void setSize(float x, float y, float z);
 
 	// Inherited via IRenderable
 	virtual void Render(bool selected, VariableManager& vm) override;
