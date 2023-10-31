@@ -7,10 +7,11 @@ uniform bool flatMilling;
 
 in vec4 gl_FragCoord;
 in float dist;
+in vec3 pos;
 
 void main()
 {
-    float z = gl_FragCoord.z;
+    float z = pos.z;
     if (!flatMilling)
     {
         float sphereF = radius * ( 1.0f - sqrt(1.0f - dist*dist));

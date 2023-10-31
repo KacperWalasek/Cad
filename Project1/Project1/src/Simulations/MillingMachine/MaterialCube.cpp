@@ -111,7 +111,7 @@ MaterialCube::MaterialCube(int divisionX, int divisionY)
 	: heightMapShader("Shaders/HeightMap/heightMap.vert","Shaders/HeightMap/heightMap.frag"),
 	phongShader("Shaders/Phong/phong.vert", "Shaders/Phong/phong.frag"),
 	wallsShader("Shaders/HeightMap/heightMap.vert", "Shaders/HeightMap/heightMap.frag"),
-	divisionX(divisionX), divisionY(divisionY), scale(glm::identity<glm::fmat4x4>())
+	divisionX(divisionX), divisionY(divisionY), modelMatrix(glm::identity<glm::fmat4x4>())
 {
 	heightMapShader.Init();
 	heightMapShader.loadShaderFile("Shaders/HeightMap/heightMap.tesc", GL_TESS_CONTROL_SHADER);
@@ -136,13 +136,13 @@ void MaterialCube::setTexture(unsigned int texture)
 void MaterialCube::setSize(float x, float y, float z)
 {
 	height = y;
-	scale = glm::scale(glm::identity<glm::fmat4x4>(), glm::fvec3(x, y, z));
+	modelMatrix = glm::translate( glm::scale(glm::identity<glm::fmat4x4>(), glm::fvec3(x, y, z)), glm::fvec3(-0.5f, 0.0f, -0.5f));
 }
 
 
 void MaterialCube::Render(bool selected, VariableManager& vm)
 {
-	vm.SetVariable("modelMtx", scale);
+	vm.SetVariable("modelMtx", modelMatrix);
 	renderBottom(vm);
 	renderWalls(vm);
 	renderTop(vm);

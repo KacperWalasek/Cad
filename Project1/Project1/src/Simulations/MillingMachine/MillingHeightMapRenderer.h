@@ -35,7 +35,6 @@ class MillingHeightMapRenderer : public IRenderable {
 	std::shared_ptr<Shader> externalShaderRect, externalShaderCirc;
 
 
-	float normalizeZ(float z) const;
 	float stretchZ(float z) const;
 	void flush();
 	void addSegment(std::vector<float>& v_rect, std::vector<int>& i_rect,

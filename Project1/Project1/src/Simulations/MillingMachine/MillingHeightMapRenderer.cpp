@@ -3,14 +3,9 @@
 
 float MillingHeightMapRenderer::stretchZ(float z) const
 {
-	float rangeMin = normalizeZ(0);
-	float rangeMax = normalizeZ(materialSize.y*10.0f);
+	float rangeMin = 0;
+	float rangeMax = materialSize.y*10.0f;
 	return (z - rangeMin) / (rangeMax - rangeMin);
-}
-
-float MillingHeightMapRenderer::normalizeZ(float z) const
-{
-	return (1.0f + z) / 2.0f;
 }
 
 void MillingHeightMapRenderer::flush()

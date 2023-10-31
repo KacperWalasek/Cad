@@ -11,12 +11,12 @@ uniform int stepCount;
 
 in vec4 gl_FragCoord;
 in vec2 uv;
-in vec2 textureUV;
+in vec3 pos;
 
 void main()
 {
-    float currentZ = texture(tex,(textureUV+1.0f)/2.0f).x;
-    float z = gl_FragCoord.z;
+    float currentZ = texture(tex,(pos.xy+1.0f)/2.0f).x;
+    float z = pos.z;
     if (!flatMilling)
     {
         float dist = 2.0f*abs(uv.y - 0.5f);

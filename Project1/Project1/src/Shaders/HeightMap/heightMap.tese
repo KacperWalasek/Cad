@@ -43,7 +43,7 @@ void main()
     vec4 p = (p1 - p0) * v + p0;
     
     mat4 transform = projMtx * viewMtx * modelMtx;
-    gl_Position = normalize(transform*vec4(p.x, p.y+h, p.z, 1.0f));
+    gl_Position = transform*vec4(p.x, p.y+h, p.z, 1.0f);
     worldPos = normalize(modelMtx*vec4(p.x, p.y+h, p.z, 1.0f));
     worldPos /= worldPos.w;
     

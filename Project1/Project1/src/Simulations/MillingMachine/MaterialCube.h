@@ -15,7 +15,7 @@ class MaterialCube : public IRenderable {
 
 	int divisionX, divisionY;
 
-	glm::fmat4x4 scale;
+	glm::fmat4x4 modelMatrix;
 	float height = 0;
 	void createHeightMapQuad();
 

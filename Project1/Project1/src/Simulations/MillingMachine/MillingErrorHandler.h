@@ -15,5 +15,5 @@ public:
 
 	virtual std::vector<std::string> getMessages() const override;
 
-	void validate(TextureRenderer& currentTex, const MillingPath& path, glm::fvec3 materialSize);
+	void validate(TextureRenderer& currentTex, const MillingPath& path, glm::fvec3 materialSize, float baseHeight);
 };

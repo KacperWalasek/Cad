@@ -39,7 +39,7 @@ std::vector<std::string> MillingErrorHandler::getMessages() const
 	return messages;
 }
 
-void MillingErrorHandler::validate(TextureRenderer& currentTex, const MillingPath& path, glm::fvec3 materialSize)
+void MillingErrorHandler::validate(TextureRenderer& currentTex, const MillingPath& path, glm::fvec3 materialSize, float baseHeight)
 {
 	float multiplier = 2.0f / materialSize.x; // TODO
 	VariableManager vm;
@@ -51,7 +51,7 @@ void MillingErrorHandler::validate(TextureRenderer& currentTex, const MillingPat
 	vm.AddVariable("stepIndex", 0);
 	vm.AddVariable("stepCount", (int)path.positions.size());
 
-	MillingHeightMapRenderer hm(path, materialSize);
+	MillingHeightMapRenderer hm(path, materialSize + glm::fvec3(0, baseHeight, 0));
 	hm.Finalize();
 
 	TextureRenderer errorTexRenderer(1200, 1200, 1, false);

@@ -43,7 +43,7 @@ void MillingMachineSimulation::handleErrors()
 		if (i != selectedHM)
 			tr.Render(hms[i].second, vm);
 
-	errorHandler->validate(tr, hms[selectedHM].second.GetPath(), materialSize);
+	errorHandler->validate(tr, hms[selectedHM].second.GetPath(), materialSize, baseHeight);
 }
 
 MillingMachineSimulation::MillingMachineSimulation()

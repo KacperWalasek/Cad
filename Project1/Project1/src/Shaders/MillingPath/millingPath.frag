@@ -7,10 +7,11 @@ uniform bool flatMilling;
 
 in vec4 gl_FragCoord;
 in vec2 uv;
+in vec3 pos;
 
 void main()
 {
-    float z = gl_FragCoord.z;
+    float z = pos.z;
     if (!flatMilling)
     {
         float dist = 2.0f*abs(uv.y - 0.5f);
