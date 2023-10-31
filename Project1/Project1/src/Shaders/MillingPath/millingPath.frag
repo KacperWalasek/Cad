@@ -13,7 +13,7 @@ void main()
     float z = gl_FragCoord.z;
     if (!flatMilling)
     {
-        float dist = abs(uv.y - 0.5f);
+        float dist = 2.0f*abs(uv.y - 0.5f);
         float sphereF = radius * ( 1.0f - sqrt(1.0f - dist*dist));
         z = z + sphereF;
     }
