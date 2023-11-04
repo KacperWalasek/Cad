@@ -105,4 +105,7 @@ public:
 
 	// Inherited via IOwner
 	virtual void ChildMoved(ISceneElement& child) override;
+
+	// Inherited via IUVSurface
+	virtual void setRenderState(SurfaceRenderState state) override;
 };

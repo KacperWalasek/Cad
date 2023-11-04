@@ -276,3 +276,8 @@ const void Torus::setScale(const glm::fvec3& scale)
 {
 	transform.location = { scale, 0 };
 }
+
+void Torus::setRenderState(SurfaceRenderState state)
+{
+	// TODO implement soid torus for milling paths
+}

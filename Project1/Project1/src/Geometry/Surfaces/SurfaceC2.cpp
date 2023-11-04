@@ -162,18 +162,25 @@ SurfaceC2::SurfaceC2(nlohmann::json json, std::map<int, std::shared_ptr<Point>>&
 	updateMeshes();
 }
 SurfaceC2::SurfaceC2()
-	: tessShader("Shaders/Surface/surfaceC0.vert", "Shaders/uv.frag"),
+	: wireframeShader("Shaders/Surface/surfaceC0.vert", "Shaders/uv.frag"),
+	solidShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
+	heightShader("Shaders/Surface/surfaceC0.vert", "Shaders/height.frag"),
 	chainShader("Shaders/Surface/surfaceC0.vert", "Shaders/fragmentShader.frag"),
 	shouldReload(false),
 	showChain(false)
 {
-
-	tessShader.Init();
-	tessShader.loadShaderFile("Shaders/Surface/surfaceC2.tesc", GL_TESS_CONTROL_SHADER);
-	tessShader.loadShaderFile("Shaders/Surface/surfaceC2.tese", GL_TESS_EVALUATION_SHADER);
+	wireframeShader.Init();
+	wireframeShader.loadShaderFile("Shaders/Surface/surfaceC2.tesc", GL_TESS_CONTROL_SHADER);
+	wireframeShader.loadShaderFile("Shaders/Surface/surfaceC2.tese", GL_TESS_EVALUATION_SHADER);
 	chainShader.Init();
 	chainShader.loadShaderFile("Shaders/Surface/surfaceChain.tesc", GL_TESS_CONTROL_SHADER);
 	chainShader.loadShaderFile("Shaders/Surface/surfaceChain.tese", GL_TESS_EVALUATION_SHADER);
+	solidShader.Init();
+	solidShader.loadShaderFile("Shaders/Surface/surfaceC2solid.tesc", GL_TESS_CONTROL_SHADER);
+	solidShader.loadShaderFile("Shaders/Surface/surfaceC2solid.tese", GL_TESS_EVALUATION_SHADER);
+	heightShader.Init();
+	heightShader.loadShaderFile("Shaders/Surface/surfaceC2solid.tesc", GL_TESS_CONTROL_SHADER);
+	heightShader.loadShaderFile("Shaders/Surface/surfaceC2solid.tese", GL_TESS_EVALUATION_SHADER);
 
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
@@ -188,13 +195,27 @@ std::string SurfaceC2::getName() const
 
 void SurfaceC2::Render(bool selected, VariableManager& vm)
 {
+	Shader* meshShader;
+	switch (state)
+	{
+	case SurfaceRenderState::Wireframe:
+		meshShader = &wireframeShader;
+		break;
+	case SurfaceRenderState::Solid:
+		meshShader = &solidShader;
+		break;
+	case SurfaceRenderState::HeightMap:
+		meshShader = &heightShader;
+		break;
+	}
+
 	if (shouldReload)
 	{
 		updateMeshes();
 		shouldReload = false;
 	}
 
-	tessShader.use();
+	meshShader->use();
 	glBindVertexArray(VAO);
 	glPatchParameteri(GL_PATCH_VERTICES, 16);
 
@@ -225,14 +246,14 @@ void SurfaceC2::Render(bool selected, VariableManager& vm)
 		vm.SetVariable("color", glm::fvec4(0.3f, 0.3f, 0.3f, 1.0f));
 
 	vm.SetVariable("reverse", false);
-	vm.Apply(tessShader.ID);
+	vm.Apply(meshShader->ID);
 	glDrawElements(GL_PATCHES, indicesSize, GL_UNSIGNED_INT, 0);
 
 	vm.SetVariable("reverse", true);
-	vm.Apply(tessShader.ID);
+	vm.Apply(meshShader->ID);
 	glDrawElements(GL_PATCHES, indicesSize, GL_UNSIGNED_INT, 0);
 
-	if (showChain)
+	if (showChain && state!=SurfaceRenderState::HeightMap)
 	{
 		vm.SetVariable("color", glm::fvec4(1.0f, 0.0f, 1.0f, 1.0f));
 		chainShader.use();
@@ -588,4 +609,9 @@ void SurfaceC2::ChildMoved(ISceneElement& child)
 			points[mirroredIndex]->setLocation(movedLoc - dirVec * 2.0f * (movedLoc - pos));
 		}
 	}
+}
+
+void SurfaceC2::setRenderState(SurfaceRenderState state)
+{
+	this->state = state;
 }

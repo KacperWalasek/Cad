@@ -10,6 +10,7 @@
 #include "FileLoader.h"
 #include "nlohmann/json.hpp"
 #include "tinyfiledialogs/tinyfiledialogs.h"
+#include "../Milling/MillingPathCreator.h"
 
 using nlohmann::json;
 
@@ -87,13 +88,13 @@ bool MainMenu::RenderGui()
             }
             ImGui::EndMenu();
         }
-        if (ImGui::MenuItem("Load",""))
+        if (ImGui::MenuItem("Load","")) 
         {
             std::string filename = FileLoader::selectFile();
             if (!filename.empty())
             {
                 nlohmann::json json = FileLoader::load(filename);
-
+ 
                 std::map<int, std::shared_ptr<Point>> pointIndexMap;
 
                 for (nlohmann::json pJson : json["points"])
@@ -176,6 +177,19 @@ bool MainMenu::RenderGui()
             if (!saveDest.empty())
                 FileLoader::save(saveDest, sceneJson);
         }
+        if (ImGui::BeginMenu("Milling", ""))
+        {
+            if (ImGui::MenuItem("CreateRoughingPath", ""))
+                MillingPathCreator::CreateRoughtingPath(scene);
+            if (ImGui::MenuItem("CreateBasePath", ""))
+                MillingPathCreator::CreateBasePath(scene);
+            if (ImGui::MenuItem("CreateRoundingPath", ""))
+                MillingPathCreator::CreateRoundingPath(scene);
+            if (ImGui::MenuItem("CreateDetailPath", ""))
+                MillingPathCreator::CreateDetailPath(scene);
+            ImGui::EndMenu();
+        }
+            
         
         ImGui::EndMainMenuBar();
     }

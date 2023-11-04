@@ -542,3 +542,8 @@ void SurfaceC0::ChildMoved(ISceneElement& child)
 {
 	shouldReload = true;
 }
+
+void SurfaceC0::setRenderState(SurfaceRenderState state)
+{
+	// TODO implement soid surfaceC0 for milling paths
+}

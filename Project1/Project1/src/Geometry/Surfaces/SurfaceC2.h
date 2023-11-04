@@ -17,7 +17,8 @@ class SurfaceC2 : public ISceneElement, public IRenderable, public ISceneTracker
 	std::string name;
 
 	unsigned int VBO, EBO, VAO;
-	Shader tessShader, chainShader;
+	Shader wireframeShader, solidShader, heightShader, chainShader;
+	SurfaceRenderState state = SurfaceRenderState::Wireframe;
 	void updateMeshes();
 
 	void CreatePointsFlat();
@@ -96,4 +97,7 @@ public:
 
 	// Inherited via IOwner
 	virtual void ChildMoved(ISceneElement& child) override;
+
+	// Inherited via IUVSurface
+	virtual void setRenderState(SurfaceRenderState state) override;
 };

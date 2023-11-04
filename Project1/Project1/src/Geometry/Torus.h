@@ -80,4 +80,8 @@ public:
 
 	virtual const void setScale(const glm::fvec3& scale) override;
 
+
+	// Inherited via IUVSurface
+	virtual void setRenderState(SurfaceRenderState state) override;
+
 };

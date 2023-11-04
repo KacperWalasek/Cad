@@ -6,6 +6,7 @@
 #include "EventHandlers/Collapse.h"
 #include "EventHandlers/CameraMainPositions.h"
 #include "ErrorDisplayer.h"
+#include "Debuger/Debuger.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -29,7 +30,8 @@ CadApp::CadApp()
 		std::make_shared<MainMenu>(*scene, *camera, *simulator, *errorDisplayer),
 		scene->cursor,
 		factory,
-		errorDisplayer
+		errorDisplayer,
+		std::make_shared<Debuger>()
 	};
 
 

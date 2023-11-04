@@ -101,7 +101,12 @@ set(PROJECT_SOURCES
 	"Simulations/MillingMachine/MillingHeightMapRenderer.cpp" 
 	"interfaces/IErrorHandler.h" 
 	"ErrorDisplayer.h" "ErrorDisplayer.cpp" "Simulations/MillingMachine/MillingErrorHandler.h" 
-	"Simulations/MillingMachine/MillingErrorHandler.cpp" "Simulations/MillingMachine/MillingPathVisualizer.h" "Simulations/MillingMachine/MillingPathVisualizer.cpp")
+	"Simulations/MillingMachine/MillingErrorHandler.cpp" 
+	"Simulations/MillingMachine/MillingPathVisualizer.h" 
+	"Simulations/MillingMachine/MillingPathVisualizer.cpp" 
+	"Milling/MillingPathCreator.h" "Milling/SceneHeightMapRenderer.h" 
+	"Milling/SceneHeightMapRenderer.cpp" "Milling/MillingPathCreator.cpp"
+	"Debuger/Debuger.h" "Debuger/Debuger.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"
@@ -121,6 +126,8 @@ set(SHADER_FILES
 	"Shaders/Surface/surfaceC0.vert"
 	"Shaders/Surface/surfaceC2.tesc"
 	"Shaders/Surface/surfaceC2.tese"
+	"Shaders/Surface/surfaceC2solid.tesc"
+	"Shaders/Surface/surfaceC2solid.tese"
 	"Shaders/Surface/surfaceChain.tesc"
 	"Shaders/Surface/surfaceChain.tese"
 	"Shaders/Surface/gregory.tesc"
@@ -143,6 +150,7 @@ set(SHADER_FILES
 	"Shaders/MillingPath/millingPathCirc.frag"
 	"Shaders/MillingPath/errorCirc.frag"
 	"Shaders/MillingPath/errorRect.frag"
+	"Shaders/height.frag"
 )
 add_executable(CAD ${PROJECT_SOURCES})
 

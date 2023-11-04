@@ -2,6 +2,12 @@
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
 
+enum class SurfaceRenderState {
+	Wireframe,
+	Solid,
+	HeightMap
+};
+
 class Intersection;
 class IUVSurface
 {
@@ -15,4 +21,6 @@ public:
 
 	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) = 0;
 	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) = 0;
+
+	virtual void setRenderState(SurfaceRenderState state) = 0;
 };

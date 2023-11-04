@@ -51,3 +51,9 @@ MillingPath::MillingPath(std::stringstream& ss, float radius, bool flat)
 	readPositions(ss);
 	update();
 }
+
+MillingPath::MillingPath(std::vector<glm::fvec3> positions, float radius, bool flat)
+	: positions(positions)
+{
+	update();
+}

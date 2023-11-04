@@ -16,5 +16,6 @@ public:
 	float radius;
 
 	MillingPath(std::stringstream& ss, float radius, bool flat);
+	MillingPath(std::vector<glm::fvec3> positions, float radius, bool flat);
 	MillingPath() = default;
 };

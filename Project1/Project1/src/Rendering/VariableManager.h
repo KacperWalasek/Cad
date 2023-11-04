@@ -32,7 +32,10 @@ public:
 	std::string name;
 	T value;
 
-	virtual void Apply(unsigned int shaderId) const override {}
+	virtual void Apply(unsigned int shaderId) const override 
+	{
+		throw std::invalid_argument("VariableManager doesn't support type: " + std::string(typeid(T).name()));
+	}
 };
 
 class VariableManager
@@ -81,7 +84,6 @@ template<>
 inline void ShaderVariable<glm::fmat4x4>::Apply(unsigned int shaderId) const
 { 
 	unsigned int loc = getLoc(shaderId); 
-	
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
@@ -89,7 +91,6 @@ template<>
 inline void ShaderVariable<glm::fvec4>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 
 } 
@@ -98,15 +99,20 @@ template<>
 inline void ShaderVariable<glm::fvec3>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform3f(loc, value.x, value.y, value.z);
+}
+
+template<>
+inline void ShaderVariable<glm::fvec2>::Apply(unsigned int shaderId) const
+{
+	unsigned int loc = getLoc(shaderId);
+	glUniform2f(loc, value.x, value.y);
 }
 
 template<>
 inline void ShaderVariable<int>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform1i(loc, value);
 }
 
@@ -114,7 +120,6 @@ template<>
 inline void ShaderVariable<float>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform1f(loc, value);
 }
 
@@ -122,7 +127,6 @@ template<>
 inline void ShaderVariable<bool>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform1i(loc, value);
 }
 
@@ -130,7 +134,6 @@ template<>
 inline void ShaderVariable<std::vector<int>>::Apply(unsigned int shaderId) const
 {
 	unsigned int loc = getLoc(shaderId);
-
 	glUniform1iv(loc, value.size(), value.data());
 }
 
