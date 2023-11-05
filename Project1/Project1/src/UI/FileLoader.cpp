@@ -62,3 +62,11 @@ MillingPath FileLoader::loadPath(std::string path)
 	buffer << is.rdbuf();
 	return MillingPath(buffer, diameter/2.0f, flat);
 }
+
+void FileLoader::savePath(std::string filePath, const MillingPath& millingPath)
+{
+	std::ofstream os;
+	os.open(filePath, std::fstream::out | std::fstream::trunc);
+	os << millingPath.serialize().rdbuf();
+	os.close();
+}

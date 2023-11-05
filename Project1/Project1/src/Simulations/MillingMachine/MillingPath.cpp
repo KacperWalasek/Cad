@@ -20,6 +20,27 @@ void MillingPath::readPositions(std::stringstream& ss)
 			});
 }
 
+std::string MillingPath::serializeNumber(float c) const
+{
+	int intSection = floorf(c);
+	int floatSection = floorf((c - intSection) * 1000.0f);
+	return std::to_string(intSection) + "." + std::to_string(floatSection);
+}
+
+std::stringstream MillingPath::serialize() const
+{
+	std::stringstream ss;
+	for (int i = 0; i < positions.size(); i++)
+	{
+		ss << "N" << i + 2 << "G01" <<
+			"X" << serializeNumber(positions[i].x) <<
+			"Y" << serializeNumber(positions[i].y) <<
+			"Z" << serializeNumber(positions[i].z) <<
+			std::endl;
+	}
+	return ss;
+}
+
 void MillingPath::update()
 {
 	totalLength = 0;
@@ -28,7 +49,8 @@ void MillingPath::update()
 		return;
 	dists.reserve(positions.size());
 	for (int i = 1; i < positions.size(); i++) {
-		float len = (positions[i] - positions[i - 1]).length();
+		glm::fvec3 dist = positions[i] - positions[i - 1];
+		float len = glm::fvec2(dist.x,dist.y).length();
 		dists.push_back(dists[i - 1] + len);
 		totalLength += len;
 	}

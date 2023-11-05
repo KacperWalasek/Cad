@@ -12,4 +12,5 @@ public:
 	static void save(std::string path, nlohmann::json json);
 	static nlohmann::json load(std::string path);
 	static MillingPath loadPath(std::string path);
+	static void savePath(std::string filePath, const MillingPath& millingPath);
 };

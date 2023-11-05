@@ -4,14 +4,20 @@
 
 class MillingPathCreator 
 {
-	static const int textureSize = 1000;
-	static const glm::fvec4 rect; //TODO move to gui
+	//TODO move all consts to gui
+	static const int textureSize = 400;
+	static const glm::fvec4 rect; 
 	static const glm::fvec2 zRange;
-	static unsigned int renderTextureHeightMap(Scene& scene);
+	static const glm::fvec3 targetSize;
+	static const float targetBaseHeight;
+	static const float epsilon;
+	static const float roughtPathsTranslation;
+
+	static unsigned int renderSceneHeightMap(Scene& scene);
+	static std::vector<glm::fvec3> sampleHeigthMap(unsigned int heightMap, float level, bool startTopLeft);
 public:
 	static MillingPath CreateRoughtingPath(Scene& scene);
 	static MillingPath CreateBasePath(Scene& scene) { return MillingPath();  }
 	static MillingPath CreateRoundingPath(Scene& scene) { return MillingPath(); }
 	static MillingPath CreateDetailPath(Scene& scene) { return MillingPath(); }
-
 };

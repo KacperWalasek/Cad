@@ -14,6 +14,12 @@
 
 using nlohmann::json;
 
+void MainMenu::savePath(const MillingPath& mp) const
+{
+    std::string saveDest = FileLoader::selectSaveDest();
+    FileLoader::savePath(saveDest, mp);
+}
+
 MainMenu::MainMenu(Scene& scene, Camera& camera, Simulator& simulator, ErrorDisplayer& errorDisplayer)
     :scene(scene), camera(camera), simulator(simulator), errorDisplayer(errorDisplayer)
 {}
@@ -132,8 +138,6 @@ bool MainMenu::RenderGui()
                         
                     }
                 }
-
-
             }
         }
         if (ImGui::MenuItem("Save", ""))
@@ -180,13 +184,13 @@ bool MainMenu::RenderGui()
         if (ImGui::BeginMenu("Milling", ""))
         {
             if (ImGui::MenuItem("CreateRoughingPath", ""))
-                MillingPathCreator::CreateRoughtingPath(scene);
+                savePath(MillingPathCreator::CreateRoughtingPath(scene));
             if (ImGui::MenuItem("CreateBasePath", ""))
-                MillingPathCreator::CreateBasePath(scene);
+                savePath(MillingPathCreator::CreateBasePath(scene));
             if (ImGui::MenuItem("CreateRoundingPath", ""))
-                MillingPathCreator::CreateRoundingPath(scene);
+                savePath(MillingPathCreator::CreateRoundingPath(scene));
             if (ImGui::MenuItem("CreateDetailPath", ""))
-                MillingPathCreator::CreateDetailPath(scene);
+                savePath(MillingPathCreator::CreateDetailPath(scene));
             ImGui::EndMenu();
         }
             

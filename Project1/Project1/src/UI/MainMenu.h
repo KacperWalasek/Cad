@@ -3,6 +3,7 @@
 #include "../Scene/Scene.h"
 #include "../Simulations/Simulator.h"
 #include "../ErrorDisplayer.h"
+#include "../Simulations/MillingMachine/MillingPath.h"
 
 class MainMenu : public IGui
 {
@@ -10,6 +11,8 @@ class MainMenu : public IGui
 	Camera& camera;
 	Simulator& simulator;
 	ErrorDisplayer& errorDisplayer;
+
+	void savePath(const MillingPath& mp) const;
 public:
 	MainMenu(Scene& scene, Camera& camera, Simulator& simulator, ErrorDisplayer& errorDisplayer);
 
