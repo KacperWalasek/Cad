@@ -281,3 +281,8 @@ void Torus::setRenderState(SurfaceRenderState state)
 {
 	// TODO implement soid torus for milling paths
 }
+
+const std::vector<std::weak_ptr<Intersection>>& Torus::getIntersections()
+{
+	return intersections;
+}

@@ -1,5 +1,6 @@
 #include "SurfaceC0.h"
 #include "../Curves/BezierCurve.h"
+#include "imgui/imgui_stdlib.h"
 
 Indexer SurfaceC0::indexer;
 
@@ -277,6 +278,7 @@ bool SurfaceC0::CanChildBeDeleted() const
 bool SurfaceC0::RenderGui()
 {
 	ImGui::Begin("Surface C0");
+	ImGui::InputText("Name", &name);
 	if (ImGui::InputInt2("Division", division))
 	{
 		division[0] = glm::clamp(division[0], 2, 1000);
@@ -546,4 +548,9 @@ void SurfaceC0::ChildMoved(ISceneElement& child)
 void SurfaceC0::setRenderState(SurfaceRenderState state)
 {
 	// TODO implement soid surfaceC0 for milling paths
+}
+
+const std::vector<std::weak_ptr<Intersection>>& SurfaceC0::getIntersections()
+{
+	return intersections;
 }

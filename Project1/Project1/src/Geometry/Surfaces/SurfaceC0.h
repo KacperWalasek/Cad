@@ -108,4 +108,7 @@ public:
 
 	// Inherited via IUVSurface
 	virtual void setRenderState(SurfaceRenderState state) override;
+
+	// Inherited via IUVSurface
+	virtual const std::vector<std::weak_ptr<Intersection>>& getIntersections() override;
 };

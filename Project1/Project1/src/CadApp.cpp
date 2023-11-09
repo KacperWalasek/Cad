@@ -16,6 +16,7 @@ CadApp::CadApp()
 	camera->transform.location.z = -100;
 	window.Init();
 	renderer.Init();
+	Debuger::Init();
 	scene = std::make_shared<Scene>(
 		std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>(),
 		*camera);

@@ -351,8 +351,12 @@ std::tuple<std::vector<glm::fvec4>, bool> Intersection::findIntersectionPointsIn
 	glm::fvec4 xPrev;
 	glm::fvec3 begin = s1->f(x.x,x.y);
 	float dirSgn = dir ? 1 : -1;
+
+	int i = 0;
 	do
 	{
+		if (i > 100000) return { p, false };
+		i++;
 		glm::fvec3 dfu = s1->dfdu(x.x, x.y);
 		glm::fvec3 dfv = s1->dfdv(x.x, x.y);
 		glm::fvec3 dgu = s2->dfdu(x.z, x.w);
@@ -564,4 +568,22 @@ std::vector<std::shared_ptr<ISceneElement>> Intersection::GetAddedObjects()
 std::vector<std::shared_ptr<ISceneElement>> Intersection::GetRemovedObjects()
 {
 	return {};
+}
+
+UVCurve Intersection::GetUVCurve(std::shared_ptr<IUVSurface> surface) const
+{
+	auto pointsSrc = (surface.get() == s1.get() ? s1UVLine : s2UVLine).getPoints();
+	std::vector<glm::fvec2> pointsDest;
+	std::transform(pointsSrc.begin(), pointsSrc.end(), std::back_inserter(pointsDest), [](const glm::fvec3& p) {return glm::fvec2( p.x,p.y ); });
+	return UVCurve(pointsDest);
+}
+
+std::shared_ptr<IUVSurface> Intersection::GetOtherSurface(std::shared_ptr<IUVSurface> thisSurf) const
+{
+	return s1.get() == thisSurf.get() ? s2 : s1;
+}
+
+unsigned int Intersection::GetTextureForSurface(std::shared_ptr<IUVSurface> surface) const
+{
+	return s1.get() == surface.get() ? uvS1Tex : uvS2Tex;
 }

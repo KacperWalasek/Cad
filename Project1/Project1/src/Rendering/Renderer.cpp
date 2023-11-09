@@ -9,6 +9,7 @@
 #include "../Rotator.h"
 #include "../interfaces/ITransformable.h"
 #include "../interfaces/ISceneModifier.h"
+#include "../Debuger/Debuger.h"
 
 void Renderer::RenderScene(Camera& camera, Scene& scene)
 {
@@ -49,7 +50,7 @@ void Renderer::RenderScene(Camera& camera, Scene& scene)
     variableManager.SetVariable("color", glm::fvec4(0.5f, 0.5f, 1.0f, 1.0f));
     variableManager.Apply(shader.ID);
     scene.cursor->Render(false, variableManager);
-
+    Debuger().Render(false, variableManager);
     if (std::find_if(scene.objects.begin(), scene.objects.end(), [](auto& o) { return o.second; }) != scene.objects.end())
     {
         scene.center.transform.scale = camera.transform.scale;

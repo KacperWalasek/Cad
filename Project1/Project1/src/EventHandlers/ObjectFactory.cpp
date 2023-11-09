@@ -222,7 +222,7 @@ bool ObjectFactory::isHoleBlinded(Hole& hole)
 }
 
 ObjectFactory::ObjectFactory(Scene& scene)
-	: scene(scene), intersectionStep(0.01f), cursor(false)
+	: scene(scene), intersectionStep(0.1f), cursor(true)
 {
 }
 

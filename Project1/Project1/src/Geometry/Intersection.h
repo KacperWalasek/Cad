@@ -10,6 +10,7 @@
 #include <functional>
 #include "../interfaces/ISceneModifier.h"
 #include "Curves/InterpolationCurve.h"
+#include "Curves/UVEnvelope.h"
 
 class Intersection : public ISceneElement, public IRenderable, public IGui, public ISceneModifier, public ISceneTracker
 {
@@ -82,4 +83,7 @@ public:
 	virtual std::vector<std::shared_ptr<ISceneElement>> GetAddedObjects() override;
 	virtual std::vector<std::shared_ptr<ISceneElement>> GetRemovedObjects() override;
 
+	UVCurve GetUVCurve(std::shared_ptr<IUVSurface> surface) const;
+	std::shared_ptr<IUVSurface> GetOtherSurface(std::shared_ptr<IUVSurface> thisSurf) const;
+	unsigned int GetTextureForSurface(std::shared_ptr<IUVSurface> surface) const;
 };

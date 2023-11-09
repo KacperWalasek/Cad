@@ -106,7 +106,7 @@ set(PROJECT_SOURCES
 	"Simulations/MillingMachine/MillingPathVisualizer.cpp" 
 	"Milling/MillingPathCreator.h" "Milling/SceneHeightMapRenderer.h" 
 	"Milling/SceneHeightMapRenderer.cpp" "Milling/MillingPathCreator.cpp"
-	"Debuger/Debuger.h" "Debuger/Debuger.cpp")
+	"Debuger/Debuger.h" "Debuger/Debuger.cpp"  "Geometry/Curves/UVEnvelope.h" "TextureCPUAccess.h" "TextureCPUAccess.cpp")
 
 set(SHADER_FILES 
 	"Shaders/vertexShader.vert"

@@ -78,7 +78,7 @@ void BrokenLine::setPoints(std::vector<glm::fvec3> points, bool cullLong)
 	updateMesh(cullLong);
 }
 
-std::vector<glm::fvec3> BrokenLine::getPoints()
+std::vector<glm::fvec3> BrokenLine::getPoints() const
 {
 	return points;
 }

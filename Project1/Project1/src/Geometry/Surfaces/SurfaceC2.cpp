@@ -615,3 +615,8 @@ void SurfaceC2::setRenderState(SurfaceRenderState state)
 {
 	this->state = state;
 }
+
+const std::vector<std::weak_ptr<Intersection>>& SurfaceC2::getIntersections()
+{
+	return intersections;
+}

@@ -1,6 +1,7 @@
 #pragma once
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
+#include <vector>
 
 enum class SurfaceRenderState {
 	Wireframe,
@@ -21,6 +22,7 @@ public:
 
 	virtual void acceptIntersection(std::weak_ptr<Intersection> intersection) = 0;
 	virtual void removeIntersection(std::weak_ptr<Intersection> intersection) = 0;
+	virtual const std::vector<std::weak_ptr<Intersection>>& getIntersections() = 0;
 
 	virtual void setRenderState(SurfaceRenderState state) = 0;
 };
