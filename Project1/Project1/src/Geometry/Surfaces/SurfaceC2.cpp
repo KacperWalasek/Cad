@@ -2,6 +2,7 @@
 #include "../Curves/CurveC2.h"
 #include <array>
 #include <numbers>
+#include "imgui/imgui_stdlib.h"
 
 Indexer SurfaceC2::indexer;
 
@@ -299,6 +300,7 @@ bool SurfaceC2::CanChildBeDeleted() const
 bool SurfaceC2::RenderGui()
 {
 	ImGui::Begin("Surface C2");
+	ImGui::InputText("Name", &name);
 	if (ImGui::InputInt2("Division", division))
 	{
 		division[0] = glm::clamp(division[0], 2, 1000);

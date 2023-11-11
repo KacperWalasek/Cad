@@ -168,7 +168,6 @@ void ObjectFactory::CreateIntersection()
 		scene.Add(intersection);
 
 		surfaces[0]->acceptIntersection(intersection);
-		//surfaces[1]->acceptIntersection(intersection);
 	}
 }
 
