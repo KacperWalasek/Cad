@@ -29,7 +29,8 @@ class MillingPathCreator
 	static UVEnvelope createEnvelope(std::shared_ptr<IUVSurface> base);
 	static std::vector<UVEnvelopeIterator> intersectEnvelopeWithLine(UVEnvelope& envelope, float t, bool u);
 	static std::shared_ptr<IUVSurface> findSurfaceByName(Scene& scene, std::string name);
-	static std::vector<glm::fvec2> millUVSurface(UVEnvelope& envelope, Direction direction, bool borderTop = false);
+	static std::vector<glm::fvec3> millUVSurface(std::shared_ptr<IUVSurface> s, UVEnvelope& envelope, Direction direction, bool borderTop = false, bool side = false);
+	static std::vector<glm::fvec3> uvPathsToWorldPaths(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions, bool side);
 public:
 	static MillingPath CreateRoughtingPath(Scene& scene);
 	static MillingPath CreateBasePath(Scene& scene);

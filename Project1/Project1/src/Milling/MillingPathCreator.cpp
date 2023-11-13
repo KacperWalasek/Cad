@@ -231,7 +231,7 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 		throw std::logic_error("no button surface found");
 
 	intersect(scene, body, base, { 10,-16,0 });
-	intersect(scene, body, handle, { 4,-9,0 });
+	intersect(scene, body, handle, { 7,-9,0 });
 	intersect(scene, body, handle, { -4,-9,0 });
 	intersect(scene, body, button, { 0,-12,-4 });
 	intersect(scene, handle, base, { 0,-2,0 });
@@ -248,33 +248,37 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 	envelopeHandle.curves[0].reverseDirection = true;
 
 	UVEnvelope envelopeButton = createEnvelope(button);
+	
 
+	std::vector<glm::fvec3> positionsBody = millUVSurface(body, envelopeBody, Direction::UpRight);
+	std::vector<glm::fvec3> positionsHandle = millUVSurface(handle, envelopeHandle, Direction::UpRight);
+	std::vector<glm::fvec3> positionsHole = millUVSurface(base, envelopeHole, Direction::UpRight);
+	std::vector<glm::fvec3> positionsButton = millUVSurface(button, envelopeButton, Direction::UpRight, true);
 
-	std::vector<glm::fvec2> uvPositions = millUVSurface(envelopeBody, Direction::UpRight);
+	std::vector<glm::fvec3> positions;
+	positions.insert(positions.end(), positionsBody.begin(), positionsBody.end());
+	positions.insert(positions.end(), positionsHandle.begin(), positionsHandle.end());
+	positions.insert(positions.end(), positionsHole.begin(), positionsHole.end());
+	positions.insert(positions.end(), positionsButton.begin(), positionsButton.end());
 
-	std::vector<glm::fvec3> worldPositions;
-	for (glm::fvec2 uv : uvPositions)
-	{
-		worldPositions.push_back(10.0f * worldToTargetSpace(body->f(uv.x, uv.y)));
-	}
-	return MillingPath(worldPositions, 8, true);
+	return MillingPath(positions, 8, true);
 }
 
-std::vector<glm::fvec2> MillingPathCreator::millUVSurface(UVEnvelope& envelope, Direction direction, bool borderTop)
+std::vector<glm::fvec3> MillingPathCreator::millUVSurface(std::shared_ptr<IUVSurface> s, UVEnvelope& envelope, Direction direction, bool borderBottom, bool side)
 {
-	std::vector<glm::fvec2> positions;
+	std::vector<glm::fvec2> uvPositions;
 	bool reverse = false;
-	int lineCount = 100;
+	int lineCount = 40;
 	for (int i = 0; i < lineCount; i++)
 	{
 		float u = i / (float)(lineCount - 1);
 		auto intersections = intersectEnvelopeWithLine(envelope, u, true);
-		if (intersections.size()==0 || (intersections.size() == 1 && !borderTop))
+		if (intersections.size()==0 || (intersections.size() == 1 && !borderBottom))
 			continue;
 		int minInd = -1;
 		int maxInd = -1;
-		glm::fvec2 minUV = { u, 1 };
-		glm::fvec2 maxUV = { u, borderTop ? 1 : 0 };
+		glm::fvec2 minUV = { u, borderBottom ? 0 : 1 };
+		glm::fvec2 maxUV = { u, 0 };
 		for (int j = 0; j < intersections.size(); j++)
 		{
 			glm::fvec2 current = intersections[j].Current();
@@ -291,9 +295,9 @@ std::vector<glm::fvec2> MillingPathCreator::millUVSurface(UVEnvelope& envelope, 
 		}
 		if (reverse)
 		{
-			positions.push_back(maxUV);
-			positions.push_back(minUV);
-			if (intersections.size() > 1)
+			uvPositions.push_back(maxUV);
+			uvPositions.push_back(minUV);
+			if (intersections.size() > 1 && !borderBottom)
 			{
 				UVEnvelopeIterator& it = intersections[minInd];
 				if (!it.GoesInPositiveU())
@@ -302,16 +306,16 @@ std::vector<glm::fvec2> MillingPathCreator::millUVSurface(UVEnvelope& envelope, 
 				float nextU = (i + 1) / (float)(lineCount - 1);
 				while (!it.Finished() && pos.x < nextU)
 				{
-					positions.push_back(pos);
+					uvPositions.push_back(pos);
 					pos = it.Next();
 				}
 			}
 		}
 		else
 		{
-			positions.push_back(minUV);
-			positions.push_back(maxUV);
-			if (intersections.size() > 1 && !borderTop)
+			uvPositions.push_back(minUV);
+			uvPositions.push_back(maxUV);
+			if (intersections.size() > 1)
 			{
 				UVEnvelopeIterator& it = intersections[maxInd];
 				if (!it.GoesInPositiveU())
@@ -320,7 +324,7 @@ std::vector<glm::fvec2> MillingPathCreator::millUVSurface(UVEnvelope& envelope, 
 				float nextU = (i + 1) / (float)(lineCount - 1);
 				while (!it.Finished() && pos.x < nextU)
 				{
-					positions.push_back(pos);
+					uvPositions.push_back(pos);
 					pos = it.Next();
 				}
 			}
@@ -335,10 +339,52 @@ std::vector<glm::fvec2> MillingPathCreator::millUVSurface(UVEnvelope& envelope, 
 		glm::fvec2 pos = it.Next();
 		positions.push_back(pos);
 	}*/
-	
-	return positions;
+
+	return uvPathsToWorldPaths(s,uvPositions, side);
 }
 
+std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPaths(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions, bool side)
+{
+	float sideMult = side ? -1 : 1;
+	std::vector<glm::fvec3> worldPositions;
+	for (int i = 0; i < uvPositions.size() - 1; i++)
+	{
+		glm::fvec2 uvPrev = uvPositions[i];
+		glm::fvec2 uvNext = uvPositions[i+1];
+		glm::fvec3 norm = glm::normalize(glm::cross(
+			s->dfdv(uvPrev.x, uvPrev.y),
+			s->dfdu(uvPrev.x, uvPrev.y)));
+		worldPositions.push_back(10.0f * worldToTargetSpace(s->f(uvPrev.x, uvPrev.y)) + sideMult * glm::normalize(worldToTargetSpace(norm)) * 8.0f);
+		const float dy = 0.1f;
+		float t = 0;
+		glm::fvec2 uv = uvPrev;
+		while (t < 1)
+		{
+			glm::fvec3 dfdu = s->dfdu(uv.x, uv.y);
+			glm::fvec3 dfdv = s->dfdv(uv.x, uv.y);
+			glm::fvec3 dfdt = dfdu * (uvNext.x - uvPrev.x) + dfdv * (uvNext.y - uvPrev.y);
+			t += dy / dfdt.length();
+			t = glm::clamp(t, 0.0f, 1.0f);
+			uv = uvPrev * (1 - t) + uvNext * t;
+			glm::fvec3 norm = glm::normalize(glm::cross(
+				s->dfdu(uv.x, uv.y),
+				s->dfdv(uv.x, uv.y)
+				));
+			if (norm.z > 0)
+			{
+				std::cout << std::dynamic_pointer_cast<ISceneElement>(s)->getName() << ": (" << norm.x << "," << norm.y << "," << norm.z << ")" << std::endl;
+				norm.z = 0;
+				norm = glm::normalize(norm);
+			}
+			glm::fvec3 dirPoint = 10.0f * worldToTargetSpace(s->f(uv.x, uv.y) + norm);
+			glm::fvec3 surfPoint = 10.0f * worldToTargetSpace(s->f(uv.x, uv.y));
+			glm::fvec3 normVec = glm::normalize(dirPoint - surfPoint) * 4.0f;
+			worldPositions.push_back(surfPoint + normVec);
+			//std::cout << std::dynamic_pointer_cast<ISceneElement>(s)->getName() << ": (" << norm.x << "," << norm.y << "," << norm.z << ")" << std::endl;
+		}
+	}
+	return worldPositions;
+}
 
 std::shared_ptr<IUVSurface> MillingPathCreator::findSurfaceByName(Scene& scene, std::string name)
 {
