@@ -29,36 +29,26 @@ void MillingMachineSimulation::applyStep(glm::fvec3 p1, glm::fvec3 p2)
 
 void MillingMachineSimulation::renderInstant()
 {
+	int from = hms[selectedHM].second.lastVisited;
 	hms[selectedHM].second.Finalize();
+	errorHandler->Validate(hms[selectedHM].second, materialSize, from, hms[selectedHM].second.GetPath().positions.size());
+	errorHandler->UpdateLastStable(materialSize);
 	finished = true;
-}
-
-void MillingMachineSimulation::handleErrors()
-{
-	VariableManager vm;
-	// create copy of height map before selected path
-	TextureRenderer tr(1200, 1200, 1, true);
-	tr.Clear({ 1,0,0,1 });
-	for (int i = 0; i < hms.size(); i++)
-		if (i != selectedHM)
-			tr.Render(hms[i].second, vm);
-
-	errorHandler->validate(tr, hms[selectedHM].second.GetPath(), materialSize, baseHeight);
 }
 
 MillingMachineSimulation::MillingMachineSimulation()
 	: renderer(std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true)),
-	errorHandler(std::make_shared<MillingErrorHandler>())
+	errorHandler(std::make_shared<MillingErrorHandler>(1200,1200,15,4, hms))
 {
 	cutter.setPosition({0,0,0});
-	materialCube.setSize(materialSize.x, materialSize.y + baseHeight, materialSize.z);
+	materialCube.setSize(materialSize.x, materialSize.y, materialSize.z);
 }
 
 void MillingMachineSimulation::start()
 {
 	running = true;
 	renderer = std::make_shared<TextureRenderer>(divisions[0], divisions[1], 1, true);
-	handleErrors();
+	dissableInputs = true;
 }
 
 void MillingMachineSimulation::stop()
@@ -77,15 +67,22 @@ void MillingMachineSimulation::update(float dt)
 	if (hms.empty())
 		return;
 	if (instant) {
-		renderInstant();
+		renderInstant(); 
 		running = false;
-		instant = false;
+		instant = false; 
 		return;
 	}
 
 	passedPathLength += dt * speed;
+	int last = hms[selectedHM].second.lastVisited;
 	glm::fvec3 currentPosition = hms[selectedHM].second.SetDistance(passedPathLength);
 	cutter.setPosition(currentPosition);
+	
+	if (last != hms[selectedHM].second.lastVisited)
+	{
+		errorHandler->Validate(hms[selectedHM].second, materialSize, last, hms[selectedHM].second.lastVisited);
+		errorHandler->UpdateLastStable(materialSize);
+	}
 }
 
 bool MillingMachineSimulation::isRunning() const
@@ -108,17 +105,38 @@ bool MillingMachineSimulation::RenderGui()
 			path = FileLoader::loadPath(filename);
 			if (hms.size() == 0)
 				millingPathVisualizer.setMillingPath(path);
-			hms.push_back({ filename, {path, materialSize + glm::ivec3(0,baseHeight,0)} });
+			hms.push_back({ filename, {path, materialSize } });
 		}
 	}
-	ImGui::Text("Material");
-	ImGui::InputInt("division x", &divisions.x);
-	ImGui::InputInt("division y", &divisions.y);
 
-	ImGui::InputInt("size x", &materialSize.x);
-	ImGui::InputInt("size y", &materialSize.y);
-	ImGui::InputInt("size z", &materialSize.z);
-	ImGui::InputInt("base height", &baseHeight);
+	if (dissableInputs)
+		ImGui::BeginDisabled();
+	ImGui::Text("Material");
+	if (ImGui::InputInt("division x", &divisions.x) || ImGui::InputInt("division y", &divisions.y))
+	{
+		materialCube.setDivision(divisions.x, divisions.y);
+		errorHandler->SetTextureSize(divisions.x, divisions.y);
+	}
+
+	if (ImGui::InputInt("cube width", &materialSize.x))
+	{
+		materialSize.z = materialSize.x;
+		materialCube.setSize(materialSize.x, materialSize.y, materialSize.z);
+		for (auto& hm : hms)
+			hm.second.SetMaterialSize(materialSize);
+	}
+	if (ImGui::InputInt("cube height", &materialSize.y))
+	{
+		materialCube.setSize(materialSize.x, materialSize.y, materialSize.z);
+		for (auto& hm : hms)
+			hm.second.SetMaterialSize(materialSize);
+	}
+
+	if (ImGui::InputInt("base height", &baseHeight))
+		errorHandler->SetBaseHeight(baseHeight);
+
+	if (dissableInputs)
+		ImGui::EndDisabled();
 
 	ImGui::Text("Simulation");
 	ImGui::InputFloat("speed", &speed);
@@ -129,7 +147,8 @@ bool MillingMachineSimulation::RenderGui()
 	ImGui::Checkbox("Show paths", &showPaths);
 
 	ImGui::Text("Cutter");
-	ImGui::InputInt("height", &height);
+	if (ImGui::InputInt("height", &height))
+		errorHandler->SetCutterHeight(height);
 
 	if (!hms.empty())
 	{

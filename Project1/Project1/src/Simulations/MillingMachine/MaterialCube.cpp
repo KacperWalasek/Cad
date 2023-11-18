@@ -15,11 +15,6 @@ void MaterialCube::createHeightMapQuad()
 		0,1,3,
 		0,3,2
 	};
-	glGenVertexArrays(1, &VAO_quads);
-	glGenVertexArrays(1, &VAO_triangles);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO_quad);
-	glGenBuffers(1, &EBO_triangle);
 
 	// create vbo for both vao
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -121,6 +116,13 @@ MaterialCube::MaterialCube(int divisionX, int divisionY)
 	wallsShader.Init();
 	wallsShader.loadShaderFile("Shaders/HeightMap/wall.tesc", GL_TESS_CONTROL_SHADER);
 	wallsShader.loadShaderFile("Shaders/HeightMap/wall.tese", GL_TESS_EVALUATION_SHADER);
+
+	glGenVertexArrays(1, &VAO_quads);
+	glGenVertexArrays(1, &VAO_triangles);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO_quad);
+	glGenBuffers(1, &EBO_triangle);
+
 	createHeightMapQuad();
 }
 
@@ -139,6 +141,13 @@ void MaterialCube::setSize(float x, float y, float z)
 	modelMatrix = glm::translate( glm::scale(glm::identity<glm::fmat4x4>(), glm::fvec3(x, y, z)), glm::fvec3(-0.5f, 0.0f, -0.5f));
 }
 
+void MaterialCube::setDivision(int sizeX, int sizeY)
+{
+	this->divisionX = sizeX;
+	this->divisionY = sizeY;
+	createHeightMapQuad();
+}
+
 
 void MaterialCube::Render(bool selected, VariableManager& vm)
 {
@@ -146,5 +155,4 @@ void MaterialCube::Render(bool selected, VariableManager& vm)
 	renderBottom(vm);
 	renderWalls(vm);
 	renderTop(vm);
-
 }

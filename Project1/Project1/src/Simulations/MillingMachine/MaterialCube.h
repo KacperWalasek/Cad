@@ -28,7 +28,7 @@ public:
 	void applyMap() const;
 	void setTexture(unsigned int texture);
 	void setSize(float x, float y, float z);
-
+	void setDivision(int sizeX, int sizeY);
 	// Inherited via IRenderable
 	virtual void Render(bool selected, VariableManager& vm) override;
 

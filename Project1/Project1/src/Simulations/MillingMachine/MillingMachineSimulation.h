@@ -36,13 +36,14 @@ class MillingMachineSimulation
 	// Material
 	glm::ivec2 divisions = { 1200,1200 };
 	glm::ivec3 materialSize = { 15,5,15 };
-	int baseHeight = 5;
+	int baseHeight = 15;
 
 	// Simulation
 	float speed = 0.02f;
 	bool instant = false;
 	bool finished = false;
 	bool showPaths = false;
+	bool dissableInputs = false;
 	
 	// Cutter
 	int cutterSize = 1;
@@ -51,7 +52,6 @@ class MillingMachineSimulation
 	std::tuple<int, int, glm::fvec3> getPosition(float t);
 	void applyStep(glm::fvec3 p1, glm::fvec3 p2);
 	void renderInstant();
-	void handleErrors();
 public:
 	MillingMachineSimulation();
 

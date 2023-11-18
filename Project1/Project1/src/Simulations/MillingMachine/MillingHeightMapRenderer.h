@@ -16,6 +16,7 @@ class MillingHeightMapRenderer : public IRenderable {
 	unsigned int VAO_rect, VAO_circ, 
 				 VBO_rect, VBO_circ, 
 				 EBO_rect, EBO_circ;
+	int rectIndCount, circIndCount;
 
 	std::vector<float> vert_rect,          vert_circ,
 					   temporaryVert_rect, temporaryVert_circ;
@@ -24,7 +25,6 @@ class MillingHeightMapRenderer : public IRenderable {
 
 	Shader rectShader, circShader;
 	MillingPath path;
-	int lastVisited = 0;
 	glm::fvec3 materialSize; 
 	glm::fvec3 sizeMultiplier;
 
@@ -36,7 +36,6 @@ class MillingHeightMapRenderer : public IRenderable {
 
 
 	float stretchZ(float z) const;
-	void flush();
 	void addSegment(std::vector<float>& v_rect, std::vector<int>& i_rect,
 					std::vector<float>& v_circ, std::vector<int>& i_circ,
 					glm::fvec3 p1, glm::fvec3 p2, float r);
@@ -51,9 +50,12 @@ class MillingHeightMapRenderer : public IRenderable {
 public:
 	MillingHeightMapRenderer(MillingPath path, glm::fvec3 materialSize);
 	void SetMaterialSize(glm::fvec3 materialSize);
-	
+
+	int lastVisited = 0;
 	glm::fvec3 SetDistance(float distance);
 	glm::fvec3 Finalize();
+	bool MakeNextStep();
+
 	float GetLength();
 	PathState GetState() const;
 	bool IsFlat() const;
@@ -69,4 +71,5 @@ public:
 	void SetUseExternalShaders(std::shared_ptr<Shader> externalShaderRect, std::shared_ptr<Shader> externalShaderCirc);
 	void SetUseInternalShaders();
 
+	void Flush(bool useTmp);
 };

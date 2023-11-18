@@ -9,5 +9,8 @@ class TextureCPUAccess {
 public:
 	TextureCPUAccess(unsigned int tex, int sizeX, int sizeY);
 	glm::fvec3 getByIndex(int X, int Y) const;
+	float getXByIndex(int X, int Y) const;
 	glm::fvec3 getByUV(glm::fvec2 uv) const;
+
+	void Update();
 };
