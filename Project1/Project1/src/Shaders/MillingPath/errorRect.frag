@@ -25,7 +25,7 @@ void main()
     }
     if (z > currentZ)
         discard;
-    if (currentZ - z < treshold)
+    if (abs(currentZ - z) < 0.001f)
         discard;
-    FragColor = vec4(stepIndex/float(stepCount),0.0f,0.0f,1.0f);
+    FragColor = vec4(currentZ - z,currentZ - z,currentZ - z,1.0f);
 }

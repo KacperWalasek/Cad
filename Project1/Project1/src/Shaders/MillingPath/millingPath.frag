@@ -4,6 +4,7 @@ layout(location = 0) out vec4 FragColor;
 uniform vec4 color;
 uniform float radius;
 uniform bool flatMilling;
+uniform float heightWidthRatio;
 
 in vec4 gl_FragCoord;
 in vec2 uv;

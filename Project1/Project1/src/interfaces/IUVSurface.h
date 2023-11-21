@@ -2,6 +2,7 @@
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
 #include <vector>
+#include <memory>
 
 enum class SurfaceRenderState {
 	Wireframe,

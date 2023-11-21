@@ -23,9 +23,10 @@ void main()
         z = z + sphereF;
     }
     if (z > currentZ)
+         discard;
+    if (abs(currentZ - z) < 0.001f)
         discard;
-    if (currentZ - z < treshold)
-        discard;
-    FragColor = vec4(stepIndex/float(stepCount),0.0f,0.0f,1.0f);
+        
+    FragColor = vec4(currentZ - z,currentZ - z,currentZ - z,1.0f);
 
 }

@@ -107,7 +107,6 @@ void Renderer::Init()
     variableManager.AddVariable("cameraPos", glm::fvec3(0, 0, 0));
     variableManager.AddVariable("radius", 1.0f);
     variableManager.AddVariable("flatMilling", false);
-
 }  
 
 void Renderer::BeginRender(Camera& camera)

@@ -5,6 +5,7 @@
 #include <numbers>
 #include "../Geometry/Intersection.h"
 #include "../TextureCPUAccess.h"
+#include "../Geometry/Surfaces/SurfaceShift.h"
 
 const glm::fvec4 MillingPathCreator::rect = { -25, 25,10,-40 };
 const glm::fvec2 MillingPathCreator::zRange = { 0,-10 };
@@ -217,10 +218,10 @@ MillingPath MillingPathCreator::CreateRoundingPath(Scene& scene)
 
 MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 {
-	std::shared_ptr<IUVSurface> base = findSurfaceByName(scene, "base");
-	std::shared_ptr<IUVSurface> handle = findSurfaceByName(scene, "handle");
-	std::shared_ptr<IUVSurface> body = findSurfaceByName(scene, "body");
-	std::shared_ptr<IUVSurface> button = findSurfaceByName(scene, "button");
+	std::shared_ptr<IUVSurface> base = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "base"), 5);
+	std::shared_ptr<IUVSurface> handle = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "handle"),5);
+	std::shared_ptr<IUVSurface> body = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "body"),5);
+	std::shared_ptr<IUVSurface> button = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "button"),5);
 	if (!base)
 		throw std::logic_error("no base surface found");
 	if (!handle)
@@ -236,10 +237,10 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 	intersect(scene, body, button, { 0,-12,-4 });
 	intersect(scene, handle, base, { 0,-2,0 });
 
-	UVEnvelope envelopeHole = createEnvelope(base);
+	//UVEnvelope envelopeHole = createEnvelope(base);
 
 	intersect(scene, handle, base, { 0,2,0 });
-	
+	/*
 	UVEnvelope envelopeBody = createEnvelope(body);
 	envelopeBody.curves[1].reverseDirection = true;
 	envelopeBody.curves[2].reverseDirection = true;
@@ -254,12 +255,12 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 	std::vector<glm::fvec3> positionsHandle = millUVSurface(handle, envelopeHandle, Direction::UpRight);
 	std::vector<glm::fvec3> positionsHole = millUVSurface(base, envelopeHole, Direction::UpRight);
 	std::vector<glm::fvec3> positionsButton = millUVSurface(button, envelopeButton, Direction::UpRight, true);
-
+	*/
 	std::vector<glm::fvec3> positions;
-	positions.insert(positions.end(), positionsBody.begin(), positionsBody.end());
+	/*positions.insert(positions.end(), positionsBody.begin(), positionsBody.end());
 	positions.insert(positions.end(), positionsHandle.begin(), positionsHandle.end());
 	positions.insert(positions.end(), positionsHole.begin(), positionsHole.end());
-	positions.insert(positions.end(), positionsButton.begin(), positionsButton.end());
+	positions.insert(positions.end(), positionsButton.begin(), positionsButton.end());*/
 
 	return MillingPath(positions, 8, true);
 }
