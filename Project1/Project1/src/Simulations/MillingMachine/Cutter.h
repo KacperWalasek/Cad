@@ -9,12 +9,14 @@ class Cutter : public IRenderable {
 	unsigned int VBO, EBO, VAO;
 	int indexCount;
 	glm::fmat4x4 translation;
+	float r = 1;
 	
 	void createMesh(int divisions);
 	std::tuple<float, float> sampleBase(int divisions, int index);
 public:
 	Cutter();
 	void setPosition(glm::fvec3 pos);
+	void SetRadius(float r);
 	// Inherited via IRenderable
 	virtual void Render(bool selected, VariableManager& vm) override;
 };

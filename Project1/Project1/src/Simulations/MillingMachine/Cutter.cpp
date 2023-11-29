@@ -23,11 +23,13 @@ void Cutter::createMesh(int divisions)
 			baseX, 10.0f, baseZ, baseX, 0.0f, baseZ,
 			});
 
+		int next0 = 2 + (2 + i *  2) % (2 * divisions);
+		int next1 = 2 + (3 + i * 2) % (2 * divisions);
 		inds.insert(inds.end(), {
-			2 + i * 2, 4 + i * 2, 0,
-			1, 3 + i * 2, 5 + i * 2,
-			3 + i * 2, 2 + i * 2, 4 + i * 2,
-			5 + i * 2, 3 + i * 2, 4 + i * 2,
+			2 + i * 2, 0, next0,
+			1, 3 + i * 2, next1,
+			3 + i * 2, 2 + i * 2, next0,
+			next1, 3 + i * 2, next0,
 			});
 	}
 	
@@ -69,7 +71,12 @@ Cutter::Cutter()
 void Cutter::setPosition(glm::fvec3 pos)
 {
 	glm::fvec3 posMM = pos / 10.0f;
-	translation = glm::scale(glm::translate(glm::identity<glm::fmat4x4>(), { posMM.y,posMM.z, posMM.x}), glm::fvec3(0.5, 0.5, 0.5));
+	translation = glm::scale(glm::translate(glm::identity<glm::fmat4x4>(), { posMM.y, posMM.z, -posMM.x}), glm::fvec3(r/10.0f,1,r / 10.0f));
+}
+
+void Cutter::SetRadius(float r)
+{
+	this->r = r;
 }
 
 void Cutter::Render(bool selected, VariableManager& vm)

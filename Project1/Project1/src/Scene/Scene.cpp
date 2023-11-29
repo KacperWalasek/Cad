@@ -7,8 +7,8 @@
 #include "../interfaces/IPointOwner.h"
 #include "../Geometry/Point.h"
 
-Scene::Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> objects, Camera& camera)
-	:objects(objects), cursor(std::make_shared<Cursor>(camera))
+Scene::Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> objects, Camera& camera, Simulator& simulator)
+	:objects(objects), cursor(std::make_shared<Cursor>(camera)), simulator(simulator)
 {
 	
 }
@@ -105,8 +105,12 @@ bool Scene::RenderGui()
 					if (el.second)
 						selected.push_back(el.first);
 				}
-				for (auto el : selected)
+				for (auto el : selected) {
+					for (int i = 0; i < simulator.simulations.size(); i++)
+						if (simulator.simulations[i] == std::dynamic_pointer_cast<ISimulation>(el))
+							simulator.simulations.erase(simulator.simulations.begin() + i);
 					Remove(el);
+				}
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
 				ImGui::End();

@@ -7,6 +7,7 @@ class FileLoader
 {
 public:
 	static std::string selectFile();
+	static std::vector<std::string> selectFiles();
 	static std::string selectSaveDest();
 	static std::string getLocalPath();
 	static void save(std::string path, nlohmann::json json);

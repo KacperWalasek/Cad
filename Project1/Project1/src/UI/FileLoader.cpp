@@ -4,13 +4,30 @@
 #include <sstream>
 #include <windows.h>
 #include <fstream>
+#include <string>
 
 std::string FileLoader::selectFile()
 {
-	char* name = tinyfd_openFileDialog("Open file", getLocalPath().c_str(), 0, nullptr, "", 0);
+	char* name = tinyfd_openFileDialog("Open file", getLocalPath().c_str(), 0, nullptr, "", true);
 	if(name)
 		return std::string(name);
 	return std::string();
+}
+
+std::vector<std::string> FileLoader::selectFiles()
+{
+	char* n = tinyfd_openFileDialog("Open file", getLocalPath().c_str(), 0, nullptr, "", true);
+	if (!n)
+		return {};
+	std::string namesCombined(n);
+	std::string segment;
+	std::vector<std::string> names;
+	std::stringstream ss(namesCombined);
+	while (std::getline(ss, segment, '|'))
+	{
+		names.push_back(segment);
+	}
+	return names;
 }
 
 std::string FileLoader::selectSaveDest()

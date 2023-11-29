@@ -10,7 +10,7 @@ uniform int stepIndex;
 uniform int stepCount;
 
 in vec4 gl_FragCoord;
-in vec2 uv;
+in float dist;
 in vec3 pos;
 
 void main()
@@ -19,17 +19,15 @@ void main()
     float z = pos.z;
     if (!flatMilling)
     {
-        float dist = 2.0f*abs(uv.y - 0.5f);
         float sphereF = radius * ( 1.0f - sqrt(1.0f - dist*dist));
         z = z + sphereF;
     }
     if (z > currentZ)
-        discard;
-    if (abs(currentZ - z) < 0.001f)
-        discard;
-    if (currentZ - z < treshold)
+         discard;
+    if (abs(currentZ - z) < 0.0000001f)
         discard;
    
     float ind = stepIndex/float(stepCount);
     FragColor = vec4(ind,ind,ind,1.0f);
+
 }

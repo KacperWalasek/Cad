@@ -57,13 +57,13 @@ void main()
             textureUV = vec2(u,0.0f);
             break;
         case 1:
-            textureUV = vec2(0.0f,u);
+            textureUV = vec2(1.0f,1.0f-u);
             break;
         case 2:
             textureUV = vec2(u,1.0f);
             break;
         case 3:
-            textureUV = vec2(1.0f,u);
+            textureUV = vec2(0.0f,u);
             break;
     }
     

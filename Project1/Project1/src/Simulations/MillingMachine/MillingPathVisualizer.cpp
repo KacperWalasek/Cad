@@ -21,7 +21,7 @@ void MillingPathVisualizer::setMillingPath(const MillingPath& path)
 		vert.insert(vert.end(), {
 			path.positions[i].y / 10.0f,
 			path.positions[i].z / 10.0f,
-			path.positions[i].x / 10.0f
+			-path.positions[i].x / 10.0f
 			});
 		if(i!=0)
 			inds.insert(inds.end(), { i-1, i });

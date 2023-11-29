@@ -11,7 +11,7 @@ enum class PathState {
 
 class MillingHeightMapRenderer : public IRenderable {
 
-	const int circleDivisions = 10;
+	const int circleDivisions = 32;
 
 	unsigned int VAO_rect, VAO_circ, 
 				 VBO_rect, VBO_circ, 
@@ -54,7 +54,6 @@ public:
 	int lastVisited = 0;
 	glm::fvec3 SetDistance(float distance);
 	glm::fvec3 Finalize();
-	bool MakeNextStep();
 
 	float GetLength();
 	PathState GetState() const;

@@ -59,7 +59,7 @@ void Window::ProcessMouseInput()
 }
 
 Window::Window()
-    : sizeX(1600), sizeY(900)
+    : sizeX(3200), sizeY(1800)
 {
 }
 

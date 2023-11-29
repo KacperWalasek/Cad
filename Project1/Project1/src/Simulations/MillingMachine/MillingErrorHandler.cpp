@@ -3,41 +3,47 @@
 #include <string>
 #include "../../Debuger/Debuger.h"
 #include "../../TextureCPUAccess.h"
+#include <set>
 
-void MillingErrorHandler::checkForErrors(TextureCPUAccess& cpuTex, const MillingPath& path, glm::fvec3 materialSize, int step)
+void MillingErrorHandler::checkCutterHeightExceededErrors(TextureCPUAccess& cutterHeightTex, const MillingPath& path, glm::fvec3 materialSize)
 {
-	bool decreasesFlat = false;
-	bool cutterHeightExceeded = false;
+	int stepCount = path.positions.size();
+	std::set<int> cutterHeightExceeded;
 	for (int i = 0; i < sizeX; i++)
 		for (int j = 0; j < sizeY; j++)
 		{
-			float dist = cpuTex.getXByIndex(i, j);
-			if (dist == 0)
-				continue;
-			if (path.flat && path.positions[step].z != path.positions[step - 1].z)
-				decreasesFlat = true;
-			if (dist * materialSize.y > cutterHeight) // TODO
-				cutterHeightExceeded = true;
+			float dist = cutterHeightTex.getXByIndex(i, j);
+			if (dist != 0)
+				cutterHeightExceeded.insert(stepCount * dist);
 		}
 
-	if (path.positions[step].z < baseHeight)
-		messages.push_back("Problem w kroku " + std::to_string(step) + " - frezowanie podstawki");
-	if (cutterHeightExceeded)
-		messages.push_back("Problem w kroku " + std::to_string(step) + " - frezowanie czescia nieskrawajaca");
-	if (decreasesFlat)
-		messages.push_back("Problem w kroku " + std::to_string(step) + " - frezowanie w do³ frezem plaskim");
+	for (int i : cutterHeightExceeded)
+		messages.push_back("Problem w kroku " + std::to_string(i) + " - frezowanie czescia nieskrawajaca");
 }
 
-void MillingErrorHandler::checkDescendingError(const MillingPath& path, glm::fvec3 materialSize)
+void MillingErrorHandler::checkFlatDescendingError(TextureCPUAccess& milledAreaTex, const MillingPath& path, glm::fvec3 materialSize)
 {
-	if(path.positions[0].z < materialSize[0])
-	for (int i = 1; i < path.positions.size(); i++)
-	{
-		if (path.positions[i].z <  path.positions[i - 1].z &&
-			fabsf(path.positions[i].x) / 10.0f <= materialSize.x / 2.0f + path.radius / 10.0f &&
-			fabsf(path.positions[i].y) / 10.0f <= materialSize.y / 2.0f + path.radius / 10.0f)
-			messages.push_back("Descending error in step " + std::to_string(i-1) + "-" + std::to_string(i));
-	}
+	int stepCount = path.positions.size();
+	std::set<int> decreasesFlat;
+	for (int i = 0; i < sizeX; i++)
+		for (int j = 0; j < sizeY; j++)
+		{
+			float dist = milledAreaTex.getXByIndex(i, j);
+			if (dist == 0)
+				continue;
+			int ind = stepCount * dist;
+			if (path.flat && path.positions[ind+1].z < path.positions[ind].z)
+				decreasesFlat.insert(ind);
+		}
+	for (int i : decreasesFlat)
+		messages.push_back("Problem w kroku " + std::to_string(i) + " - frezowanie w dol frezem plaskim");
+}
+
+void MillingErrorHandler::checkBaseMillingError(const MillingPath& path, int beginInd, int endInd)
+{
+	for (int i = beginInd; i<endInd; i++)
+		if (path.positions[i].z < baseHeight)
+			messages.push_back("Problem w kroku " + std::to_string(i) + " - frezowanie podstawki");
 }
 
 MillingErrorHandler::MillingErrorHandler(int sizeX, int sizeY, int baseHeight, int cutterHeight, std::vector<std::pair<std::string, MillingHeightMapRenderer>>& hms)
@@ -47,17 +53,28 @@ MillingErrorHandler::MillingErrorHandler(int sizeX, int sizeY, int baseHeight, i
 	circErrorShader(std::make_shared<Shader>(
 		"Shaders/MillingPath/millingPathCirc.vert",
 		"Shaders/MillingPath/errorCirc.frag" )),
+	rectMilledAreaShader(std::make_shared<Shader>(
+		"Shaders/MillingPath/millingPath.vert",
+		"Shaders/MillingPath/milledAreaRect.frag")),
+	circMilledAreaShader(std::make_shared<Shader>(
+		"Shaders/MillingPath/millingPathCirc.vert",
+		"Shaders/MillingPath/milledAreaCirc.frag")),
 	lastStable(sizeX, sizeY, 1, true),
-	errorTexture(sizeX, sizeY, 1, false),
+	cutterHeightTexture(sizeX, sizeY, 1, false),
+	milledAreaTexture(sizeX, sizeY, 1, false),
 	sizeX(sizeX), sizeY(sizeY), baseHeight(baseHeight), 
 	cutterHeight(cutterHeight), hms(hms)
 {
 	circErrorShader->Init();
 	rectErrorShader->Init();
+	rectMilledAreaShader->Init();
+	circMilledAreaShader->Init();
 	lastStable.Clear({ 1,0,0,1 });
-	errorTexture.Clear({ 0,0,0,1 });
+	cutterHeightTexture.Clear({ 0,0,0,1 });
+	milledAreaTexture.Clear({ 0,0,0,1 });
 	Debuger::ShowTexture(lastStable.getTextureId());
-	Debuger::ShowTexture(errorTexture.getTextureId());
+	Debuger::ShowTexture(cutterHeightTexture.getTextureId());
+	Debuger::ShowTexture(milledAreaTexture.getTextureId());
 }
  
 std::vector<std::string> MillingErrorHandler::getMessages() const
@@ -67,10 +84,14 @@ std::vector<std::string> MillingErrorHandler::getMessages() const
 
 void MillingErrorHandler::SetTextureSize(int sizeX, int sizeY)
 {
+	this->sizeX = sizeX;
+	this->sizeY = sizeY;
 	lastStable = TextureRenderer(sizeX, sizeY, 1, true);
-	errorTexture = TextureRenderer(sizeX, sizeY, 1, false);
+	cutterHeightTexture = TextureRenderer(sizeX, sizeY, 1, false);
+	milledAreaTexture = TextureRenderer(sizeX, sizeY, 1, false);
 	lastStable.Clear({ 1,0,0,1 });
-	errorTexture.Clear({ 0,0,0,1 });
+	cutterHeightTexture.Clear({ 0,0,0,1 });
+	milledAreaTexture.Clear({ 0,0,0,1 });
 }
 
 void MillingErrorHandler::SetBaseHeight(int baseHeight)
@@ -108,32 +129,44 @@ void MillingErrorHandler::UpdateLastStable(glm::fvec3 materialSize)
 void MillingErrorHandler::Validate(MillingHeightMapRenderer& hm, glm::fvec3 materialSize, int from, int to)
 {
 	const MillingPath& path = hm.GetPath();
-	float multiplier = 2.0f / materialSize.x; // TODO
+	float multiplier = 2.0f / materialSize.x;
 	VariableManager vm;
 	vm.AddVariable("color", glm::fvec4{ 1.0f,0.0f,0.0f,1.0f });
 	vm.AddVariable("radius", path.radius / materialSize.y);
 	vm.AddVariable("flatMilling", path.flat);
 	vm.AddVariable("tex", 0);
-	vm.AddVariable("treshold", 0.1f);
+	vm.AddVariable("treshold", cutterHeight/materialSize.y);
 	vm.AddVariable("stepIndex", 0);
 	vm.AddVariable("stepCount", (int)path.positions.size());
 
-	TextureCPUAccess cpuTex(errorTexture.getTextureId(), sizeX, sizeY);
+	TextureCPUAccess cutterHeightTex(cutterHeightTexture.getTextureId(), sizeX, sizeY);
+	TextureCPUAccess milledAreaTex(milledAreaTexture.getTextureId(), sizeX, sizeY);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, lastStable.getTextureId());
-	hm.SetUseExternalShaders(rectErrorShader, circErrorShader);
+	cutterHeightTexture.Clear({ 0,0,0,1 });
+	milledAreaTexture.Clear({ 0,0,0,1 });
 	for (int i = from; i < to; i++)
 	{
-		vm.SetVariable("stepIndex", i); // CLEAN
+		vm.SetVariable("stepIndex", i);
 		hm.SetRenderOneSegment(i);
 
-		errorTexture.Clear({ 0,0,0,1 });
-		errorTexture.Render(hm, vm);
+		hm.SetUseExternalShaders(rectErrorShader, circErrorShader);
+		cutterHeightTexture.Render(hm, vm);
+
+		hm.SetUseExternalShaders(rectMilledAreaShader, circMilledAreaShader);
+		milledAreaTexture.Render(hm, vm);
+
+		hm.SetUseInternalShaders();
+		lastStable.Render(hm, vm);
 
 	}
-	cpuTex.Update();
-	checkForErrors(cpuTex, path, materialSize,0);
 	hm.SetRenderAll();
 	hm.SetUseInternalShaders();
+
+	cutterHeightTex.Update();
+	milledAreaTex.Update();
+	checkCutterHeightExceededErrors(cutterHeightTex, path, materialSize);
+	checkFlatDescendingError(milledAreaTex, path, materialSize);
+	checkBaseMillingError(path, from, to);
 }

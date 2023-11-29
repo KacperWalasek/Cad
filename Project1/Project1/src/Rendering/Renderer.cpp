@@ -74,6 +74,7 @@ void Renderer::Init()
     GLenum err = glewInit();
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
     shader.Init();
     shader.use();
     glPointSize(5); 

@@ -34,6 +34,9 @@ void MillingMachineSimulation::renderInstant()
 	errorHandler->Validate(hms[selectedHM].second, materialSize, from, hms[selectedHM].second.GetPath().positions.size());
 	errorHandler->UpdateLastStable(materialSize);
 	finished = true;
+	cutter.setPosition(hms[selectedHM].second.GetPath().positions.back());
+	running = false;
+	instant = false;
 }
 
 MillingMachineSimulation::MillingMachineSimulation()
@@ -68,8 +71,6 @@ void MillingMachineSimulation::update(float dt)
 		return;
 	if (instant) {
 		renderInstant(); 
-		running = false;
-		instant = false; 
 		return;
 	}
 
@@ -99,21 +100,31 @@ bool MillingMachineSimulation::RenderGui()
 {
 	ImGui::Begin("Milling machine simulation");
 	if (ImGui::Button("Load Path")) {
-		std::string filename = FileLoader::selectFile();
-		if (!filename.empty())
+		std::vector<std::string> filenames = FileLoader::selectFiles();
+		for (std::string filename : filenames)
 		{
-			path = FileLoader::loadPath(filename);
-			if (hms.size() == 0)
-				millingPathVisualizer.setMillingPath(path);
-			hms.push_back({ filename, {path, materialSize } });
+			if (!filename.empty())
+			{
+				path = FileLoader::loadPath(filename);
+				if (hms.size() == 0)
+				{
+					cutter.SetRadius(path.radius);
+					millingPathVisualizer.setMillingPath(path);
+				}
+				hms.push_back({ filename, {path, materialSize } });
+			}
 		}
 	}
 
 	if (dissableInputs)
 		ImGui::BeginDisabled();
 	ImGui::Text("Material");
-	if (ImGui::InputInt("division x", &divisions.x) || ImGui::InputInt("division y", &divisions.y))
+	int division = divisions.x;
+	if (ImGui::InputInt("division", &division))
 	{
+		divisions.x = division;
+		divisions.y = division;
+		
 		materialCube.setDivision(divisions.x, divisions.y);
 		errorHandler->SetTextureSize(divisions.x, divisions.y);
 	}
@@ -142,8 +153,12 @@ bool MillingMachineSimulation::RenderGui()
 	ImGui::InputFloat("speed", &speed);
 	if (ImGui::Button("Start"))
 		start();
-	if (ImGui::Button("Instant"))
+	if (!running)
+		ImGui::BeginDisabled();
+	if (ImGui::Button("Instant") && running)
 		instant = true;
+	if (!running)
+		ImGui::EndDisabled();
 	ImGui::Checkbox("Show paths", &showPaths);
 
 	ImGui::Text("Cutter");
@@ -186,8 +201,14 @@ bool MillingMachineSimulation::RenderGui()
 		{
 			if (selectedHM != i) 
 			{
+				if (hms[selectedHM].second.GetState() == PathState::Running)
+				{
+					renderInstant();
+				}
 				millingPathVisualizer.setMillingPath(hms[i].second.GetPath());
 				selectedHM = i;
+				cutter.SetRadius(hms[i].second.GetRadius());
+				passedPathLength = 0;
 			}
 		}
 		ImGui::PopStyleColor();

@@ -7,11 +7,13 @@
 #include "Cursor.h"
 #include <list>
 #include "Center.h"
+#include "../Simulations/Simulator.h"
 
 class Scene : public IGui
 {
+	Simulator& simulator;
 public:
-	Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> objects, Camera& camera);
+	Scene(std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>> objects, Camera& camera, Simulator& simulator);
 
 	std::vector<std::pair<std::shared_ptr<ISceneElement>,bool>> objects;
 	std::shared_ptr<ISceneElement> lastSelected;

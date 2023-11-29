@@ -9,7 +9,7 @@
 class MaterialCube : public IRenderable {
 	Shader heightMapShader, phongShader, wallsShader;
 	unsigned int heightMapTexture;
-	unsigned int VBO, EBO_quad, EBO_triangle, VAO_quads, VAO_triangles;
+	unsigned int VBO, EBO_quad, EBO_triangle, VAO_quads, VAO_triangles, VAO_quadCCW, EBO_quadCCW;
 
 	unsigned int pathsVBO, pathsEBO, pathsVAO;
 

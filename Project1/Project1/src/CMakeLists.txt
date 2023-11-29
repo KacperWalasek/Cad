@@ -151,6 +151,8 @@ set(SHADER_FILES
 	"Shaders/MillingPath/errorCirc.frag"
 	"Shaders/MillingPath/errorRect.frag"
 	"Shaders/height.frag"
+	"Shaders/MillingPath/milledAreaCirc.frag"
+	"Shaders/MillingPath/milledAreaRect.frag"
 )
 add_executable(CAD ${PROJECT_SOURCES})
 

@@ -17,10 +17,10 @@ CadApp::CadApp()
 	window.Init();
 	renderer.Init();
 	Debuger::Init();
+	simulator = std::make_shared<Simulator>();
 	scene = std::make_shared<Scene>(
 		std::vector<std::pair<std::shared_ptr<ISceneElement>, bool>>(),
-		*camera);
-	simulator = std::make_shared<Simulator>();
+		*camera, *simulator);
 
 	auto factory = std::make_shared<ObjectFactory>(*scene);
 	auto errorDisplayer = std::make_shared<ErrorDisplayer>();
