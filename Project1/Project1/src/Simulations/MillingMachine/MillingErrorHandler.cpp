@@ -32,7 +32,7 @@ void MillingErrorHandler::checkFlatDescendingError(TextureCPUAccess& milledAreaT
 			if (dist == 0)
 				continue;
 			int ind = stepCount * dist;
-			if (path.flat && path.positions[ind+1].z < path.positions[ind].z)
+			if (path.flat && path.positions.size() != ind +1 && path.positions[ind + 1].z < path.positions[ind].z)
 				decreasesFlat.insert(ind);
 		}
 	for (int i : decreasesFlat)

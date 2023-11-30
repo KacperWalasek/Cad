@@ -384,7 +384,7 @@ std::tuple<std::vector<glm::fvec4>, bool> Intersection::findIntersectionPointsIn
 			{
 				x = x + diff;
 				float a = findMaxAlpha(x, -diff);
-				p.push_back(x - a * diff);
+				p.push_back(glm::clamp(x - a * diff,0.0f,1.0f));
 				return { p, false };
 			}
 			x = wrap(x);
@@ -429,6 +429,7 @@ void Intersection::extendIntersection(glm::fvec4 x)
 		s1uvs.push_back(glm::fvec3(p.xy(), 0));
 		s2uvs.push_back(glm::fvec3(p.zw(), 0));
 	}
+
 
 	sceneCurve.setPoints(points);
 	s1UVLine.setPoints(s1uvs, true);

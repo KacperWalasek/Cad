@@ -4,31 +4,35 @@ glm::fvec3 SurfaceShift::normal(float u, float v) const
 {
 	auto du = surface->dfdu(u, v);
 	auto dv = surface->dfdv(u, v);
+	if (glm::length(du) == 0 || glm::length(dv) == 0)
+		return { 0,0,0 };
 	return glm::normalize(glm::cross(surface->dfdu(u, v), surface->dfdv(u, v)));
 }
 
-SurfaceShift::SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift)
-	: surface(surface), shift(shift)
+SurfaceShift::SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse)
+	: surface(surface), shift(shift), reverse(reverse)
 {}
 
 glm::fvec3 SurfaceShift::f(float u, float v) const
 {
 	glm::fvec3 n = normal(u, v);
-	if (n.length() == 0)
-		return surface->f(u, v);
-	return surface->f(u,v) + normal(u,v) * shift;
+	if (reverse)
+		n = -n;
+	return surface->f(u,v) + n * shift;
 }
 
 glm::fvec3 SurfaceShift::dfdu(float u, float v) const
 {
-	float eps = 0.001f;
-	return (surface->f(u, v) - surface->f(u+eps, v))/eps;
+	return surface->dfdu(u,v);
+	float eps = 0.0001f;
+	return (surface->f(u + eps, v) - surface->f(u, v))/eps;
 }
 
 glm::fvec3 SurfaceShift::dfdv(float u, float v) const
 {
-	float eps = 0.001f;
-	return (surface->f(u, v) - surface->f(u, v + eps)) / eps;
+	return surface->dfdv(u, v);
+	float eps = 0.0001f;
+	return (surface->f(u, v + eps) - surface->f(u, v)) / eps;
 }
 
 bool SurfaceShift::wrappedU()

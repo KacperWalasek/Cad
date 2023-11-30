@@ -5,9 +5,10 @@
 class SurfaceShift : public IUVSurface {
 	std::shared_ptr<IUVSurface> surface;
 	float shift;
+	bool reverse;
 	glm::fvec3 normal(float u, float v) const;
 public:
-	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift);
+	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse);
 
 	// Inherited via IUVSurface
 	virtual glm::fvec3 f(float u, float v) const override;

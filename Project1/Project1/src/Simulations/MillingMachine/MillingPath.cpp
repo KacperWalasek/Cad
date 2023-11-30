@@ -1,4 +1,5 @@
 #include "MillingPath.h"
+#include "../../Debuger/Debuger.h"
 
 float MillingPath::getCoord(std::string line, char coord)
 {
@@ -22,8 +23,9 @@ void MillingPath::readPositions(std::stringstream& ss)
 
 std::string MillingPath::serializeNumber(float c) const
 {
-	int intSection = floorf(c);
-	int floatSection = floorf((c - intSection) * 1000.0f);
+	float rounded = roundf(c * 1000.0f) / 1000.0f;
+	int intSection = floorf(rounded);
+	int floatSection = floorf((rounded - intSection) * 1000.0f);
 	return std::to_string(intSection) + "." + std::to_string(floatSection);
 }
 
@@ -32,6 +34,7 @@ std::stringstream MillingPath::serialize() const
 	std::stringstream ss;
 	for (int i = 0; i < positions.size(); i++)
 	{
+		Debuger::ShowPoint({ std::stof(serializeNumber(positions[i].x)), std::stof(serializeNumber(positions[i].y)), std::stof(serializeNumber(positions[i].z) )});
 		ss << "N" << i + 2 << "G01" <<
 			"X" << serializeNumber(positions[i].x) <<
 			"Y" << serializeNumber(positions[i].y) <<
