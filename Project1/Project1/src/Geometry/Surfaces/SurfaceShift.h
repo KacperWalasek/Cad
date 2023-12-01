@@ -3,11 +3,11 @@
 #include <memory>
 
 class SurfaceShift : public IUVSurface {
-	std::shared_ptr<IUVSurface> surface;
 	float shift;
 	bool reverse;
 	glm::fvec3 normal(float u, float v) const;
 public:
+	std::shared_ptr<IUVSurface> surface;
 	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse);
 
 	// Inherited via IUVSurface
@@ -28,5 +28,13 @@ public:
 	virtual const std::vector<std::weak_ptr<Intersection>>& getIntersections() override;
 
 	virtual void setRenderState(SurfaceRenderState state) override;
+
+
+	// Inherited via IUVSurface
+	glm::fvec3 dfduu(float u, float v) const override;
+
+	glm::fvec3 dfduv(float u, float v) const override;
+
+	glm::fvec3 dfdvv(float u, float v) const override;
 
 };

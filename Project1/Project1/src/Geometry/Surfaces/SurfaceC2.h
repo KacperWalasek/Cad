@@ -103,4 +103,9 @@ public:
 
 	// Inherited via IUVSurface
 	virtual const std::vector<std::weak_ptr<Intersection>>& getIntersections() override;
+
+	// Inherited via IUVSurface
+	glm::fvec3 dfduu(float u, float v) const override;
+	glm::fvec3 dfduv(float u, float v) const override;
+	glm::fvec3 dfdvv(float u, float v) const override;
 };

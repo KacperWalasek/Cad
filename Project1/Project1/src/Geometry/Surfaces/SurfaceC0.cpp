@@ -554,3 +554,18 @@ const std::vector<std::weak_ptr<Intersection>>& SurfaceC0::getIntersections()
 {
 	return intersections;
 }
+
+glm::fvec3 SurfaceC0::dfduu(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 SurfaceC0::dfduv(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 SurfaceC0::dfdvv(float u, float v) const
+{
+	return glm::fvec3();
+}

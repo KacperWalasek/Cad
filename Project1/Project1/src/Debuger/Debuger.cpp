@@ -1,5 +1,6 @@
 #include "Debuger.h"
 #include "../Rendering/VariableManager.h"
+#include "../Geometry/Surfaces/SurfaceShift.h"
 
 std::vector<unsigned int> Debuger::textures;
 std::vector<glm::fvec2> Debuger::uvPoints;
@@ -127,6 +128,7 @@ void Debuger::ShowUVPoint(glm::fvec2 point)
 
 void Debuger::ShowUVSurface(std::shared_ptr<IUVSurface> s)
 {
+	auto ss = std::dynamic_pointer_cast<SurfaceShift>(s);
 	const int sampleNumber = 50;
 	for (int i = 0; i < sampleNumber; i++)
 		for (int j = 0; j < sampleNumber; j++)
@@ -136,8 +138,16 @@ void Debuger::ShowUVSurface(std::shared_ptr<IUVSurface> s)
 			
 			glm::fvec3 p = s->f(u, v);
 			points.push_back(p);
+			//if (ss)
+			//{
+				//Debuger::ShowVector(f(u, v), f(u, v) + surface->dfduv(u, v));
+				//vectors.emplace_back(p, p + glm::normalize(ss->surface->dfduu(u, v)));
+				//vectors.emplace_back(p, p + glm::normalize(ss->surface->dfduv(u, v)));
+				//vectors.emplace_back(p, p + glm::normalize(ss->surface->dfdvv(u, v)));
+
+			//}
 			vectors.emplace_back(p, p + glm::normalize(s->dfdu(u,v)));
-			vectors.emplace_back(p, p + glm::normalize(s->dfdv(u, v)));
+			//vectors.emplace_back(p, p + glm::normalize(s->dfdv(u, v)));
 		}
 	updatePoints();
 	updateVectors();

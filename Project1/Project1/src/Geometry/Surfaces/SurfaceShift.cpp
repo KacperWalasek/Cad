@@ -23,16 +23,30 @@ glm::fvec3 SurfaceShift::f(float u, float v) const
 
 glm::fvec3 SurfaceShift::dfdu(float u, float v) const
 {
-	return surface->dfdu(u,v);
-	float eps = 0.0001f;
-	return (surface->f(u + eps, v) - surface->f(u, v))/eps;
+	glm::fvec3 sdfdu = surface->dfdu(u, v);
+	glm::fvec3 sdfdv = surface->dfdv(u, v);
+	glm::fvec3 sdfduu = surface->dfduu(u, v);
+	glm::fvec3 sdfduv = surface->dfduv(u, v);
+	glm::fvec3 sdfdvv = surface->dfdvv(u, v);
+
+	glm::fvec3 norm = glm::cross(sdfdu, sdfdv);
+	float normnorm = glm::length(norm);
+	glm::fvec3 normU = glm::cross(sdfduu, sdfdv) + glm::cross(sdfdu, sdfduv);
+	return sdfdu;// +(normU / normnorm - norm * glm::dot(norm, normU) / (normnorm * normnorm * normnorm)) * shift;
 }
 
 glm::fvec3 SurfaceShift::dfdv(float u, float v) const
 {
-	return surface->dfdv(u, v);
-	float eps = 0.0001f;
-	return (surface->f(u, v + eps) - surface->f(u, v)) / eps;
+	glm::fvec3 sdfdu = surface->dfdu(u, v);
+	glm::fvec3 sdfdv = surface->dfdv(u, v);
+	glm::fvec3 sdfduu = surface->dfduu(u, v);
+	glm::fvec3 sdfduv = surface->dfduv(u, v);
+	glm::fvec3 sdfdvv = surface->dfdvv(u, v);
+
+	glm::fvec3 norm = glm::cross(sdfdu, sdfdv);
+	float normnorm = glm::length(norm);
+	glm::fvec3 normV = glm::cross(sdfduv, sdfdv) + glm::cross(sdfdu, sdfdvv);
+	return sdfdv + (normV / normnorm - norm * glm::dot(norm, normV) / (normnorm * normnorm * normnorm))*shift;
 }
 
 bool SurfaceShift::wrappedU()
@@ -63,4 +77,19 @@ const std::vector<std::weak_ptr<Intersection>>& SurfaceShift::getIntersections()
 void SurfaceShift::setRenderState(SurfaceRenderState state)
 {
 	return surface->setRenderState(state);
+}
+
+glm::fvec3 SurfaceShift::dfduu(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 SurfaceShift::dfduv(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 SurfaceShift::dfdvv(float u, float v) const
+{
+	return glm::fvec3();
 }

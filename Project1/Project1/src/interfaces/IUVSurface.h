@@ -17,6 +17,9 @@ public:
 	virtual glm::fvec3 f(float u, float v) const = 0;
 	virtual glm::fvec3 dfdu(float u, float v) const = 0;
 	virtual glm::fvec3 dfdv(float u, float v) const = 0;
+	virtual glm::fvec3 dfduu(float u, float v) const = 0;
+	virtual glm::fvec3 dfduv(float u, float v) const = 0;
+	virtual glm::fvec3 dfdvv(float u, float v) const = 0;
 
 	virtual bool wrappedU() = 0;
 	virtual bool wrappedV() = 0;

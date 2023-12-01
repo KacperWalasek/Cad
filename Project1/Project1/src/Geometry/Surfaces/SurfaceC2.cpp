@@ -453,7 +453,6 @@ glm::fvec3 SurfaceC2::f(float u, float v) const
 	}
 
 	return CurveC2::deBoor(u, subPoints);
-
 }
 
 glm::fvec3 SurfaceC2::dfdu(float u, float v) const
@@ -479,7 +478,7 @@ glm::fvec3 SurfaceC2::dfdu(float u, float v) const
 
 	std::array<glm::fvec3, 3> derivative;
 	for (int i = 0; i < 3; i++)
-		derivative[i] = subPoints[i + 1] - subPoints[i];
+		derivative[i] = (subPoints[i + 1] - subPoints[i])*3.0f;
 
 	return CurveC2::deBoor(u, derivative) * (float)countX;
 
@@ -509,7 +508,7 @@ glm::fvec3 SurfaceC2::dfdv(float u, float v) const
 
 	std::array<glm::fvec3, 3> derivative;
 	for (int i = 0; i < 3; i++)
-		derivative[i] = subPoints[i + 1] - subPoints[i];
+		derivative[i] = (subPoints[i + 1] - subPoints[i]) * 3.0f;
 
 	return CurveC2::deBoor(v, derivative) * (float)countY;
 }
@@ -621,4 +620,97 @@ void SurfaceC2::setRenderState(SurfaceRenderState state)
 const std::vector<std::weak_ptr<Intersection>>& SurfaceC2::getIntersections()
 {
 	return intersections;
+}
+
+glm::fvec3 SurfaceC2::dfduu(float u, float v) const
+{
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+
+		subPoints[i] = CurveC2::deBoor(v, deBoorPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+	for (int i = 0; i < 3; i++)
+		derivative[i] = (subPoints[i + 1] - subPoints[i]) * 3.0f;
+	std::array<glm::fvec3, 2> derivative2;
+	for (int i = 0; i < 2; i++)
+		derivative2[i] = (derivative[i + 1] - derivative[i]) * 2.0f;
+
+	return ((1-u) * derivative2[0] + u * derivative2[1]) * (float)(countX * countX);
+}
+
+glm::fvec3 SurfaceC2::dfduv(float u, float v) const
+{
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, i, j)]->getTransform().location;
+		std::array<glm::fvec3, 3> derivative;
+		for (int j = 0; j < 3; j++)
+			derivative[j] = (deBoorPoints[j + 1] - deBoorPoints[j]) * 3.0f;
+
+		subPoints[i] = CurveC2::deBoor(v, derivative);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+	for (int i = 0; i < 3; i++)
+		derivative[i] = (subPoints[i + 1] - subPoints[i]) * 3.0f;
+
+	return CurveC2::deBoor(u, derivative) * (float)(countX*countY);
+}
+
+glm::fvec3 SurfaceC2::dfdvv(float u, float v) const
+{
+	int sx = glm::min((int)floor(countX * u), countX - 1);
+	int sy = glm::min((int)floor(countY * v), countY - 1);
+
+	float unitX = 1.0f / (float)countX;
+	float unitY = 1.0f / (float)countY;
+
+	u = (u - unitX * sx) * countX;
+	v = (v - unitY * sy) * countY;
+
+	std::array<glm::fvec3, 4> subPoints;
+	std::array<glm::fvec3, 4> deBoorPoints;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			deBoorPoints[j] = points[pointIndex(sx, sy, j, i)]->getTransform().location;
+
+		subPoints[i] = CurveC2::deBoor(u, deBoorPoints);
+	}
+
+	std::array<glm::fvec3, 3> derivative;
+	for (int i = 0; i < 3; i++)
+		derivative[i] = (subPoints[i + 1] - subPoints[i]) * 3.0f;
+	std::array<glm::fvec3, 2> derivative2;
+	for (int i = 0; i < 2; i++)
+		derivative2[i] = (derivative[i + 1] - derivative[i]) * 2.0f;
+
+	return ((1-v) * derivative2[0] + v * derivative2[1]) * (float)(countY * countY);
 }

@@ -17,7 +17,8 @@ const float MillingPathCreator::roughtPathsTranslation = 0.5f;
 
 void MillingPathCreator::intersect(Scene& scene, std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSurface> s2, glm::fvec3 cursorPos)
 {
-	auto intersection = std::make_shared<Intersection>(s1, s2, true, cursorPos, 0.5f);
+
+	auto intersection = std::make_shared<Intersection>(s1, s2, true, cursorPos, 0.1f);
 	if (!intersection->valid)
 	{
 		std::cout << "invalid intersection" << std::endl;
@@ -250,7 +251,7 @@ MillingPath MillingPathCreator::CreateRoundingPath(Scene& scene)
 
 MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 {
-	const float r = 1.0f;
+	const float r = 0.8f;
 	std::shared_ptr<IUVSurface> base = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "base"), r, false);
 	std::shared_ptr<IUVSurface> handle = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "handle"), r, true);
 	std::shared_ptr<IUVSurface> body = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "body"),  r, false);
@@ -272,7 +273,7 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 
 	intersect(scene, body, handle, { 7, -9, -r });
 	intersect(scene, body, handle, { -4, -9, -r });
-	//intersect(scene, handle, base, { 0, -2, -r });
+	intersect(scene, handle, base, { 0, -2, -r });
 	intersect(scene, body, base, { 0, -10, -r });
 	intersect(scene, body, button, { 0, -12, -4 });
 
@@ -280,22 +281,22 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 
 	intersect(scene, handle, base, { 0, 2, -r });
 	
-	UVEnvelope envelopeBody = createEnvelope(body);
-	envelopeBody.curves[1].reverseDirection = true;
-	envelopeBody.curves[2].reverseDirection = true;
+	//UVEnvelope envelopeBody = createEnvelope(body);
+	//envelopeBody.curves[1].reverseDirection = true;
+	//envelopeBody.curves[2].reverseDirection = true;
 	
 	//UVEnvelope envelopeHandle = createEnvelope(handle);
 	//envelopeHandle.curves[0].reverseDirection = true;
 
 	//UVEnvelope envelopeButton = createEnvelope(button);
 	
-	std::vector<glm::fvec3> positionsBody = millUVSurface(body, envelopeBody, Direction::UpRight);
+	//std::vector<glm::fvec3> positionsBody = millUVSurface(body, envelopeBody, Direction::UpRight);
 	//std::vector<glm::fvec3> positionsHandle = millUVSurface(handle, envelopeHandle, Direction::UpRight, true);
 	//std::vector<glm::fvec3> positionsHole = millUVSurface(base, envelopeHole, Direction::UpRight);
 	//std::vector<glm::fvec3> positionsButton = millUVSurface(button, envelopeButton, Direction::UpRight, true);
 	
 	std::vector<glm::fvec3> positions;
-	positions.insert(positions.end(), positionsBody.begin(), positionsBody.end());
+	//positions.insert(positions.end(), positionsBody.begin(), positionsBody.end());
 	//positions.insert(positions.end(), positionsHandle.begin(), positionsHandle.end());
 	//positions.insert(positions.end(), positionsHole.begin(), positionsHole.end());
 	//positions.insert(positions.end(), positionsButton.begin(), positionsButton.end());

@@ -415,10 +415,10 @@ void Intersection::extendIntersection(glm::fvec4 x)
 	std::vector<glm::fvec3> s1uvs;
 	std::vector<glm::fvec3> s2uvs;
 
-	auto [p1,loop1] = findIntersectionPointsInDirection(x, true);
+	auto [p1,loop1] = findIntersectionPointsInDirection(x, false);
 	if(!loop1)
 	{
-		auto [p2, loop2] = findIntersectionPointsInDirection(x, false);
+		auto [p2, loop2] = findIntersectionPointsInDirection(x, true);
 		uvs.insert(uvs.end(), p2.rbegin(), p2.rend());
 	}
 	uvs.insert(uvs.end(), p1.begin(),  p1.end());

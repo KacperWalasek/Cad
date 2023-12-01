@@ -286,3 +286,18 @@ const std::vector<std::weak_ptr<Intersection>>& Torus::getIntersections()
 {
 	return intersections;
 }
+
+glm::fvec3 Torus::dfduu(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 Torus::dfduv(float u, float v) const
+{
+	return glm::fvec3();
+}
+
+glm::fvec3 Torus::dfdvv(float u, float v) const
+{
+	return glm::fvec3();
+}
