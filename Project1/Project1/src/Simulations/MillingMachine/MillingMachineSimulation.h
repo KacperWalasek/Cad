@@ -60,6 +60,7 @@ public:
 	virtual void reset() override;
 	virtual void update(float dt) override;
 	virtual bool isRunning() const override;
+	void LoadPaths(std::vector<std::string> filenames);
 
 	std::shared_ptr<MillingErrorHandler> GetErrorHandler();
 

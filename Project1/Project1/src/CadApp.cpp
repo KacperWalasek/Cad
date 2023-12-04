@@ -7,6 +7,7 @@
 #include "EventHandlers/CameraMainPositions.h"
 #include "ErrorDisplayer.h"
 #include "Debuger/Debuger.h"
+#include "StartScript.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -23,7 +24,7 @@ CadApp::CadApp()
 		*camera, *simulator);
 
 	auto factory = std::make_shared<ObjectFactory>(*scene);
-	auto errorDisplayer = std::make_shared<ErrorDisplayer>();
+	errorDisplayer = std::make_shared<ErrorDisplayer>();
 	guis = {
 		camera,
 		scene,
@@ -54,6 +55,8 @@ CadApp::CadApp()
 
 void CadApp::Run()
 {
+	StartScript startScript(*scene, *simulator, *errorDisplayer);
+	startScript.Run();
 	auto anaglyphRenderer = std::make_shared<AnaglyphRenderer>(*camera);
 	anaglyphRenderer->Init();
 	guis.push_back(anaglyphRenderer);

@@ -34,7 +34,7 @@ std::stringstream MillingPath::serialize() const
 	std::stringstream ss;
 	for (int i = 0; i < positions.size(); i++)
 	{
-		Debuger::ShowPoint({ std::stof(serializeNumber(positions[i].x)), std::stof(serializeNumber(positions[i].y)), std::stof(serializeNumber(positions[i].z) )});
+		//Debuger::ShowPoint({ std::stof(serializeNumber(positions[i].x)), std::stof(serializeNumber(positions[i].y)), std::stof(serializeNumber(positions[i].z) )});
 		ss << "N" << i + 2 << "G01" <<
 			"X" << serializeNumber(positions[i].x) <<
 			"Y" << serializeNumber(positions[i].y) <<

@@ -91,6 +91,23 @@ bool MillingMachineSimulation::isRunning() const
 	return running;
 }
 
+void MillingMachineSimulation::LoadPaths(std::vector<std::string> filenames)
+{
+	for (std::string filename : filenames)
+	{
+		if (!filename.empty())
+		{
+			path = FileLoader::loadPath(filename);
+			if (hms.size() == 0)
+			{
+				cutter.SetRadius(path.radius);
+				millingPathVisualizer.setMillingPath(path);
+			}
+			hms.push_back({ filename, {path, materialSize } });
+		}
+	}
+}
+
 std::shared_ptr<MillingErrorHandler> MillingMachineSimulation::GetErrorHandler()
 {
 	return errorHandler;
@@ -101,19 +118,7 @@ bool MillingMachineSimulation::RenderGui()
 	ImGui::Begin("Milling machine simulation");
 	if (ImGui::Button("Load Path")) {
 		std::vector<std::string> filenames = FileLoader::selectFiles();
-		for (std::string filename : filenames)
-		{
-			if (!filename.empty())
-			{
-				path = FileLoader::loadPath(filename);
-				if (hms.size() == 0)
-				{
-					cutter.SetRadius(path.radius);
-					millingPathVisualizer.setMillingPath(path);
-				}
-				hms.push_back({ filename, {path, materialSize } });
-			}
-		}
+		LoadPaths(filenames);
 	}
 
 	if (dissableInputs)

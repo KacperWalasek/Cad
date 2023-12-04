@@ -27,6 +27,7 @@ public:
 	static void ShowUVSurface(std::shared_ptr<IUVSurface> s);
 	static void ShowPoint(glm::fvec3 point);
 	static void ShowVector(glm::fvec3 from, glm::fvec3 to);
+	static void ShowPath(std::shared_ptr<IUVSurface> surface, std::vector<glm::fvec2> uvPositions);
 
 	// Inherited via IGui
 	virtual bool RenderGui() override;

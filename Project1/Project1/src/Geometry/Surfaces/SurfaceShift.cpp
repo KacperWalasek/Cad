@@ -32,7 +32,7 @@ glm::fvec3 SurfaceShift::dfdu(float u, float v) const
 	glm::fvec3 norm = glm::cross(sdfdu, sdfdv);
 	float normnorm = glm::length(norm);
 	glm::fvec3 normU = glm::cross(sdfduu, sdfdv) + glm::cross(sdfdu, sdfduv);
-	return sdfdu;// +(normU / normnorm - norm * glm::dot(norm, normU) / (normnorm * normnorm * normnorm)) * shift;
+	return sdfdu;//  +(normU / normnorm - norm * glm::dot(norm, normU) / (normnorm * normnorm * normnorm)) * shift;
 }
 
 glm::fvec3 SurfaceShift::dfdv(float u, float v) const
@@ -81,15 +81,15 @@ void SurfaceShift::setRenderState(SurfaceRenderState state)
 
 glm::fvec3 SurfaceShift::dfduu(float u, float v) const
 {
-	return glm::fvec3();
+	return surface->dfduu(u, v);
 }
 
 glm::fvec3 SurfaceShift::dfduv(float u, float v) const
 {
-	return glm::fvec3();
+	return surface->dfduv(u, v);
 }
 
 glm::fvec3 SurfaceShift::dfdvv(float u, float v) const
 {
-	return glm::fvec3();
+	return surface->dfdvv(u, v);
 }

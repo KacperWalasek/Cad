@@ -6,6 +6,7 @@
 #include "EventHandlers/SelectedMovement.h"
 #include "Rendering/Anaglyph/AnaglyphRenderer.h"
 #include "Simulations/Simulator.h"
+#include "ErrorDisplayer.h"
 
 class CadApp
 {
@@ -15,6 +16,7 @@ class CadApp
 	std::shared_ptr<Scene> scene;
 	std::shared_ptr<Camera> camera;
 	std::shared_ptr<Simulator> simulator;
+	std::shared_ptr<ErrorDisplayer> errorDisplayer;
 	std::vector<std::shared_ptr<IGui>> guis;
 
 	std::shared_ptr<CameraMovement> cameraMovement;
