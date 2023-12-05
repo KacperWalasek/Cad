@@ -11,14 +11,14 @@
 StartScript::StartScript(Scene& scene, Simulator& simulator, ErrorDisplayer& errorDisplayer)
     : scene(scene), simulator(simulator), errorDisplayer(errorDisplayer)
 {
-}
+} 
 
 void StartScript::Run()
 {
     if (dissabled)
         return;
     const std::string modelPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\klodkaNaprawiona.json";
-    const std::string pathPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\Paths2\\script.k08";
+    const std::string pathPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\Paths2\\script.k16";
 
     if (!modelPath.empty())
     {
@@ -63,7 +63,7 @@ void StartScript::Run()
         }
     }
     
-    auto mp = MillingPathCreator::CreateDetailPath(scene);
+    auto mp = MillingPathCreator::CreateRoughtingPath(scene);
     FileLoader::savePath(pathPath, mp);
 
 

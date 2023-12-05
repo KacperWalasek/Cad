@@ -1,11 +1,18 @@
 #pragma once
 #include "../../interfaces/IUVSurface.h"
+#include "../../interfaces/IRenderable.h"
 #include <memory>
+#include "../../Rendering/Shader.h"
 
-class SurfaceShift : public IUVSurface {
+class SurfaceShift : public IUVSurface, public IRenderable {
 	float shift;
 	bool reverse;
+	const int renderDetails = 20;
+	int indicesSize;
+	unsigned int VBO, EBO, VAO;
+	Shader shader;
 	glm::fvec3 normal(float u, float v) const;
+	void updateMesh(bool reverse);
 public:
 	std::shared_ptr<IUVSurface> surface;
 	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse);
@@ -36,5 +43,9 @@ public:
 	glm::fvec3 dfduv(float u, float v) const override;
 
 	glm::fvec3 dfdvv(float u, float v) const override;
+
+
+	// Inherited via IRenderable
+	void Render(bool selected, VariableManager& vm) override;
 
 };

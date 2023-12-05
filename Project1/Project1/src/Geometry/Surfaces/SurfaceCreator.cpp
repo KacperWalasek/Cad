@@ -69,7 +69,7 @@ SurfaceCreator::SurfaceCreator(Scene& scene)
 	: scene(scene), name("SurfaceCreator-" + std::to_string(indexer.getNewIndex())),
 	toRemove(nullptr),
 	sizeX(10),
-	sizeY(10),
+	sizeY(10), 
 	cylinder(false)
 {
 	surfaceCount[0] = 1;

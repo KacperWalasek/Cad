@@ -10,7 +10,7 @@
 const glm::fvec4 MillingPathCreator::rect = { -22.5, 22.5,7.5,-37.5 }; // both must sum to 45
 const glm::fvec2 MillingPathCreator::zRange = { 0,-15 }; // must sum to 15
 const glm::fvec3 MillingPathCreator::targetSize = { 15.0f, 5.0f, 15.0f };
-const float MillingPathCreator::targetBaseHeight = 5.0f;
+const float MillingPathCreator::targetBaseHeight = 1.5f;
 const float MillingPathCreator::epsilon = 0.001f;
 const float MillingPathCreator::roughtPathsTranslation = 0.5f;
 const float MillingPathCreator::uDistMult = 1.0f;
@@ -33,7 +33,11 @@ void MillingPathCreator::intersect(Scene& scene, std::shared_ptr<IUVSurface> s1,
 
 unsigned int MillingPathCreator::renderSceneHeightMap(Scene& scene)
 {
-	SceneHeightMapRenderer sceneRenderer(scene);
+	float r = targetToWorldSpace(0.8f);
+	std::shared_ptr<SurfaceShift> handle = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "handle"), r, true);
+	std::shared_ptr<SurfaceShift> body = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "body"), r, false);
+	std::shared_ptr<SurfaceShift> button = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "button"), r, false);
+	
 	TextureRenderer tr(textureSize, textureSize, 3, true);
 
 	float rangeLen = zRange.y - zRange.x;
@@ -43,14 +47,13 @@ unsigned int MillingPathCreator::renderSceneHeightMap(Scene& scene)
 	vm.AddVariable("projMtx", glm::ortho<float>(rect.x,rect.y,rect.z, rect.w, 0.001f, fabsf(rangeLen)*2));
 	vm.AddVariable("viewMtx", glm::translate(glm::rotate<float>(glm::identity<glm::fmat4x4>(), std::numbers::pi, { 0,1,0 }), { 0,0,-rangeLen }));
 	vm.AddVariable("modelMtx", glm::identity<glm::fmat4x4>());
-	vm.AddVariable("color", glm::fvec4(0,1,1,1));
-	vm.AddVariable("divisionV", 4);
-	vm.AddVariable("divisionU", 4);
 	vm.AddVariable("heightRange", zRange);
 
 	// render
 	tr.Clear({ 0,0,0,0 });
-	tr.Render(sceneRenderer, vm);
+	tr.Render(*handle, vm);
+	tr.Render(*body, vm);
+	tr.Render(*button, vm);
 	
 	return tr.getTextureId();
 }
@@ -58,7 +61,7 @@ std::vector<glm::fvec3> MillingPathCreator::sampleHeigthMap(unsigned int heightM
 {
 	float cadWidth = rect.y - rect.x;
 	float cadHeight = fabsf(zRange.x - zRange.y);
-	float materialLimitInCadSpace = targetSize.z * cadWidth / targetSize.x;
+	float materialLimitInCadSpace = targetSize.y * cadWidth / targetSize.x;
 	float materialLimitInTextureSpace = materialLimitInCadSpace / cadHeight;
 	float levelInTextureSpace = level * materialLimitInTextureSpace;
 	float levelInTargetSpace = level * targetSize.y;
@@ -66,31 +69,31 @@ std::vector<glm::fvec3> MillingPathCreator::sampleHeigthMap(unsigned int heightM
 	TextureCPUAccess textureCPU(heightMap,textureSize,textureSize);
 
 	std::vector<glm::fvec3> positions;
-	positions.reserve(40 * 40);
-	for (int i = 0; i < textureSize; i += 10)
+	float worldR = targetToWorldSpace(0.8f);
+	float roughEps = worldR/10.0f;
+	float pathWidth = 2 * worldR - roughEps;
+	int pathCount = ceilf(cadWidth / pathWidth) + 1;
+	int pathDivision = 100;
+
+	positions.reserve(pathCount * pathDivision);
+	for (int i = 0; i < pathCount; i++)
 	{
-		for (int j = 0; j < textureSize; j += 10)
+		for (int j = 0; j < pathDivision; j++)
 		{
-			int k = (i / 10) % 2 == 0 ? j : textureSize - j - 1;
+			float u = i / (float)(pathCount - 1);
+			float v = j / (float)(pathDivision - 1);
+			if (i % 2 == 0)
+				v = 1 - v;
 			glm::fvec3 positionTargetSpace = {
-				i / (float)textureSize * targetSize.x - targetSize.x / 2.0f,
-				k / (float)textureSize * targetSize.z - targetSize.z / 2.0f,
+				u * targetSize.x - targetSize.x / 2.0f,
+				v * targetSize.z - targetSize.z / 2.0f,
 				0 };
-			float heightTexSpace = textureCPU.getByIndex(i,k).x;
+			float heightTexSpace = textureCPU.getByUV({ u,1 - v }).x;
 			float heightTargetSpace = targetSize.y * heightTexSpace / materialLimitInTextureSpace;
 			positionTargetSpace.z = heightTexSpace < levelInTextureSpace ? levelInTargetSpace : heightTargetSpace;
-			/*if (j == 0) {
-				glm::fvec3 highPos = positionTargetSpace;
-				highPos.z = (targetSize.y + 1)*10.0f;
-				positions.push_back(highPos);
-			}*/
 			if (j == 0 || positionTargetSpace.y != positions.rbegin()->y)
-				positions.push_back((positionTargetSpace + glm::fvec3(0.0f, 0.0f, targetBaseHeight)) * 10.0f);
+				positions.push_back(applyBase(positionTargetSpace) * 10.0f);
 		}
-/*
-		glm::fvec3 highPos = *positions.rbegin();
-		highPos.z = (targetSize.y + 1) * 10.0f;
-		positions.push_back(highPos);*/
 	}
 	if (!startTopLeft)  std::reverse(positions.begin(), positions.end());
 	return positions;
@@ -118,7 +121,8 @@ MillingPath MillingPathCreator::CreateRoughtingPath(Scene& scene)
 	unsigned int tex = renderSceneHeightMap(scene);
 	Debuger::ShowTexture(tex);
 
-	std::vector<glm::fvec3> positions = sampleHeigthMap(tex, 0.5f, true);
+	float halfHeight = (targetSize.y - targetBaseHeight) / targetSize.y / 2.0f;
+	std::vector<glm::fvec3> positions = sampleHeigthMap(tex, halfHeight, true);
 	std::vector<glm::fvec3> positions0 = sampleHeigthMap(tex, 0.0f, false);
 	positions.insert(positions.end(), positions0.begin(), positions0.end());
 	return MillingPath(positions, 12, false);
@@ -592,6 +596,11 @@ float MillingPathCreator::realAngleCos(std::shared_ptr<IUVSurface> surf, glm::fv
 	if (glm::any(glm::isnan(v1)) || glm::any(glm::isnan(v1)))
 		return 1; // there is a loop of close points
 	return glm::dot(v1,v2);
+}
+
+glm::fvec3 MillingPathCreator::applyBase(glm::fvec3 pos)
+{
+	return pos + glm::fvec3(0.0f,0.0f, targetBaseHeight);
 }
 
 std::shared_ptr<IUVSurface> MillingPathCreator::findSurfaceByName(Scene& scene, std::string name)

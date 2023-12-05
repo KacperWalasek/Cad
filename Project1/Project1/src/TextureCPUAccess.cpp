@@ -21,6 +21,8 @@ float TextureCPUAccess::getXByIndex(int X, int Y) const
 
 glm::fvec3 TextureCPUAccess::getByUV(glm::fvec2 uv) const
 {
+	uv = glm::clamp(uv, 0.0f, 1.0f);
+
 	int x = roundf(uv.x * (sizeX - 1));
 	int y = roundf(uv.y * (sizeY - 1));
 	return getByIndex(x,y);

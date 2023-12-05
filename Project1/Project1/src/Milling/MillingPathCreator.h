@@ -43,6 +43,7 @@ class MillingPathCreator
 
 	static float realDist(std::shared_ptr<IUVSurface> surf, glm::fvec2 fromUV, glm::fvec2 toUV);
 	static float realAngleCos(std::shared_ptr<IUVSurface> surf, glm::fvec2 fromUV, glm::fvec2 toUV1, glm::fvec2 toUV2);
+	static glm::fvec3 applyBase(glm::fvec3 pos);
 public:
 	static MillingPath CreateRoughtingPath(Scene& scene);
 	static MillingPath CreateBasePath(Scene& scene);
