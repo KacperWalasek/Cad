@@ -24,9 +24,14 @@ void MillingPath::readPositions(std::stringstream& ss)
 std::string MillingPath::serializeNumber(float c) const
 {
 	float rounded = roundf(c * 1000.0f) / 1000.0f;
-	int intSection = floorf(rounded);
-	int floatSection = floorf((rounded - intSection) * 1000.0f);
-	return std::to_string(intSection) + "." + std::to_string(floatSection);
+	int sign = c < 0 ? -1 : 1;
+	int intSection = sign * floorf(glm::abs(rounded));
+	int floatSection = ((int)floorf(glm::abs((rounded - intSection) * 1000.0f)))%1000;
+	if (floatSection == 0)
+		sign = sign;
+	std::string floatSectionStr = std::to_string(floatSection);
+	floatSectionStr = std::string(3-floatSectionStr.length(), '0') + floatSectionStr;
+	return std::to_string(intSection) + "." + floatSectionStr;
 }
 
 std::stringstream MillingPath::serialize() const
@@ -78,7 +83,7 @@ MillingPath::MillingPath(std::stringstream& ss, float radius, bool flat)
 }
 
 MillingPath::MillingPath(std::vector<glm::fvec3> positions, float radius, bool flat)
-	: positions(positions)
+	: positions(positions), radius(radius), flat(flat)
 {
 	update();
 }

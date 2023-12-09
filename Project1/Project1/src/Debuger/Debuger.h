@@ -15,11 +15,10 @@ class Debuger : public IGui, public IRenderable
 	static Shader uvPointShader, pointShader;
 
 	static std::vector<unsigned int> textures;
-	static std::vector<std::shared_ptr<IUVSurface>> surf;
+public:
 	static void updateUVPoints();
 	static void updatePoints();
 	static void updateVectors();
-public:
 	static void Init();
 
 	static void ShowTexture(unsigned int tex);
@@ -28,6 +27,8 @@ public:
 	static void ShowPoint(glm::fvec3 point);
 	static void ShowVector(glm::fvec3 from, glm::fvec3 to);
 	static void ShowPath(std::shared_ptr<IUVSurface> surface, std::vector<glm::fvec2> uvPositions);
+
+	static void Clear();
 
 	// Inherited via IGui
 	virtual bool RenderGui() override;

@@ -180,6 +180,14 @@ void Debuger::ShowPath(std::shared_ptr<IUVSurface> surface, std::vector<glm::fve
 	updatePoints();
 }
 
+void Debuger::Clear()
+{
+	textures.clear();
+	vectors.clear();
+	points.clear();
+	uvPoints.clear();
+}
+
 bool Debuger::RenderGui()
 {
 	ImGui::Begin("Debuger");

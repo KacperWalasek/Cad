@@ -97,15 +97,23 @@ void MillingMachineSimulation::LoadPaths(std::vector<std::string> filenames)
 	{
 		if (!filename.empty())
 		{
-			path = FileLoader::loadPath(filename);
-			if (hms.size() == 0)
-			{
-				cutter.SetRadius(path.radius);
-				millingPathVisualizer.setMillingPath(path);
-			}
-			hms.push_back({ filename, {path, materialSize } });
+
+			MillingPath p = FileLoader::loadPath(filename);
+			AddPath(filename, p);
 		}
 	}
+}
+
+void MillingMachineSimulation::AddPath(std::string filename, MillingPath& p)
+{
+	path = p;
+	if (hms.size() == 0)
+	{
+		cutter.SetRadius(path.radius);
+		millingPathVisualizer.setMillingPath(path);
+	}
+	auto mhp = MillingHeightMapRenderer(path, materialSize);
+	hms.emplace_back(filename, mhp);
 }
 
 std::shared_ptr<MillingErrorHandler> MillingMachineSimulation::GetErrorHandler()

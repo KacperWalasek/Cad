@@ -17,7 +17,7 @@ void StartScript::Run()
 {
     if (dissabled)
         return;
-    const std::string modelPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\klodkaNaprawiona.json";
+    const std::string modelPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\klodkaNaprawionaOst.json";
     const std::string pathPath = "E:\\Workspace\\Git\\Cad\\Cad\\Project1\\Project1\\Paths2\\script.k16";
 
     if (!modelPath.empty())
@@ -66,11 +66,12 @@ void StartScript::Run()
     auto mp = MillingPathCreator::CreateRoughtingPath(scene);
     FileLoader::savePath(pathPath, mp);
 
-
+    
     auto simulation = std::make_shared<MillingMachineSimulation>();
     simulator.simulations.push_back(simulation);
     scene.Add(simulation);
     errorDisplayer.AddHandler(simulation->GetErrorHandler());
     simulation->LoadPaths({ pathPath });
-    
+
+    //simulation->AddPath(mp);
 }

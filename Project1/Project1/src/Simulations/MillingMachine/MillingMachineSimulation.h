@@ -61,6 +61,7 @@ public:
 	virtual void update(float dt) override;
 	virtual bool isRunning() const override;
 	void LoadPaths(std::vector<std::string> filenames);
+	void AddPath(std::string filename, MillingPath& p);
 
 	std::shared_ptr<MillingErrorHandler> GetErrorHandler();
 

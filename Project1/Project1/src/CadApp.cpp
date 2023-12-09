@@ -8,6 +8,7 @@
 #include "ErrorDisplayer.h"
 #include "Debuger/Debuger.h"
 #include "StartScript.h"
+#include "Milling/MillingGui.h"
 
 CadApp::CadApp()
 	: renderer(window), 
@@ -33,7 +34,8 @@ CadApp::CadApp()
 		scene->cursor,
 		factory,
 		errorDisplayer,
-		std::make_shared<Debuger>()
+		std::make_shared<Debuger>(),
+		std::make_shared<MillingGui>(*scene)
 	};
 
 

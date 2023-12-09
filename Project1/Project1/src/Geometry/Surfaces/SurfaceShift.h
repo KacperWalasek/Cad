@@ -7,15 +7,17 @@
 class SurfaceShift : public IUVSurface, public IRenderable {
 	float shift;
 	bool reverse;
+	bool roughing = false;
 	const int renderDetails = 20;
 	int indicesSize;
 	unsigned int VBO, EBO, VAO;
 	Shader shader;
 	glm::fvec3 normal(float u, float v) const;
 	void updateMesh(bool reverse);
+	bool smartNormal = false;
 public:
 	std::shared_ptr<IUVSurface> surface;
-	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse);
+	SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse, bool roughing = false);
 
 	// Inherited via IUVSurface
 	virtual glm::fvec3 f(float u, float v) const override;
@@ -47,5 +49,6 @@ public:
 
 	// Inherited via IRenderable
 	void Render(bool selected, VariableManager& vm) override;
-
+	
+	void SmartNormalAssuption(bool smartNormal);
 };

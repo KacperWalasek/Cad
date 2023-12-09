@@ -2,10 +2,11 @@
 
 glm::fvec3 SurfaceShift::normal(float u, float v) const
 {
+	float eps = 0.00001f;
 	auto du = surface->dfdu(u, v);
 	auto dv = surface->dfdv(u, v);
-	if (glm::length(du) == 0 || glm::length(dv) == 0)
-		return { 0,0,-1 };
+	if (glm::length(du) < eps || glm::length(dv) < eps)
+		return roughing ? glm::fvec3(0.0f, 0.0f, -1.0f) : normal(u, glm::abs(v - 0.01f));
 	return glm::normalize(glm::cross(surface->dfdu(u, v), surface->dfdv(u, v)));
 }
 
@@ -63,8 +64,8 @@ void SurfaceShift::updateMesh(bool reverse)
 	indicesSize = indices.size();
 }
 
-SurfaceShift::SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse)
-	: surface(surface), shift(shift), reverse(reverse), 
+SurfaceShift::SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, bool reverse, bool roughing)
+	: surface(surface), shift(shift), reverse(reverse), roughing(roughing),
 	shader("Shaders/position.vert","Shaders/height.frag")
 {
 	shader.Init();
@@ -77,6 +78,7 @@ SurfaceShift::SurfaceShift(std::shared_ptr<IUVSurface> surface, float shift, boo
 glm::fvec3 SurfaceShift::f(float u, float v) const
 {
 	glm::fvec3 n = normal(u, v);
+
 	if (reverse)
 		n = -n;
 	return surface->f(u,v) + n * shift;
@@ -162,4 +164,9 @@ void SurfaceShift::Render(bool selected, VariableManager& vm)
 	vm.Apply(shader.ID);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, 0);
+}
+
+void SurfaceShift::SmartNormalAssuption(bool smartNormal)
+{
+	this->smartNormal = smartNormal;
 }

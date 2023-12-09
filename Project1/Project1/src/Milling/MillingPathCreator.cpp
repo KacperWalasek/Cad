@@ -13,9 +13,28 @@ const glm::fvec3 MillingPathCreator::targetSize = { 15.0f, 5.0f, 15.0f };
 const float MillingPathCreator::targetBaseHeight = 1.5f;
 const float MillingPathCreator::epsilon = 0.001f;
 const float MillingPathCreator::roughtPathsTranslation = 0.5f;
-const float MillingPathCreator::uDistMult = 1.0f;
-const float MillingPathCreator::vDistMult = 0.001f;
+float MillingPathCreator::uDistMult = 1.0f;
+float MillingPathCreator::vDistMult = 1.0f;
+float MillingPathCreator::minDetailDist = 0.01f;
+float MillingPathCreator::maxDetailDist = 0.5f;
+float MillingPathCreator::frequencyMultipier = 0.02f;
+float MillingPathCreator::dencityMultipier = 0.2f;  
+float MillingPathCreator::frequecnyCurvatureInfluence = 0.0f;
+float MillingPathCreator::dencityCurvatureInfluence = 0.0f;
 
+
+std::shared_ptr<IUVSurface> MillingPathCreator::findSurfaceByName(Scene& scene, std::string name)
+{
+	for (auto& o : scene.objects)
+	{
+		auto surface = std::dynamic_pointer_cast<IUVSurface>(o.first);
+		if (!surface)
+			continue;
+		if (o.first->getName() == name)
+			return surface;
+	}
+	return nullptr;
+}
 
 void MillingPathCreator::intersect(Scene& scene, std::shared_ptr<IUVSurface> s1, std::shared_ptr<IUVSurface> s2, glm::fvec3 cursorPos)
 {
@@ -31,12 +50,50 @@ void MillingPathCreator::intersect(Scene& scene, std::shared_ptr<IUVSurface> s1,
 	s2->acceptIntersection(intersection);
 }
 
+std::vector<glm::fvec3> MillingPathCreator::mergePaths(VectorOfReference<std::vector<glm::fvec3>> paths)
+{
+	std::vector<glm::fvec3> merged;
+	for (auto path : paths)
+		merged.insert(merged.end(), path.get().begin(), path.get().end());
+	return merged;
+}
+
+std::vector<glm::fvec3> MillingPathCreator::safeMove(glm::fvec3 from, glm::fvec3 to)
+{
+	return {
+		{from.x,from.y,targetSize.y * 10.0f},
+		{to.x,to.y,targetSize.y * 10.0f}
+	};
+}
+
+float MillingPathCreator::targetToWorldSpace(float dist)
+{
+	return dist * 3.0f;
+}
+
+glm::fvec3 MillingPathCreator::worldToTargetSpace(glm::fvec3 pos)
+{
+	float xTexSpace = (pos.x - rect.x) / (rect.y - rect.x);
+	float yTexSpace = (pos.y - rect.w) / (rect.z - rect.w);
+	float zTexSpace = pos.z / zRange.y;
+	return  {
+		xTexSpace * targetSize.x - targetSize.x / 2.0f,
+		yTexSpace * targetSize.z - targetSize.z / 2.0f,
+		zTexSpace * targetSize.y };
+
+}
+
+glm::fvec3 MillingPathCreator::applyBase(glm::fvec3 pos)
+{
+	return pos + glm::fvec3(0.0f, 0.0f, targetBaseHeight * 10.0f);
+}
+
 unsigned int MillingPathCreator::renderSceneHeightMap(Scene& scene)
 {
 	float r = targetToWorldSpace(0.8f);
 	std::shared_ptr<SurfaceShift> handle = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "handle"), r, true);
 	std::shared_ptr<SurfaceShift> body = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "body"), r, false);
-	std::shared_ptr<SurfaceShift> button = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "button"), r, false);
+	std::shared_ptr<SurfaceShift> button = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "button"), r, false,true);
 	
 	TextureRenderer tr(textureSize, textureSize, 3, true);
 
@@ -57,6 +114,7 @@ unsigned int MillingPathCreator::renderSceneHeightMap(Scene& scene)
 	
 	return tr.getTextureId();
 }
+
 std::vector<glm::fvec3> MillingPathCreator::sampleHeigthMap(unsigned int heightMap, float level, bool startTopLeft)
 {
 	float cadWidth = rect.y - rect.x;
@@ -92,28 +150,11 @@ std::vector<glm::fvec3> MillingPathCreator::sampleHeigthMap(unsigned int heightM
 			float heightTargetSpace = targetSize.y * heightTexSpace / materialLimitInTextureSpace;
 			positionTargetSpace.z = heightTexSpace < levelInTextureSpace ? levelInTargetSpace : heightTargetSpace;
 			if (j == 0 || positionTargetSpace.y != positions.rbegin()->y)
-				positions.push_back(applyBase(positionTargetSpace) * 10.0f);
+				positions.push_back(applyBase(positionTargetSpace * 10.0f));
 		}
 	}
 	if (!startTopLeft)  std::reverse(positions.begin(), positions.end());
 	return positions;
-}
-
-float MillingPathCreator::targetToWorldSpace(float dist)
-{
-	return dist*3.0f;
-}
-
-glm::fvec3 MillingPathCreator::worldToTargetSpace(glm::fvec3 pos)
-{
-	float xTexSpace = (pos.x - rect.x) / (rect.y - rect.x);
-	float yTexSpace = (pos.y - rect.w) / (rect.z - rect.w);
-	float zTexSpace = pos.z / zRange.y;
-	return  {
-		xTexSpace * targetSize.x - targetSize.x / 2.0f,
-		yTexSpace * targetSize.z - targetSize.z / 2.0f,
-		zTexSpace * targetSize.y };
-	
 }
 
 MillingPath MillingPathCreator::CreateRoughtingPath(Scene& scene)
@@ -122,15 +163,21 @@ MillingPath MillingPathCreator::CreateRoughtingPath(Scene& scene)
 	Debuger::ShowTexture(tex);
 
 	float halfHeight = (targetSize.y - targetBaseHeight) / targetSize.y / 2.0f;
-	std::vector<glm::fvec3> positions = sampleHeigthMap(tex, halfHeight, true);
-	std::vector<glm::fvec3> positions0 = sampleHeigthMap(tex, 0.0f, false);
-	positions.insert(positions.end(), positions0.begin(), positions0.end());
-	return MillingPath(positions, 12, false);
+	std::vector<glm::fvec3> positions1 = sampleHeigthMap(tex, halfHeight, true);
+	std::vector<glm::fvec3> positions2 = sampleHeigthMap(tex, 0.1f, false);
+	std::vector<glm::fvec3> startPoint = { {0.0f, 0.0f, 60.0f } };
+	std::vector<glm::fvec3> positions = mergePaths({
+		startPoint,
+		positions1,
+		positions2,
+		startPoint
+		});
+	return MillingPath(positions, 16, false);
 }
 
 MillingPath MillingPathCreator::CreateBasePath(Scene& scene)
 {
-	const float r = targetToWorldSpace(1.2f);
+	const float r = targetToWorldSpace(0.6f);
 	std::shared_ptr<IUVSurface> base = findSurfaceByName(scene, "base");
 	std::shared_ptr<IUVSurface> handle = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "handle"), r, true);
 	std::shared_ptr<IUVSurface> body = std::make_shared<SurfaceShift>(findSurfaceByName(scene, "body"), r, false);
@@ -140,101 +187,120 @@ MillingPath MillingPathCreator::CreateBasePath(Scene& scene)
 
 	UVEnvelope envelope = createEnvelope(base);
 	
-	std::vector<glm::fvec2> positionsUV;
-	int lineCount = 20;
-	bool reverse = false;
-	for (int i = 0; i < lineCount; i++)
+	std::vector<glm::fvec3> positions1 = uvPathsToWorldPathsFlat(base, millBase(base, envelope, 0.6f, false));
+	std::vector<glm::fvec3> positions2 = uvPathsToWorldPathsFlat(base, millBase(base, envelope, 0.6f, true));
+	UVEnvelopeIterator it(envelope);
+	auto roundingPositions = getRoundingPositions(it, base);
+	
+	auto transPos1 = 10.0f * worldToTargetSpace(base->f(0, 1));
+	glm::fvec3 transPos2 = { transPos1.x, roundingPositions.back().y, transPos1.z};
+	std::vector<glm::fvec3> safeTransition = { transPos1, transPos2 };
+	std::vector<glm::fvec3> positions = mergePaths({ positions1,positions2,safeTransition, roundingPositions });
+	for (int i = 0; i<positions.size(); i++)
 	{
-		float v = 1 - i / (float)(lineCount - 1);
+		//positions[i].z = 0;
+		positions[i] = applyBase(positions[i]);
+	}
+
+	std::vector<glm::fvec3> startPoints = { {0.0f, 0.0f, 60.0f }, {0.0f,-90.0f, 60.0f}, applyBase({0.0f,-90.0f, 0.0f}) };
+	std::vector<glm::fvec3> endPoint = { { positions.back().x, positions.back().y, 60.0f}, {0.0f, 0.0f, 60.0f } };
+	positions = mergePaths({
+		startPoints,
+		positions,
+		endPoint
+		});
+
+	return MillingPath(positions, 12, true);
+}
+
+std::vector<glm::fvec2> MillingPathCreator::millBase(std::shared_ptr<IUVSurface> surf, UVEnvelope& envelope, float r, bool direction)
+{
+	r = targetToWorldSpace(r);
+	std::vector<glm::fvec2> positionsUV;
+	float cadWidth = rect.y - rect.x;
+	float roughEps = r / 10.0f;
+	float pathWidth = 2 * r - 3 * roughEps;
+	int pathCount = ceilf(cadWidth / pathWidth) + 1;
+	int pathDivision = 100;
+	bool reverse = false;
+	for (int i = 0; i < pathCount; i++)
+	{
+		float v = i / (float)(pathCount - 1);
+		if (!direction)
+			v = 1 - v;
 		if (i == 0)
 		{
 			positionsUV.push_back({ 1, v });
 			positionsUV.push_back({ 0, v });
 			continue;
 		}
-		positionsUV.push_back({positionsUV.rbegin()->x, v });
+		positionsUV.push_back({ positionsUV.rbegin()->x, v });
 
 		std::vector<UVEnvelopeIterator> intersections = intersectEnvelopeWithLine(envelope, v, false);
-		if (intersections.empty() || i % 2 == 0  )
+		if (intersections.empty() || i % 2 == (direction ? 1 : 0))
 		{
 			positionsUV.push_back({ reverse ? 0 : 1, v });
 		}
 		else
 		{
-			glm::fvec2 minInt = { 1,v };
+			std::vector<glm::fvec2> envelopePointsUV;
+
+			glm::fvec2 minInt = { direction ? 0 : 1, v };
 			int minI = 0;
-			for (int j =0; j<intersections.size(); j++)
+			for (int j = 0; j < intersections.size(); j++)
 			{
 				glm::fvec2 intUV = intersections[j].Current();
-				if (intUV.x < minInt.x)
+				if ((intUV.x < minInt.x) != direction)
 				{
 					minI = j;
 					minInt = intUV;
 				}
 			}
-			positionsUV.push_back({ minInt.x, minInt.y });
-			
+			envelopePointsUV.push_back({ minInt.x, minInt.y });
+
 			UVEnvelopeIterator& it = intersections[minI];
 			glm::fvec2 pos = it.Current();
-			float nextV = 1 - (i+1) / (float)(lineCount - 1);
-			while (!it.Finished() && pos.y > nextV)
+			float nextV = (i + 1) / (float)(pathCount - 1);
+			if (!direction)
+				nextV = 1 - nextV;
+
+			while (!it.Finished() && (pos.y > nextV) != direction)
 			{
 				glm::fvec2 nextPos = it.Next();
-				if (pos.y < nextPos.y || nextPos.y <= nextV)
+				if ((pos.y < nextPos.y) != direction || (nextPos.y <= nextV) != direction)
 					break;
 				pos = nextPos;
-				positionsUV.push_back({ pos.x, pos.y });
+				envelopePointsUV.push_back({ pos.x, pos.y });
 			}
+			auto skipped = skipUnneadedPoints(surf, envelopePointsUV, 0.2f, false);
+			positionsUV.insert(positionsUV.end(), skipped.begin(), skipped.end());
 		}
 		reverse = !reverse;
 	}
-	reverse = false;
-	for (int i = 0; i < lineCount; i++)
+	return positionsUV;
+}
+
+std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPathsFlat(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions)
+{
+	std::vector<glm::fvec3> positions;
+	for (auto p : uvPositions)
 	{
-		float v = i / (float)(lineCount - 1);
-		if (i == 0)
-		{
-			positionsUV.push_back({ 0, v });
-			positionsUV.push_back({ 1, v });
-			continue;
-		}
-		positionsUV.push_back({positionsUV.rbegin()->x, v });
-
-		std::vector<UVEnvelopeIterator> intersections = intersectEnvelopeWithLine(envelope, v, false);
-		if (intersections.empty() || i % 2 == 0)
-		{
-			positionsUV.push_back({ reverse ? 1 : 0, v });
-		}
-		else
-		{
-			glm::fvec2 maxInt = { 0,v };
-			int maxI = 0;
-			for (int j = 0; j < intersections.size(); j++)
-			{
-				glm::fvec2 intUV = intersections[j].Current();
-				if (intUV.x > maxInt.x)
-				{
-					maxI = j;
-					maxInt = intUV;
-				}
-			}
-			positionsUV.push_back({ maxInt.x, maxInt.y });
-
-			UVEnvelopeIterator& it = intersections[maxI];
-			glm::fvec2 pos = it.Current();
-			float nextV = (i + 1) / (float)(lineCount - 1);
-			while (!it.Finished() && pos.y < nextV)
-			{
-				glm::fvec2 nextPos = it.Next();
-				if (pos.y > nextPos.y || nextPos.y >= nextV)
-					break;
-				pos = nextPos;
-				positionsUV.push_back({ pos.x,pos.y });
-			}
-		}
-		reverse = !reverse;
+		positions.push_back(10.0f * worldToTargetSpace(s->f(p.x, p.y)));
 	}
-	return MillingPath(uvPathsToWorldPathsFlat(base,positionsUV), 8, true);
+	return positions;
+}
+
+std::vector<glm::fvec3> MillingPathCreator::getRoundingPositions(UVEnvelopeIterator& envelopeIt, std::shared_ptr<IUVSurface> surf, bool asUV)
+{
+
+	std::vector<glm::fvec2> uvPositions;
+	while (!envelopeIt.Finished())
+	{
+		glm::fvec2 pos = envelopeIt.Next();
+		uvPositions.push_back({ pos.x, pos.y });
+	}
+	//Debuger::ShowPath(surf, uvPositions);
+	return asUV ? uvPathsTo3D(uvPositions) : uvPathsToWorldPathsFlat(surf, uvPositions);
 }
 
 MillingPath MillingPathCreator::CreateRoundingPath(Scene& scene)
@@ -268,10 +334,10 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 	if (!button)
 		throw std::logic_error("no button surface found");
 
-	//Debuger::ShowUVSurface(body);
-	//Debuger::ShowUVSurface(handle);
-	//Debuger::ShowUVSurface(body);
-	//Debuger::ShowUVSurface(button);
+	/*Debuger::ShowUVSurface(body);
+	Debuger::ShowUVSurface(handle);
+	Debuger::ShowUVSurface(base);
+	Debuger::ShowUVSurface(button);*/
 
 	intersect(scene, body, handle, { 7, -9, -r });
 	intersect(scene, body, handle, { -4, -9, -r });
@@ -296,29 +362,38 @@ MillingPath MillingPathCreator::CreateDetailPath(Scene& scene)
 	UVEnvelope envelopeButton = createEnvelope(button);
 	
 	auto positionsBody = millUVSurface(body, envelopeBody);
-	auto positionsHandle = millUVSurface(handle, envelopeHandle);
+	auto positionsHandle = millUVSurface(handle, envelopeHandle, false,true);
 	auto positionsHole = millUVSurface(base, envelopeHole);
-	auto positionsButton = millUVSurface(button, envelopeButton, true);
-
+	auto positionsButton = millUVSurface(button, envelopeButton,true);
+	
 	auto positionsBodyToHandle = safeMove(positionsBody.back(), positionsHandle.front());
 	auto positionsHandleToHole = safeMove(positionsHandle.back(), positionsHole.front());
 	auto positionsHoleToButton = safeMove(positionsHole.back(), positionsButton.front());
 	
-	UVEnvelopeIterator it(envelopeButton);
-	//std::vector<glm::fvec3> positions = getRoundingPositions(it, body, true);
-	/*std::vector<glm::fvec3> positions;// = millUVSurface(base, envelopeHole);
-	*/
+	UVEnvelopeIterator it(envelopeBody);
+	//std::vector<glm::fvec3> positionsBodyRounding = getRoundingPositions(it, body, true);
+	//std::vector<glm::fvec3> positions1 = millUVSurface(handle, envelopeHandle,false,true,true);
+	//for (int i = 0; i < positions1.size() / 2.0f; i++)
+	//	positions.push_back(positions1[i]);
+
+	std::vector<glm::fvec3> startPoint = { {0.0f, 0.0f, 60.0f } };
 	std::vector<glm::fvec3> positions = mergePaths({
+			startPoint,
 			positionsBody,
 			positionsBodyToHandle,
 			positionsHandle,
 			positionsHandleToHole,
 			positionsHole,
 			positionsHoleToButton,
-			positionsButton
+		    positionsButton,
+			startPoint
 		});
-
-	return MillingPath(positions, 8, true);
+	for (int i = 0; i < positions.size(); i++)
+	{
+		positions[i] = applyBase(positions[i]) - glm::fvec3(0.0f, 0.0f, 4.0f);
+	}
+	
+	return MillingPath(positions, 4, false);
 }
 
 std::vector<glm::fvec3> MillingPathCreator::millUVSurface(std::shared_ptr<IUVSurface> s, UVEnvelope& envelope, bool borderBottom, bool side, bool asUV)
@@ -326,10 +401,11 @@ std::vector<glm::fvec3> MillingPathCreator::millUVSurface(std::shared_ptr<IUVSur
 	std::vector<glm::fvec2> uvPositions;
 	bool reverse = false;
 	float u = 0;
+	auto reverseUV = [](glm::fvec2 uv) { return glm::fvec2(uv.y, uv.x); };
 	while (u < 1.0f)
 	{
 		float nextU;
-		auto intersections = intersectEnvelopeWithLine(envelope, u, true);
+		auto intersections = intersectEnvelopeWithLine(envelope, u, !side);
 		if (intersections.size() == 0 || (intersections.size() == 1 && !borderBottom))
 		{
 			u += 0.01f;
@@ -339,75 +415,160 @@ std::vector<glm::fvec3> MillingPathCreator::millUVSurface(std::shared_ptr<IUVSur
 		int maxInd = -1;
 		glm::fvec2 minUV = { u, borderBottom ? 0 : 1 };
 		glm::fvec2 maxUV = { u, 0 };
+		if (side)
+		{
+			minUV = reverseUV(minUV);
+			maxUV = reverseUV(maxUV);
+		}
 		for (int j = 0; j < intersections.size(); j++)
 		{
 			glm::fvec2 current = intersections[j].Current();
-			if (current.y < minUV.y)
+			if ((!side && current.y < minUV.y) || (side && current.x < minUV.x))
 			{
 				minUV = current;
 				minInd = j;
 			}
-			if (current.y > maxUV.y)
+			if ((!side && current.y > maxUV.y) || (side && current.x > maxUV.x))
 			{
 				maxUV = current;
 				maxInd = j;
 			}
+		}
+		if (side)
+		{
+			maxUV.y = u;
+			minUV.y = u;
+		}
+		else
+		{
+			maxUV.x = u;
+			minUV.x = u;
 		}
 		if (reverse)
 		{
 			uvPositions.push_back(maxUV);
 			uvPositions.push_back(minUV);
 			const float maxUDistance = 0.1f;
-			float dist = realDist(s, minUV, minUV + glm::fvec2(maxUDistance, 0.0f));
-			float dy = 0.1f;// getCurvatureBasedDist(s, minUV, true);
-			nextU = u + 0.001f;// dy / dist;
+			float dist = realDist(s, minUV, minUV + (side ? glm::fvec2(0.0f,maxUDistance) : glm::fvec2(maxUDistance, 0.0f)));
+			if (dist < 1)
+				dist = 1.0f;
+			float dy = frequencyMultipier * getCurvatureBasedDist(s, minUV, true, frequecnyCurvatureInfluence);
+			nextU = u + dy / dist;
 			//nextU = u + realDistToUV(s, getCurvatureBasedDist(s, minUV, true), minUV, minUV + glm::fvec2(1.0f,0.0f));
-			if (intersections.size() > 1 && !borderBottom)
+			/*
+			if (intersections.size() > 1 && !borderBottom && !side)
 			{
 				UVEnvelopeIterator& it = intersections[minInd];
 				if (!it.GoesInPositiveU())
 					it.Reverse();
 				glm::fvec2 pos = it.Current();
-				while (!it.Finished() && pos.x < nextU)
+				while (!it.Finished() && ((!side && pos.x < nextU) || (side && pos.y < nextU)))
 				{
-					uvPositions.push_back(pos);
+					//uvPositions.push_back(pos);
 					glm::fvec2 nextPos = it.Next();
 					if (glm::abs(nextPos.x - pos.x) > 0.5f || glm::abs(nextPos.y - pos.y) > 0.5f) // wrap
 						break;
 					pos = nextPos;
 				}
+				uvPositions.push_back(pos);
 			}
+			*/
 		}
 		else
 		{
 			uvPositions.push_back(minUV);
 			uvPositions.push_back(maxUV);
 			const float maxUDistance = 0.1f;
-			float dist = realDist(s, maxUV, maxUV + glm::fvec2(maxUDistance, 0.0f));
-			float dy = 0.1f;// getCurvatureBasedDist(s, minUV, true);
-			nextU = u + 0.01f;// dy / dist;
+			float dist = realDist(s, maxUV, maxUV + (side ? glm::fvec2(0.0f, maxUDistance) : glm::fvec2(maxUDistance, 0.0f)));
+			if (dist == 0)
+				dist = 1.0f;
+			float dy = frequencyMultipier * getCurvatureBasedDist(s, minUV, true, frequecnyCurvatureInfluence);
+			nextU = u + dy / dist;
 			//nextU = u + realDistToUV(s, getCurvatureBasedDist(s, minUV, true), minUV, minUV + glm::fvec2(1.0f, 0.0f));
-
-			if (intersections.size() > 1)
+			/*
+			if (intersections.size() > 1 && !side)
 			{
 				UVEnvelopeIterator& it = intersections[maxInd];
 				if (!it.GoesInPositiveU())
 					it.Reverse();
 				glm::fvec2 pos = it.Current();
-				while (!it.Finished() && pos.x < nextU)
+				while (!it.Finished() && ((!side && pos.x < nextU) || (side && pos.y < nextU)))
 				{
-					uvPositions.push_back(pos);
+					//uvPositions.push_back(pos);
 					glm::fvec2 nextPos = it.Next();
 					if (glm::abs(nextPos.x - pos.x) > 0.5f || glm::abs(nextPos.y - pos.y) > 0.5f) // wrap
 						break;
 					pos = nextPos;
 				}
+				uvPositions.push_back(pos);
 			}
+			*/
 		}
 		reverse = !reverse;
 		u = nextU;
 	}
 	return asUV ? uvPathsTo3D(uvPositions) : uvPathsToWorldPaths(s,uvPositions, side);
+}
+
+std::vector<glm::fvec2> MillingPathCreator::skipUnneadedPoints(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> points, float minD, bool useCurvature)
+{
+	std::vector<glm::fvec2> outputPoints = { points.front() };
+	int i = 0;
+	int prev = 0;
+	while (i < points.size() - 2)
+	{
+		float d = useCurvature ? getCurvatureBasedDist(s, points[i], points, i, dencityCurvatureInfluence) : minD;
+		prev = i;
+		// skip identical points
+		while (i < points.size() && realDist(s, points[i + 1], points[i]) == 0)
+			i++;
+		if (i >= points.size() - 3)
+			break;
+
+		// skip to close points
+		int next = i;
+		float dist;
+		float angleCos;
+		do
+		{
+			next++;
+			dist = realDist(s, points[i], points[next + 1]);
+			//angleCos = realAngleCos(s, uvPositions[i], uvPositions[i + 1], uvPositions[next + 1]);
+		} while (dist < d /* && angleCos > acceptAngleCos*/ && next < points.size() - 2);
+		i = next;
+		outputPoints.push_back(points[i]);
+	}
+	outputPoints.push_back(points.back());
+	return outputPoints;
+}
+
+float MillingPathCreator::getCurvatureBasedDist(std::shared_ptr<IUVSurface> s, glm::fvec2 pos, std::vector<glm::fvec2>& positions, int i, float influence)
+{
+	bool u = false;
+	for (int j = i + 1; j < positions.size(); j++)
+	{
+		if (pos != positions[j])
+		{
+			glm::fvec2 uvDist = glm::abs(pos - positions[j]);
+			u = uvDist.x > uvDist.y;
+			break;
+		}
+	}
+	return getCurvatureBasedDist(s, pos, u, influence);
+
+}
+
+float MillingPathCreator::getCurvatureBasedDist(std::shared_ptr<IUVSurface> s, glm::fvec2 pos, bool u, float influence)
+{
+	float dy;
+	glm::fvec3 derivative = u ? s->dfduu(pos.x, pos.y) : s->dfdvv(pos.x, pos.y);
+	if (u)
+		dy = glm::clamp(maxDetailDist / glm::pow(glm::length(derivative) + 0.000001f,influence), minDetailDist, maxDetailDist);
+	else
+	{
+		dy = glm::clamp(maxDetailDist / glm::pow(glm::length(derivative) + 0.000001f, influence), minDetailDist, maxDetailDist);
+	}
+	return dy;
 }
 
 std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPaths(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions, bool side)
@@ -446,7 +607,7 @@ std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPaths(std::shared_ptr<
 	int prev = 0;
 	while (i < uvPositions.size() - 2)
 	{
-		dy = 0.1f;// getCurvatureBasedDist(s, uvPositions[i], uvPositions, i);
+		dy = dencityMultipier * getCurvatureBasedDist(s, uvPositions[i], uvPositions, i, dencityCurvatureInfluence);
 		prev = i;
 		// skip identical points
 		while (i < uvPositions.size() && realDist(s, uvPositions[i + 1], uvPositions[i]) == 0)
@@ -473,7 +634,7 @@ std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPaths(std::shared_ptr<
 		float t = 0;
 		while (t < 1)
 		{
-			dy = 0.1f;// getCurvatureBasedDist(s, uv, uvPositions, prev);
+			dy = dencityMultipier * getCurvatureBasedDist(s, uv, uvPositions, prev, dencityCurvatureInfluence);
 			dist = realDist(s,uvPrev,uvNext);
 			t += dy / dist;
 			/*
@@ -493,28 +654,6 @@ std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPaths(std::shared_ptr<
 	return worldPositions;
 }
 
-std::vector<glm::fvec3> MillingPathCreator::uvPathsToWorldPathsFlat(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions)
-{
-	std::vector<glm::fvec3> positions;
-	for (auto p : uvPositions)
-	{
-		positions.push_back(10.0f * worldToTargetSpace(s->f(p.x, p.y)));
-	}
-	return positions;
-}
-
-std::vector<glm::fvec3> MillingPathCreator::getRoundingPositions(UVEnvelopeIterator& envelopeIt, std::shared_ptr<IUVSurface> surf, bool asUV)
-{
-
-	std::vector<glm::fvec2> uvPositions;
-	while (!envelopeIt.Finished())
-	{
-		glm::fvec2 pos = envelopeIt.Next();
-		uvPositions.push_back({ pos.x, pos.y });
-	}
-	return asUV ? uvPathsTo3D(uvPositions) : uvPathsToWorldPathsFlat(surf, uvPositions);
-}
-
 std::vector<glm::fvec3> MillingPathCreator::uvPathsTo3D(std::vector<glm::fvec2> uvPositions)
 {
 	std::vector<glm::fvec3> positions;
@@ -523,51 +662,6 @@ std::vector<glm::fvec3> MillingPathCreator::uvPathsTo3D(std::vector<glm::fvec2> 
 		positions.push_back({ p.x * 150.0f - 75.0f,p.y * 150.0f - 75.0f,0.0f });
 	}
 	return positions;
-}
-
-std::vector<glm::fvec3> MillingPathCreator::mergePaths(VectorOfReference<std::vector<glm::fvec3>> paths)
-{
-	std::vector<glm::fvec3> merged;
-	for(auto path : paths)
-		merged.insert(merged.end(), path.get().begin(), path.get().end());
-	return merged;
-}
-
-std::vector<glm::fvec3> MillingPathCreator::safeMove(glm::fvec3 from, glm::fvec3 to)
-{
-	return {
-		{from.x,from.y,targetSize.y * 10.0f},
-		{to.x,to.y,targetSize.y * 10.0f}
-	};
-}
-
-float MillingPathCreator::getCurvatureBasedDist(std::shared_ptr<IUVSurface> s, glm::fvec2 pos, std::vector<glm::fvec2>& positions, int i)
-{
-	bool u = false;
-	for (int j = i+1;  j < positions.size(); j++)
-	{
-		if (pos != positions[j])
-		{
-			glm::fvec2 uvDist = glm::abs(pos - positions[j]);
-			u = uvDist.x > uvDist.y;
-			break;
-		}
-	}
-	return getCurvatureBasedDist(s, pos, u);
-
-}
-
-float MillingPathCreator::getCurvatureBasedDist(std::shared_ptr<IUVSurface> s, glm::fvec2 pos, bool u)
-{
-	float dy;
-	glm::fvec3 derivative = u ? s->dfduu(pos.x, pos.y) : s->dfdvv(pos.x, pos.y);
-	if (u)
-		dy = glm::clamp(1 / (uDistMult * glm::length(derivative) + 0.000001f), 0.1f, 0.5f);
-	else
-	{
-		dy = glm::clamp(1 / (vDistMult * glm::length(derivative) + 0.000001f), 0.1f, 0.5f);
-	}
-	return dy;
 }
 
 float MillingPathCreator::realDistToUV(std::shared_ptr<IUVSurface> s, float d, glm::fvec2 lineStart, glm::fvec2 lineEnd)
@@ -597,25 +691,6 @@ float MillingPathCreator::realAngleCos(std::shared_ptr<IUVSurface> surf, glm::fv
 		return 1; // there is a loop of close points
 	return glm::dot(v1,v2);
 }
-
-glm::fvec3 MillingPathCreator::applyBase(glm::fvec3 pos)
-{
-	return pos + glm::fvec3(0.0f,0.0f, targetBaseHeight);
-}
-
-std::shared_ptr<IUVSurface> MillingPathCreator::findSurfaceByName(Scene& scene, std::string name)
-{
-	for (auto& o : scene.objects)
-	{
-		auto surface = std::dynamic_pointer_cast<IUVSurface>(o.first);
-		if (!surface)
-			continue;
-		if (o.first->getName() == name) 
-			return surface;
-	}
-	return nullptr;
-}
-
 
 UVEnvelope MillingPathCreator::createEnvelope(std::shared_ptr<IUVSurface> base)
 {

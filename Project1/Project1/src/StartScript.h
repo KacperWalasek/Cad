@@ -3,7 +3,7 @@
 #include "ErrorDisplayer.h"
 
 class StartScript {
-	const bool dissabled = false;
+	const bool dissabled = true;
 	Scene& scene;
 	Simulator& simulator;
 	ErrorDisplayer& errorDisplayer;
