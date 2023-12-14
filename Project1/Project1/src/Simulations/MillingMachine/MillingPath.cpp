@@ -23,15 +23,15 @@ void MillingPath::readPositions(std::stringstream& ss)
 
 std::string MillingPath::serializeNumber(float c) const
 {
-	float rounded = roundf(c * 1000.0f) / 1000.0f;
-	int sign = c < 0 ? -1 : 1;
-	int intSection = sign * floorf(glm::abs(rounded));
-	int floatSection = ((int)floorf(glm::abs((rounded - intSection) * 1000.0f)))%1000;
-	if (floatSection == 0)
-		sign = sign;
+	int rounded = glm::abs(glm::round(c * 1000.0f));
+	int floatSection = rounded % 1000;
+	int intSection = (rounded - floatSection)/1000;
 	std::string floatSectionStr = std::to_string(floatSection);
-	floatSectionStr = std::string(3-floatSectionStr.length(), '0') + floatSectionStr;
-	return std::to_string(intSection) + "." + floatSectionStr;
+	floatSectionStr = std::string(3 - floatSectionStr.length(), '0') + floatSectionStr;
+	std::string serialized = std::to_string(intSection) + "." + floatSectionStr;
+	if (c < 0)
+		return "-" + serialized;
+	return serialized; 
 }
 
 std::stringstream MillingPath::serialize() const
@@ -39,7 +39,6 @@ std::stringstream MillingPath::serialize() const
 	std::stringstream ss;
 	for (int i = 0; i < positions.size(); i++)
 	{
-		//Debuger::ShowPoint({ std::stof(serializeNumber(positions[i].x)), std::stof(serializeNumber(positions[i].y)), std::stof(serializeNumber(positions[i].z) )});
 		ss << "N" << i + 2 << "G01" <<
 			"X" << serializeNumber(positions[i].x) <<
 			"Y" << serializeNumber(positions[i].y) <<

@@ -167,14 +167,21 @@ void Debuger::ShowVector(glm::fvec3 from, glm::fvec3 to)
 
 void Debuger::ShowPath(std::shared_ptr<IUVSurface> surface, std::vector<glm::fvec2> uvPositions)
 {
-	for (auto& uv : uvPositions)
+	for (int i =0; i<uvPositions.size(); i++)//auto& uv : uvPositions)
 	{
+		auto& uv = uvPositions[i];
 		float u = uv.x;
 		float v = uv.y;
 		glm::fvec3 p = surface->f(u, v);
 		points.push_back(surface->f(u,v));
-		vectors.emplace_back(p, p + surface->dfdu(u, v) / 1000.0f);
-		vectors.emplace_back(p, p + surface->dfdv(u, v) / 1000.0f);
+		if (i != 0)
+		{
+			glm::fvec2 lastUV = uvPositions[i - 1];
+			glm::fvec3 lastPoint = surface->f(lastUV.x, lastUV.y);
+			vectors.emplace_back(p, lastPoint);// +surface->dfdu(u, v) / 1000.0f);
+		}
+		//vectors.emplace_back(p, p + surface->dfdu(u, v) / 1000.0f);
+		//vectors.emplace_back(p, p + surface->dfdv(u, v) / 1000.0f);
 	}
 	updateVectors();
 	updatePoints();

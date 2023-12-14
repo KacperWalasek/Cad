@@ -27,9 +27,9 @@ class MillingPathCreator
 	static std::vector<std::pair<int, int>> findIntersections(UVCurve c1, UVCurve c2);
 	static bool segmentIntersect(glm::fvec2 a, glm::fvec2 b, glm::fvec2 c, glm::fvec2 d);
 	static UVEnvelope createEnvelope(std::shared_ptr<IUVSurface> base);
-	static std::vector<UVEnvelopeIterator> intersectEnvelopeWithLine(UVEnvelope& envelope, float t, bool u);
+	static std::vector<std::pair<glm::fvec2, UVEnvelopeIterator>> intersectEnvelopeWithLine(UVEnvelope& envelope, float t, bool u);
 	static std::shared_ptr<IUVSurface> findSurfaceByName(Scene& scene, std::string name);
-	static std::vector<glm::fvec3> millUVSurface(std::shared_ptr<IUVSurface> s, UVEnvelope& envelope, bool borderTop = false, bool side = false, bool asUV = false);
+	static std::vector<glm::fvec3> millUVSurface(std::shared_ptr<IUVSurface> s, UVEnvelope& envelope, bool borderTop = false, bool side = false, bool asUV = false, std::vector<std::pair<float, float>> keyDistMultipliers = { {0,0} }, float frequency = 0.001f);
 	static std::vector<glm::fvec3> uvPathsToWorldPaths(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions, bool side);
 	static std::vector<glm::fvec3> uvPathsToWorldPathsFlat(std::shared_ptr<IUVSurface> s, std::vector<glm::fvec2> uvPositions);
 	static std::vector<glm::fvec3> getRoundingPositions(UVEnvelopeIterator& envelopeIt, std::shared_ptr<IUVSurface> surf, bool asUV = false);

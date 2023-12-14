@@ -100,7 +100,7 @@ public:
 			i1 = i2;
 			i2 = tmp;
 		}
-		if (i == i2)
+		if (glm::abs(i - i2)<2)
 		{
 			// change curve
 			beginVert = curve->v1 == beginVert ? curve->v2 : curve->v1;
